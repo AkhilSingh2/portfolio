@@ -8,7 +8,7 @@ import { ResumeDownload } from "@/components/resume-download";
 import { SocialLinks } from "@/components/social-links";
 import { TagList } from "@/components/tag";
 import { featuredProject, liveTools, workGroups } from "@/lib/menu";
-import type { Project } from "@/lib/projects";
+import type { Project, Shot } from "@/lib/projects";
 import { person } from "@/lib/site";
 
 type Spot =
@@ -16,6 +16,11 @@ type Spot =
   | { kind: "page"; id: string; title: string; body: string; href: string };
 
 const spring = { type: "spring" as const, stiffness: 320, damping: 28 };
+
+function Thumb({ shot, sizes, className }: { shot?: Shot; sizes: string; className?: string }) {
+  if (!shot) return <span className={className ? `mega-blank ${className}` : "mega-blank"} aria-hidden="true" />;
+  return <Media src={shot.src} alt="" width={shot.width} height={shot.height} sizes={sizes} />;
+}
 
 export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleId: string }>(function MegaMenu(
   { onClose, titleId },
@@ -77,7 +82,7 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
               >
                 {showProject ? (
                   <>
-                    <Media src={active.shots[0].src} alt="" width={active.shots[0].width} height={active.shots[0].height} sizes="320px" />
+                    <Thumb shot={active.shots[0]} sizes="320px" className="spotlight-blank" />
                     <span className="spotlight-copy">
                       <span className="eyebrow">Featured</span>
                       <strong>{active.title}</strong>
@@ -131,7 +136,7 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
                           onMouseEnter={() => focusProject(project.slug)}
                           onFocus={() => focusProject(project.slug)}
                         >
-                          <Media src={thumb.src} alt="" width={120} height={75} />
+                          <Thumb shot={thumb} sizes="80px" />
                           <span>
                             <strong>{project.title}</strong>
                             <em>{project.kicker}</em>
