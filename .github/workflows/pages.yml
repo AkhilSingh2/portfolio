@@ -3,6 +3,7 @@ name: Deploy GitHub Pages
 on:
   push:
     branches: [main, cursor/portfolio-v2-76b8]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -28,7 +29,20 @@ jobs:
         env:
           NEXT_PUBLIC_BASE_PATH: /portfolio
           NEXT_PUBLIC_SITE_URL: https://akhilsingh2.github.io/portfolio
+      - run: npx playwright install --with-deps chromium
+      - name: Click every nav and footer link
+        run: |
+          mkdir -p /tmp/site/portfolio
+          cp -a out/. /tmp/site/portfolio
+          npx --yes serve /tmp/site -p 4177 &
+          for i in $(seq 1 30); do
+            curl -sf -o /dev/null http://127.0.0.1:4177/portfolio/ && break
+            sleep 1
+          done
+          curl -sf -o /dev/null http://127.0.0.1:4177/portfolio/
+          ORIGIN=http://127.0.0.1:4177 BASE_PATH=/portfolio node scripts/smoke-nav.mjs
       - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main'
         with:
           path: out
 
