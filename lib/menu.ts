@@ -10,6 +10,19 @@ const groups = [
     slugs: ["devkit", "india-salary-tax", "cgpa-upi", "subtitle-vocab-explainer"],
   },
   { id: "open", label: "Open source and Devotional", slugs: ["kinetic", "sutra-ui", "online-chalisa"] },
+  { id: "backend", label: "Backend and APIs", slugs: ["mymirro-recommendation-api", "colour-analysis-api"] },
+  {
+    id: "professional",
+    label: "Professional work",
+    slugs: [
+      "ai-asset-platform",
+      "media-composition",
+      "localisation-pipeline",
+      "finance-platform",
+      "cloud-infrastructure",
+      "marketing-site",
+    ],
+  },
 ] as const;
 
 export type WorkGroup = { id: string; label: string; projects: Project[] };

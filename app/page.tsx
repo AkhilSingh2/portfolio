@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Button } from "@/components/button";
 import { Hero } from "@/components/hero";
 import { Manifesto } from "@/components/manifesto";
@@ -81,6 +82,46 @@ export default function HomePage() {
       </section>
 
       <WorkReel projects={reelProjects()} />
+
+      <section className="api-strip theme-ink" id="apis" aria-labelledby="api-title">
+        <div className="section-head">
+          <p className="eyebrow">Backend and APIs</p>
+          <h2 id="api-title">The screen is where it starts.</h2>
+          <p>Outfit search and colour analysis are services of their own. The rest of the work is tagged the same way.</p>
+        </div>
+        <div className="hero-actions">
+          <Button href="/work/mymirro-recommendation-api" variant="solid">
+            Recommendation API
+          </Button>
+          <Button href="/work/colour-analysis-api" variant="ghost">
+            Colour Analysis API
+          </Button>
+          <Link className="btn btn-line" href="/work/?tag=Backend">
+            All backend work
+          </Link>
+        </div>
+        <ul className="api-strip-list">
+          <li>
+            <Link href="/work/ai-asset-platform">AI asset platform</Link>
+          </li>
+          <li>
+            <Link href="/work/media-composition">Media composition</Link>
+          </li>
+          <li>
+            <Link href="/work/localisation-pipeline">Localisation pipeline</Link>
+          </li>
+          <li>
+            <Link href="/work/finance-platform">Finance platform</Link>
+          </li>
+          <li>
+            <Link href="/work/cloud-infrastructure">Cloud infrastructure</Link>
+          </li>
+          <li>
+            <Link href="/work/marketing-site">Marketing site</Link>
+          </li>
+        </ul>
+        <p className="api-strip-note">Proprietary work at Kwalee, described without code or confidential detail.</p>
+      </section>
 
       <section className="process theme-bone" id="process" aria-labelledby="process-title">
         <div className="section-head">

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { PageShell } from "@/components/page-shell";
-import { WorkIndex } from "@/components/work-index";
-import { alsoProjects, selectedProjects } from "@/lib/projects";
+import { WorkBoard } from "@/components/work-board";
+import { decorate, projects } from "@/lib/projects";
 
 export const metadata: Metadata = {
   title: "Work",
@@ -21,15 +21,7 @@ export default function WorkPage() {
             are linked only when they are actually live.
           </p>
         </header>
-        <h2 id="selected-work" className="sr-only">
-          Selected
-        </h2>
-        <WorkIndex projects={selectedProjects()} labelledBy="selected-work" />
-        <section className="studies" aria-labelledby="also-title">
-          <h2 id="also-title">Also in public</h2>
-          <p>Team products and experiments that sit beside the work above.</p>
-          <WorkIndex projects={alsoProjects()} labelledBy="also-title" />
-        </section>
+        <WorkBoard projects={projects.map((project) => decorate(project))} />
       </article>
     </PageShell>
   );

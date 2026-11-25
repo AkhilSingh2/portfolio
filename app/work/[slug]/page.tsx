@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { EngineeringBlock } from "@/components/engineering-block";
 import { DeviceFrame } from "@/components/device-frame";
 import { SutraShowcase } from "@/components/sutra-showcase";
 import { PageShell } from "@/components/page-shell";
@@ -48,13 +49,16 @@ export default async function CaseStudyPage({ params }: { params: Promise<Params
         </header>
 
         <div className="case-body">
+          {project.repo || project.live ? (
           <dl className="case-meta">
             <div>
               <dt>Links</dt>
               <dd className="case-links">
+                {project.repo ? (
                 <a href={project.repo} target="_blank" rel="noreferrer">
                   Repository
                 </a>
+                ) : null}
                 {project.pr ? (
                   <a href={project.pr} target="_blank" rel="noreferrer">
                     Pull request
@@ -68,6 +72,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<Params
               </dd>
             </div>
           </dl>
+          ) : null}
 
           <section aria-labelledby="problem-title">
             <h2 id="problem-title">Problem</h2>
@@ -88,6 +93,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<Params
               <TagList items={project.stack} />
             </section>
           ) : null}
+          {project.engineering ? <EngineeringBlock note={project.engineering} /> : null}
           <section aria-labelledby="outcome-title">
             <h2 id="outcome-title">Outcome</h2>
             <p>{project.outcome}</p>
