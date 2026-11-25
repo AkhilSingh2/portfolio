@@ -7,7 +7,7 @@ export const philosophy = [
   },
   {
     title: "Color is a signal",
-    body: "Ink and bone carry almost every surface. Ember is the one fire: a mark, a link, a focus ring, a control that can be used. If ember is everywhere, it is nowhere.",
+    body: "Near-black and warm ivory carry the surfaces. Champagne is the signal: a mark, a link, a focus ring, a control that can be used. If the signal is everywhere, it is nowhere.",
   },
   {
     title: "Motion hands off",

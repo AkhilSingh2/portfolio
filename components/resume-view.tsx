@@ -62,7 +62,7 @@ export function ResumeView() {
       <motion.section
         id="summary"
         aria-labelledby="summary-title"
-        initial={reduce ? false : { opacity: 0, y: 18 }}
+        initial={false}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "0px 0px -10% 0px" }}
         transition={rise}
@@ -101,7 +101,7 @@ export function ResumeView() {
               id={`skill-${group.id}`}
               aria-labelledby={`skill-tab-${group.id}`}
               data-active={skill === index ? "true" : "false"}
-              initial={reduce ? false : { opacity: 0, y: 12 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ ...rise, delay: reduce ? 0 : index * 0.05 }}
@@ -154,7 +154,7 @@ export function ResumeView() {
               key={job.id}
               id={`role-${job.id}`}
               data-active={role === index ? "true" : "false"}
-              initial={reduce ? false : { opacity: 0, y: 16 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "0px 0px -8% 0px" }}
               transition={rise}
@@ -176,7 +176,7 @@ export function ResumeView() {
       <motion.section
         id="education"
         aria-labelledby="education-title"
-        initial={reduce ? false : { opacity: 0, y: 16 }}
+        initial={false}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={rise}

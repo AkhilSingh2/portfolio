@@ -8,6 +8,7 @@ import { TagList } from "@/components/tag";
 import { WorkReel } from "@/components/work-reel";
 import { Reveal } from "@/components/reveal";
 import { reelProjects } from "@/lib/projects";
+import { resumeEducation, resumePlace, resumeRoles, resumeSummary } from "@/lib/resume";
 import { person } from "@/lib/site";
 import { skillGroups } from "@/lib/tokens";
 
@@ -37,9 +38,8 @@ export default function HomePage() {
       <Marquee />
       <Manifesto />
 
-      <Reveal>
       <section className="about-band theme-bone" id="about" aria-labelledby="about-title">
-        <div className="about-grid">
+        <div className="about-grid about-grid-full">
           <Portrait size="small" />
           <div>
             <p className="eyebrow">02 — About</p>
@@ -49,18 +49,36 @@ export default function HomePage() {
               is where the product is judged. I stay for the API, the data, and the deploy. Lately the work has a model
               in it, and I keep one rule: the model does not get to invent the facts.
             </p>
+            <p>{resumeSummary}</p>
             <p>
-              {person.availability}. The public record is the case studies: a cited research agent, a multi-tenant
-              SaaS starter, a live collaborative board, product analytics, a local-first ledger, and a reader that is
-              already on the public internet.
+              {person.availability}. {resumePlace}.
             </p>
             <Button href="/about" variant="solid" transitionTypes={["nav-forward"]}>
               About the practice
             </Button>
           </div>
+          <aside className="about-facts" aria-labelledby="resume-facts">
+            <h3 id="resume-facts">From the resume</h3>
+            <ol>
+              {resumeRoles.map((role) => (
+                <li key={role.id}>
+                  <strong>{role.title}</strong>
+                  <span>{role.org}</span>
+                  <span>{role.dates}</span>
+                </li>
+              ))}
+              <li>
+                <strong>{resumeEducation.degree}</strong>
+                <span>{resumeEducation.school}</span>
+                <span>{resumeEducation.dates}</span>
+              </li>
+            </ol>
+            <Button href="/resume" variant="line">
+              Read the resume
+            </Button>
+          </aside>
         </div>
       </section>
-      </Reveal>
 
       <WorkReel projects={reelProjects()} />
 
@@ -100,8 +118,8 @@ export default function HomePage() {
           <p className="eyebrow">06 — Calibre</p>
           <h2 id="calibre-title">A design system with a name, a measure, and the code to prove it.</h2>
           <p>
-            Calibre is the system this site is built with. Ink and bone carry the page. Ember is the one signal.
-            Motion hands a section to the next one. The tokens are the CSS variables, not a slide.
+            Calibre is the system this site is built with. Near-black and warm ivory carry the page. Champagne is the
+            signal. The tokens are the CSS variables, and the charts on the system page are measured.
           </p>
           <Button href="/design-system" variant="solid" transitionTypes={["nav-forward"]}>
             Open the system
@@ -115,6 +133,23 @@ export default function HomePage() {
           <p className="teaser-type">
             Aa <em>Aa</em>
           </p>
+        </div>
+      </section>
+
+      <section className="sutra-band theme-bone" aria-labelledby="sutra-home-title">
+        <p className="eyebrow">Sutra UI</p>
+        <h2 id="sutra-home-title">A separate system, for the tools.</h2>
+        <p>
+          Sutra UI is the gallery edition for calculators and converters: ivory and ink, antique gold as a line,
+          Fraunces for the title, and Kalamkari as a hairline. This site stays on Calibre. The docs are live.
+        </p>
+        <div className="hero-actions">
+          <Button href="/work/sutra-ui" variant="solid" transitionTypes={["nav-forward"]}>
+            Open the showcase
+          </Button>
+          <a className="btn btn-line" href="https://akhilsingh2.github.io/sutra-ui/" target="_blank" rel="noreferrer">
+            Live docs
+          </a>
         </div>
       </section>
 
