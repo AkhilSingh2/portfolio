@@ -1,21 +1,8 @@
 import Link from "next/link";
+import { KineticName } from "@/components/kinetic-name";
 import { Magnetic } from "@/components/magnetic";
 import { ResumeDownload } from "@/components/resume-download";
 import { ShaderField } from "@/components/shader-field";
-
-function Letters({ text, italic = false }: { text: string; italic?: boolean }) {
-  return (
-    <span className={italic ? "kinetic kinetic-italic" : "kinetic"}>
-      {text.split("").map((char, index) => (
-        <span className="mask" key={`${char}-${index}`}>
-          <span className="glyph" style={{ animationDelay: `${index * 38}ms` }}>
-            {char}
-          </span>
-        </span>
-      ))}
-    </span>
-  );
-}
 
 export function Hero() {
   return (
@@ -27,10 +14,7 @@ export function Hero() {
           <span className="dot" aria-hidden="true" />
           <span>Bangalore</span>
         </p>
-        <h1>
-          <Letters text="Akhilendra" />
-          <Letters text="Singh" italic />
-        </h1>
+        <KineticName />
         <p className="lede hero-lede">
           I design the interface and I stay through the API, the model, and the release.
         </p>
