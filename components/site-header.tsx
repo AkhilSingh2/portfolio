@@ -7,6 +7,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Magnetic } from "@/components/magnetic";
 import { MegaMenu } from "@/components/mega-menu";
 import { ResumeDownload } from "@/components/resume-download";
+import { SocialLinks } from "@/components/social-links";
 import { useSmooth } from "@/components/smooth-scroll";
 
 const links = [
@@ -114,16 +115,14 @@ export function SiteHeader() {
           Akhilendra
         </Link>
         <nav className="nav-links" aria-label="Primary">
-          <button
-            type="button"
-            className="nav-link nav-work"
-            aria-expanded={open}
-            aria-controls="site-menu"
-            aria-haspopup="dialog"
+          <Link
+            href="/work"
+            className="nav-link"
             aria-current={workCurrent ? "page" : undefined}
-            onClick={(event) => openFrom(event.currentTarget)}
+            transitionTypes={["nav-forward"]}
+            onClick={() => setOpen(false)}
           >
-            {(open || workCurrent) && (
+            {workCurrent && (
               <motion.span
                 layoutId="nav-current"
                 className="nav-current"
@@ -132,6 +131,18 @@ export function SiteHeader() {
             )}
             <Magnetic>
               <span>Work</span>
+            </Magnetic>
+          </Link>
+          <button
+            type="button"
+            className="nav-link nav-index"
+            aria-expanded={open}
+            aria-controls="site-menu"
+            aria-haspopup="dialog"
+            onClick={(event) => openFrom(event.currentTarget)}
+          >
+            <Magnetic>
+              <span>Index</span>
             </Magnetic>
           </button>
           {links.map((link) => {
@@ -159,6 +170,7 @@ export function SiteHeader() {
             );
           })}
         </nav>
+        <SocialLinks />
         <ResumeDownload className="nav-pdf">Resume</ResumeDownload>
         <button
           type="button"
