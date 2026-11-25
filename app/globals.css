@@ -166,6 +166,8 @@ a {
   --muted: #5c5348;
   --ember-text: #5c4a32;
   --line: rgba(22, 19, 15, 0.16);
+  position: relative;
+  z-index: 1;
   background: var(--bone-50);
   color: var(--ink-text);
   color-scheme: light;
@@ -300,12 +302,16 @@ a {
 }
 
 .hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   padding: calc(var(--header-h) + 1.5rem) var(--pad) 2.4rem;
   gap: 1.25rem;
+  background: var(--ink-950);
 }
 
 .hero h1 {
@@ -580,8 +586,10 @@ a {
 
 .about-facts {
   margin: 0;
-  padding: 0.2rem 0 0.2rem 1.1rem;
-  border-left: 1px solid var(--line);
+  padding: 1rem 1.1rem 1.15rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bone-100);
 }
 
 .about-facts h3 {
@@ -1666,7 +1674,10 @@ code {
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  background: radial-gradient(120% 80% at 80% 10%, #6a2a16 0%, transparent 55%), var(--ink-950);
+  background:
+    radial-gradient(72% 58% at 88% 0%, rgba(212, 196, 168, 0.16), transparent 62%),
+    radial-gradient(42% 40% at 6% 100%, rgba(243, 236, 223, 0.05), transparent 70%),
+    var(--ink-950);
 }
 
 .orb {
@@ -1687,7 +1698,7 @@ code {
 }
 
 .orb-b {
-  background: #8a7d6a;
+  background: #2a2622;
   bottom: -18%;
   left: -12%;
   animation: drift 20s var(--ease-in-out) infinite alternate-reverse;
@@ -2312,9 +2323,9 @@ html.footer-reveal .site-footer {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(520px 320px at 12% 18%, rgba(212, 196, 168, 0.34), transparent 62%),
-    radial-gradient(420px 300px at 88% 80%, rgba(198, 161, 91, 0.22), transparent 60%),
-    radial-gradient(360px 240px at 72% 8%, rgba(63, 111, 86, 0.2), transparent 55%);
+    radial-gradient(520px 320px at 12% 18%, rgba(212, 196, 168, 0.16), transparent 62%),
+    radial-gradient(420px 300px at 88% 80%, rgba(243, 236, 223, 0.06), transparent 60%),
+    radial-gradient(360px 240px at 72% 8%, rgba(42, 38, 34, 0.45), transparent 55%);
   animation: footer-drift 18s var(--ease-in-out) infinite alternate;
 }
 
@@ -2338,7 +2349,7 @@ html.footer-reveal .site-footer {
   height: 16rem;
   right: -3rem;
   bottom: 6%;
-  background: rgba(198, 161, 91, 0.2);
+  background: rgba(243, 236, 223, 0.08);
 }
 
 .footer-noise {
