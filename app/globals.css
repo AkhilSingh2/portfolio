@@ -1,24 +1,26 @@
+@import "../vendor/sutra-ui/tokens.css";
+
 :root {
-  --ink-950: #100e0c;
-  --ink-900: #1a1714;
-  --ink-800: #26211c;
-  --ink-700: #3c342c;
-  --bone-50: #f6f1e8;
-  --bone-100: #ece4d6;
-  --bone-200: #ddd2c0;
-  --ink-text: #16130f;
-  --muted: #cfc6b8;
-  --ember-500: #e24b22;
-  --ember-text: #ff7048;
-  --sage-500: #3f6f56;
-  --gold-400: #c6a15b;
-  --line: rgba(246, 241, 232, 0.16);
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  --dur-1: 120ms;
-  --dur-2: 240ms;
-  --dur-3: 480ms;
+  --ink-950: var(--sutra-color-canvas-dark);
+  --ink-900: var(--sutra-color-surface-dark);
+  --ink-800: var(--sutra-color-subtle-dark);
+  --ink-700: #4a2878;
+  --bone-50: var(--sutra-color-cream);
+  --bone-100: #ffe7c8;
+  --bone-200: var(--sutra-color-sunken-light);
+  --ink-text: var(--sutra-color-ink);
+  --muted: var(--sutra-color-muted-dark);
+  --ember-500: var(--sutra-color-marigold-500);
+  --ember-text: var(--sutra-color-fg-accent-dark);
+  --sage-500: var(--sutra-color-parrot-700);
+  --gold-400: var(--sutra-color-marigold-300);
+  --line: rgba(192, 132, 252, 0.38);
+  --ease-out: var(--sutra-ease-standard);
+  --ease-in-out: var(--sutra-ease-emphasis);
+  --ease-standard: var(--sutra-ease-standard);
+  --dur-1: var(--sutra-duration-fast);
+  --dur-2: var(--sutra-duration-normal);
+  --dur-3: var(--sutra-duration-slow);
   --dur-4: 800ms;
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -30,27 +32,28 @@
   --space-8: 4rem;
   --space-9: 6rem;
   --space-10: 8rem;
-  --radius-0: 0px;
-  --radius-1: 2px;
-  --radius-2: 12px;
+  --radius-0: var(--sutra-radius-none);
+  --radius-1: var(--sutra-radius-sm);
+  --radius-2: var(--sutra-radius-md);
+  --radius-3: var(--sutra-radius-lg);
   --elev-0: 0 0 0 1px var(--line);
-  --elev-1: 0 16px 40px rgba(16, 14, 12, 0.16);
-  --elev-2: 0 28px 70px rgba(16, 14, 12, 0.28);
-  --t-0: 0.75rem;
-  --t-1: 0.875rem;
-  --t-2: 1rem;
-  --t-3: 1.125rem;
-  --t-4: 1.375rem;
-  --t-5: 1.75rem;
-  --t-6: clamp(1.7rem, 2.4vw, 2.25rem);
-  --t-7: clamp(2.1rem, 4vw, 3rem);
-  --t-8: clamp(2.6rem, 6vw, 4rem);
+  --elev-1: var(--sutra-shadow-sm);
+  --elev-2: var(--sutra-shadow-lg);
+  --t-0: var(--sutra-font-size-xs);
+  --t-1: var(--sutra-font-size-sm);
+  --t-2: var(--sutra-font-size-md);
+  --t-3: var(--sutra-font-size-lg);
+  --t-4: var(--sutra-font-size-xl);
+  --t-5: var(--sutra-font-size-2xl);
+  --t-6: clamp(1.7rem, 2.4vw, var(--sutra-font-size-3xl));
+  --t-7: clamp(2.1rem, 4vw, var(--sutra-font-size-4xl));
+  --t-8: clamp(2.6rem, 6vw, var(--sutra-font-size-display));
   --header-h: 5.4rem;
   --pad: clamp(1.15rem, 4vw, 3.25rem);
   --max: 76rem;
-  --font-sans: var(--font-outfit), "Segoe UI", sans-serif;
-  --font-display: var(--font-fraunces), "Iowan Old Style", Palatino, "Palatino Linotype", serif;
-  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-sans: var(--font-inter), "Noto Sans Devanagari", "Nirmala UI", "Mangal", sans-serif;
+  --font-display: var(--font-baloo), "Noto Sans Devanagari", var(--font-inter), sans-serif;
+  --font-mono: var(--font-plex), "Noto Sans Mono", ui-monospace, monospace;
   color-scheme: dark;
 }
 
@@ -151,11 +154,11 @@ a {
 }
 
 .theme-bone {
-  --muted: #4a433c;
-  --ember-text: #8f2f16;
-  --line: rgba(16, 14, 12, 0.14);
-  background: var(--bone-50);
-  color: var(--ink-text);
+  --muted: var(--sutra-color-muted-light);
+  --ember-text: var(--sutra-color-rani-800);
+  --line: rgba(122, 62, 98, 0.35);
+  background: var(--sutra-color-canvas-light);
+  color: var(--sutra-color-ink);
   color-scheme: light;
 }
 
@@ -328,6 +331,7 @@ a {
   min-height: 2.75rem;
   padding: 0.65rem 1.05rem;
   border: 1px solid transparent;
+  border-radius: var(--radius-1);
   background: transparent;
   color: inherit;
   font: inherit;
@@ -337,12 +341,14 @@ a {
   transition:
     background var(--dur-2) var(--ease-out),
     color var(--dur-2) var(--ease-out),
-    border-color var(--dur-2) var(--ease-out);
+    border-color var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out);
 }
 
 .btn-solid {
   background: var(--bone-50);
   color: var(--ink-950);
+  box-shadow: var(--elev-1);
 }
 
 .theme-bone .btn-solid {
@@ -1368,14 +1374,14 @@ code {
     bottom: auto;
     aspect-ratio: auto;
     clip-path: none;
-    background: #171512;
+    background: var(--ink-900);
     box-shadow: 0 0 0 1px rgba(246, 241, 232, 0.16);
   }
 
   html.enhance .reel-frame img {
     object-fit: contain;
     object-position: center;
-    background: #171512;
+    background: var(--ink-900);
   }
 
   html.enhance .reel-slide:first-child .reel-frame {
@@ -1533,21 +1539,21 @@ code {
 }
 
 .orb-a {
-  background: #9a3412;
+  background: var(--sutra-color-rani-500);
   top: -12%;
   right: -8%;
   animation: drift 16s var(--ease-in-out) infinite alternate;
 }
 
 .orb-b {
-  background: #3d2418;
+  background: var(--sutra-color-peacock-500);
   bottom: -18%;
   left: -12%;
   animation: drift 20s var(--ease-in-out) infinite alternate-reverse;
 }
 
 .orb-c {
-  background: #e24b22;
+  background: var(--sutra-color-marigold-300);
   width: 18vw;
   height: 18vw;
   top: 30%;
@@ -1582,8 +1588,9 @@ code {
 }
 
 .kinetic-italic .glyph {
-  font-style: italic;
-  font-weight: 500;
+  font-style: normal;
+  font-weight: 700;
+  color: var(--gold-400);
 }
 
 .mask {
@@ -1695,7 +1702,7 @@ html.has-cursor .cursor.is-hot {
   width: 36px;
   height: 36px;
   margin: -18px 0 0 -18px;
-  background: rgba(226, 75, 34, 0.2);
+  background: rgba(255, 77, 154, 0.2);
 }
 
 .contact-form {
@@ -1782,6 +1789,13 @@ html.has-cursor .cursor.is-hot {
     animation: none;
   }
 
+  :root {
+    --dur-1: 0ms;
+    --dur-2: 0ms;
+    --dur-3: 0ms;
+    --dur-4: 0ms;
+  }
+
   .tilt-card,
   .magnetic {
     transform: none !important;
@@ -1830,7 +1844,7 @@ html.footer-reveal .page-sheet {
   padding: 0.4rem 0.45rem 0.4rem 0.85rem;
   border-radius: 999px;
   color: var(--bone-50);
-  background: rgba(16, 14, 12, 0.58);
+  background: color-mix(in srgb, var(--ink-950) 72%, transparent);
   border: 1px solid rgba(246, 241, 232, 0.18);
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.28);
   backdrop-filter: blur(18px) saturate(1.4);
@@ -1844,7 +1858,7 @@ html.footer-reveal .page-sheet {
 .site-nav.is-compact .nav-pill {
   width: min(760px, 100%);
   padding: 0.22rem 0.35rem 0.22rem 0.7rem;
-  background: rgba(16, 14, 12, 0.78);
+  background: color-mix(in srgb, var(--ink-950) 86%, transparent);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
@@ -1875,8 +1889,8 @@ html.footer-reveal .page-sheet {
   inset: 0;
   z-index: 0;
   border-radius: inherit;
-  background: rgba(226, 75, 34, 0.22);
-  box-shadow: inset 0 0 0 1px rgba(226, 75, 34, 0.5);
+  background: rgba(255, 77, 154, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(255, 77, 154, 0.5);
 }
 
 .nav-link .magnetic {
@@ -1927,13 +1941,13 @@ html.footer-reveal .page-sheet {
 }
 
 .wordmark-mark {
-  box-shadow: 0 0 0 0 rgba(226, 75, 34, 0.45);
+  box-shadow: 0 0 0 0 rgba(255, 77, 154, 0.45);
   animation: ember-pulse 2.8s var(--ease-in-out) infinite;
 }
 
 @keyframes ember-pulse {
   50% {
-    box-shadow: 0 0 0 5px rgba(226, 75, 34, 0);
+    box-shadow: 0 0 0 5px rgba(255, 77, 154, 0);
   }
 }
 
@@ -1947,7 +1961,7 @@ html.footer-reveal .page-sheet {
 .mega-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(16, 14, 12, 0.62);
+  background: color-mix(in srgb, var(--ink-950) 62%, transparent);
   backdrop-filter: blur(8px);
 }
 
@@ -1961,7 +1975,7 @@ html.footer-reveal .page-sheet {
   padding: 0.9rem 1rem 1.2rem;
   border-radius: 1.4rem;
   color: var(--bone-50);
-  background: rgba(22, 19, 16, 0.92);
+  background: color-mix(in srgb, var(--ink-900) 94%, transparent);
   border: 1px solid rgba(246, 241, 232, 0.14);
   box-shadow: var(--elev-2);
 }
@@ -2027,7 +2041,7 @@ html.footer-reveal .page-sheet {
   display: grid;
   gap: 0.15rem;
   padding: 1rem;
-  background: linear-gradient(transparent, rgba(16, 14, 12, 0.88));
+  background: linear-gradient(transparent, color-mix(in srgb, var(--ink-950) 88%, transparent));
 }
 
 .spotlight-copy strong {
@@ -2143,7 +2157,7 @@ html.footer-reveal .page-sheet {
   position: relative;
   overflow: hidden;
   color: var(--bone-50);
-  background: #14110e;
+  background: var(--ink-950);
 }
 
 html.footer-reveal .site-footer {
@@ -2159,8 +2173,8 @@ html.footer-reveal .site-footer {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(520px 320px at 12% 18%, rgba(226, 75, 34, 0.34), transparent 62%),
-    radial-gradient(420px 300px at 88% 80%, rgba(198, 161, 91, 0.22), transparent 60%),
+    radial-gradient(520px 320px at 12% 18%, rgba(255, 77, 154, 0.34), transparent 62%),
+    radial-gradient(420px 300px at 88% 80%, rgba(20, 214, 198, 0.22), transparent 60%),
     radial-gradient(360px 240px at 72% 8%, rgba(63, 111, 86, 0.2), transparent 55%);
   animation: footer-drift 18s var(--ease-in-out) infinite alternate;
 }
@@ -2177,7 +2191,7 @@ html.footer-reveal .site-footer {
   height: 18rem;
   left: -4rem;
   top: 10%;
-  background: rgba(226, 75, 34, 0.28);
+  background: rgba(255, 77, 154, 0.28);
 }
 
 .footer-orb-b {
@@ -2185,7 +2199,7 @@ html.footer-reveal .site-footer {
   height: 16rem;
   right: -3rem;
   bottom: 6%;
-  background: rgba(198, 161, 91, 0.2);
+  background: rgba(20, 214, 198, 0.2);
 }
 
 .footer-noise {
@@ -2358,7 +2372,7 @@ html.footer-reveal .site-footer {
 
 .social:hover {
   transform: translateY(-3px) rotate(-8deg);
-  background: rgba(226, 75, 34, 0.16);
+  background: rgba(255, 77, 154, 0.16);
 }
 
 .footer-meta {
@@ -2653,7 +2667,7 @@ html.footer-reveal .site-footer {
   }
 
   .mega-backdrop {
-    background: rgba(16, 14, 12, 0.96);
+    background: color-mix(in srgb, var(--ink-950) 96%, transparent);
   }
 
   .mega-panel {

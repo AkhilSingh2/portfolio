@@ -41,7 +41,7 @@ Tokens live in [`app/globals.css`](app/globals.css) (`--ink-950`, `--t-7`, `--du
 - [GSAP](https://gsap.com/) ScrollTrigger for the pinned manifesto and the work reel
 - [Lenis](https://github.com/darkroomengineering/lenis) smooth scroll on fine pointers
 - A small WebGL gradient in the hero, a desktop cursor, magnetic buttons, and tilt cards
-- Fraunces and Outfit, self-hosted through `next/font`
+- Baloo 2, Inter, and IBM Plex Mono, self-hosted through `next/font`. Palette, radii, and motion are vendored from Sutra UI in `vendor/sutra-ui/tokens.css`.
 
 The contact form posts to `NEXT_PUBLIC_FORM_ENDPOINT` (Formspree or similar) or to Web3Forms when `NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY` is set. With neither, submit opens a mailto. The address is always on the page.
 

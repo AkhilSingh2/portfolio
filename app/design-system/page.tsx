@@ -22,7 +22,8 @@ export default function DesignSystemPage() {
           <h1>Calibre</h1>
           <p className="lede">
             I named this system Calibre. It is the measure I use on this site, and it is the code this site runs.
-            Ink and bone carry the page. Ember is the one fire. Type does the hierarchy. Motion hands off.
+            The palette, type, radii, and motion are Sutra UI’s tokens: indigo and cream, marigold and rani, Baloo 2
+            and Inter, chunky corners, and a spring.
           </p>
         </header>
 
@@ -52,8 +53,8 @@ export default function DesignSystemPage() {
         <section className="system-block" id="type" aria-labelledby="type-title">
           <h2 id="type-title">Type</h2>
           <p>
-            Fraunces for display, including italic. Outfit for interface and body. A system mono stack for tokens, so a
-            third web font never loads.
+            Baloo 2 for display. Inter for interface and body, with Noto Sans Devanagari named as the fallback.
+            IBM Plex Mono for figures and tokens.
           </p>
           <div className="type-stack">
             {typeSteps.map((step) => (

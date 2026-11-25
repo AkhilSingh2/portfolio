@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Outfit } from "next/font/google";
+import { Baloo_2, IBM_Plex_Mono, Inter } from "next/font/google";
 import Script from "next/script";
 import { Cursor } from "@/components/cursor";
 import { ScrollProgress } from "@/components/scroll-progress";
@@ -9,23 +9,29 @@ import { SmoothScroll } from "@/components/smooth-scroll";
 import { absUrl, person, siteUrl } from "@/lib/site";
 import "./globals.css";
 
-const outfit = Outfit({
+const inter = Inter({
   subsets: ["latin"],
   display: "swap",
-  weight: ["400", "500", "600"],
-  variable: "--font-outfit",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-inter",
 });
 
-const fraunces = Fraunces({
+const baloo = Baloo_2({
   subsets: ["latin"],
   display: "swap",
-  style: ["normal", "italic"],
-  weight: ["500", "600"],
-  variable: "--font-fraunces",
+  weight: ["500", "600", "700"],
+  variable: "--font-baloo",
+});
+
+const plex = IBM_Plex_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500"],
+  variable: "--font-plex",
 });
 
 export const viewport: Viewport = {
-  themeColor: "#100e0c",
+  themeColor: "#160b2e",
   width: "device-width",
   initialScale: 1,
 };
@@ -79,7 +85,7 @@ const jsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${outfit.variable} ${fraunces.variable}`}>
+    <html lang="en" className={`${inter.variable} ${baloo.variable} ${plex.variable}`}>
       <body>
         <Script id="calibre-enhance" strategy="beforeInteractive">
           {`(function(){try{if(matchMedia("(min-width:960px) and (prefers-reduced-motion:no-preference)").matches){document.documentElement.classList.add("enhance")}}catch(e){}})();`}

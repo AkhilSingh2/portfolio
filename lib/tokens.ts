@@ -7,7 +7,7 @@ export const philosophy = [
   },
   {
     title: "Color is a signal",
-    body: "Ink and bone carry almost every surface. Ember is the one fire: a mark, a link, a focus ring, a control that can be used. If ember is everywhere, it is nowhere.",
+    body: "Indigo night and cream paper carry the surfaces. Marigold and rani are the signal: a mark, a link, a focus ring, a control that can be used. If the signal is everywhere, it is nowhere.",
   },
   {
     title: "Motion hands off",
@@ -24,19 +24,19 @@ export const philosophy = [
 ] as const;
 
 export const colors = [
-  { name: "Ink 950", variable: "--ink-950", role: "Night canvas, header, footer" },
-  { name: "Ink 900", variable: "--ink-900", role: "Raised night surface" },
-  { name: "Ink 800", variable: "--ink-800", role: "Inset panels on ink" },
-  { name: "Ink 700", variable: "--ink-700", role: "Hairline on ink, strong" },
-  { name: "Bone 50", variable: "--bone-50", role: "Paper sections, solid button" },
-  { name: "Bone 100", variable: "--bone-100", role: "Paper inset" },
-  { name: "Bone 200", variable: "--bone-200", role: "Paper rule, pressed" },
-  { name: "Ink text", variable: "--ink-text", role: "Body text on bone" },
-  { name: "Ash", variable: "--muted", role: "Secondary text, switches with theme" },
-  { name: "Ember 500", variable: "--ember-500", role: "Signal fill, progress, mark" },
-  { name: "Ember text", variable: "--ember-text", role: "Links. Lighter on ink, deeper on bone" },
-  { name: "Sage 500", variable: "--sage-500", role: "Quiet secondary, rarely used" },
-  { name: "Gold 400", variable: "--gold-400", role: "Reserved metal, not a second brand color" },
+  { name: "Ink 950", variable: "--ink-950", role: "Sutra dark canvas" },
+  { name: "Ink 900", variable: "--ink-900", role: "Sutra dark surface" },
+  { name: "Ink 800", variable: "--ink-800", role: "Sutra dark subtle" },
+  { name: "Ink 700", variable: "--ink-700", role: "Raised indigo" },
+  { name: "Bone 50", variable: "--bone-50", role: "Sutra cream" },
+  { name: "Bone 100", variable: "--bone-100", role: "Warm paper inset" },
+  { name: "Bone 200", variable: "--bone-200", role: "Sutra sunken light" },
+  { name: "Ink text", variable: "--ink-text", role: "Sutra ink on cream" },
+  { name: "Ash", variable: "--muted", role: "Secondary text. Warm on night, plum on cream" },
+  { name: "Ember 500", variable: "--ember-500", role: "Marigold signal" },
+  { name: "Ember text", variable: "--ember-text", role: "Links. Rani on night, deeper rani on cream" },
+  { name: "Sage 500", variable: "--sage-500", role: "Parrot green" },
+  { name: "Gold 400", variable: "--gold-400", role: "Marigold light, for labels on night" },
 ] as const;
 
 export const typeSteps = [
@@ -65,28 +65,29 @@ export const spaces = [
 ] as const;
 
 export const radii = [
-  { name: "Sharp", variable: "--radius-0", note: "Buttons, cards, frames. The default." },
-  { name: "Hair", variable: "--radius-1", note: "A 2px nick, almost never." },
-  { name: "Soft", variable: "--radius-2", note: "Menus, if a corner is required." },
+  { name: "None", variable: "--radius-0", note: "Sutra none. A true square." },
+  { name: "Small", variable: "--radius-1", note: "12px. Buttons." },
+  { name: "Medium", variable: "--radius-2", note: "18px. Cards and menus." },
+  { name: "Large", variable: "--radius-3", note: "28px. A chunky frame." },
 ] as const;
 
 export const elevations = [
-  { name: "Flat", variable: "--elev-0", note: "A hairline. Most surfaces stop here." },
-  { name: "Raised", variable: "--elev-1", note: "The mobile menu and a preview." },
-  { name: "Deep", variable: "--elev-2", note: "One overlay. Depth is mostly tone, not blur." },
+  { name: "Flat", variable: "--elev-0", note: "A hairline." },
+  { name: "Offset", variable: "--elev-1", note: "4px marigold. No blur." },
+  { name: "Offset large", variable: "--elev-2", note: "10px peacock. No blur." },
 ] as const;
 
 export const motions = [
-  { name: "Micro", variable: "--dur-1", ms: 120, note: "Hover color, focus." },
-  { name: "UI", variable: "--dur-2", ms: 240, note: "Buttons, menus." },
-  { name: "Section", variable: "--dur-3", ms: 480, note: "Page handoff." },
-  { name: "Cinematic", variable: "--dur-4", ms: 800, note: "A scrubbed reveal, not a loop." },
+  { name: "Fast", variable: "--dur-1", ms: 160, note: "Sutra fast." },
+  { name: "Normal", variable: "--dur-2", ms: 280, note: "Sutra normal." },
+  { name: "Slow", variable: "--dur-3", ms: 460, note: "Sutra slow." },
+  { name: "Cinematic", variable: "--dur-4", ms: 800, note: "A scrubbed reveal on this site. Not a Sutra step." },
 ] as const;
 
 export const easings = [
-  { name: "Out", variable: "--ease-out", css: "cubic-bezier(0.16, 1, 0.3, 1)" },
-  { name: "In out", variable: "--ease-in-out", css: "cubic-bezier(0.65, 0, 0.35, 1)" },
-  { name: "Standard", variable: "--ease-standard", css: "cubic-bezier(0.2, 0, 0, 1)" },
+  { name: "Spring", variable: "--ease-out", css: "cubic-bezier(0.34, 1.4, 0.64, 1)" },
+  { name: "Emphasis", variable: "--ease-in-out", css: "cubic-bezier(0.22, 1.7, 0.36, 1)" },
+  { name: "Standard", variable: "--ease-standard", css: "cubic-bezier(0.34, 1.4, 0.64, 1)" },
 ] as const;
 
 export const skillGroups = [

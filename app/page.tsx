@@ -100,8 +100,8 @@ export default function HomePage() {
           <p className="eyebrow">06 — Calibre</p>
           <h2 id="calibre-title">A design system with a name, a measure, and the code to prove it.</h2>
           <p>
-            Calibre is the system this site is built with. Ink and bone carry the page. Ember is the one signal.
-            Motion hands a section to the next one. The tokens are the CSS variables, not a slide.
+            Calibre is the system this site is built with. Its palette, type, and motion come from Sutra UI:
+            indigo and cream, marigold as the signal, Baloo 2 for the display. The tokens are the CSS variables.
           </p>
           <Button href="/design-system" variant="solid" transitionTypes={["nav-forward"]}>
             Open the system

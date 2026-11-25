@@ -236,7 +236,7 @@ export function SiteFooter() {
             </span>
             <span className="footer-place">{person.location}</span>
           </p>
-          <p className="footer-colophon">Calibre. Fraunces and Outfit. {person.name}.</p>
+          <p className="footer-colophon">Calibre, on Sutra tokens. Baloo 2 and Inter. {person.name}.</p>
           <button type="button" className="to-top" onClick={toTop} aria-label="Back to top">
             <svg viewBox="0 0 36 36" aria-hidden="true">
               <circle className="to-top-track" cx="18" cy="18" r="16" />
