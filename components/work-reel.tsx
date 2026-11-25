@@ -150,6 +150,9 @@ export function WorkReel({ projects }: { projects: Project[] }) {
       <div className="reel-stage">
         <p className="reel-kicker">
           <span className="eyebrow">03 — Selected work</span>
+          <Link href="/work" className="reel-all">
+            See all work
+          </Link>
         </p>
         {projects.map((project, index) => {
           const shot = project.shots[0];
