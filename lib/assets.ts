@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { resumeFilename as resumeName } from "@/lib/resume-file";
 
 const publicDir = path.join(process.cwd(), "public");
 
@@ -11,8 +12,6 @@ export function getPortraitSrc(): string | null {
   }
   return null;
 }
-
-const resumeName = "Akhilendra-Singh-resume.pdf";
 
 export function getResumeHref(): string | null {
   if (fs.existsSync(path.join(publicDir, resumeName))) return `/${resumeName}`;

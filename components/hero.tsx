@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Magnetic } from "@/components/magnetic";
+import { ResumeDownload } from "@/components/resume-download";
 import { ShaderField } from "@/components/shader-field";
 
 function Letters({ text, italic = false }: { text: string; italic?: boolean }) {
@@ -33,12 +35,19 @@ export function Hero() {
           I design the interface and I stay through the API, the model, and the release.
         </p>
         <div className="hero-actions">
-          <Link className="btn btn-solid magnetic" href="/#work">
-            Selected work
-          </Link>
-          <Link className="btn btn-ghost magnetic" href="/contact">
-            Contact
-          </Link>
+          <Magnetic>
+            <Link className="btn btn-solid" href="/#work">
+              Selected work
+            </Link>
+          </Magnetic>
+          <Magnetic>
+            <Link className="btn btn-ghost" href="/contact">
+              Contact
+            </Link>
+          </Magnetic>
+          <Magnetic>
+            <ResumeDownload className="btn btn-line">Download resume</ResumeDownload>
+          </Magnetic>
         </div>
       </div>
     </section>

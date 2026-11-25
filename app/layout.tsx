@@ -91,7 +91,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SmoothScroll>
           <ScrollProgress />
           <SiteHeader />
-          <main id="main">{children}</main>
+          <div className="page-sheet">
+            <main id="main">{children}</main>
+          </div>
           <SiteFooter />
         </SmoothScroll>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />

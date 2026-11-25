@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ContactForm } from "@/components/contact-form";
 import { PageShell } from "@/components/page-shell";
+import { ResumeDownload } from "@/components/resume-download";
 import { person } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -34,6 +35,9 @@ export default function ContactPage() {
             <a href={person.linkedin} target="_blank" rel="noreferrer">
               LinkedIn
             </a>
+          </li>
+          <li>
+            <ResumeDownload>Download resume</ResumeDownload>
           </li>
         </ul>
       </article>
