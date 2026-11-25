@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 const years = [
   {
     year: "2026",
-    body: "Lyra, DocMind, LaunchPad, Tandem, Pulse, SpendSense, laa-pi, Subtitle Vocab Explainer, momoGPT, and Online Chalisa.",
+    body: "Lyra, DocMind, LaunchPad, Tandem, Pulse, SpendSense, Quorum, Aayam, Hundredmark, DevKit, laa-pi, Subtitle Vocab Explainer, momoGPT, and Online Chalisa.",
   },
   {
     year: "2025",
