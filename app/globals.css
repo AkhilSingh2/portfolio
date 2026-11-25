@@ -580,6 +580,7 @@ html.enhance .practice-card {
 .skills,
 .system-teaser,
 .sutra-band,
+.api-strip,
 .contact,
 .page {
   padding: clamp(3.5rem, 8vw, 6.5rem) var(--pad);
@@ -1051,6 +1052,124 @@ html.enhance .practice-card {
   color: var(--muted);
 }
 
+.stack-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.55rem;
+}
+
+.stack-tags span,
+.work-filters button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.6rem;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--t-0);
+  letter-spacing: 0.04em;
+}
+
+.work-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 1.5rem;
+}
+
+.work-filters button {
+  cursor: pointer;
+  color: inherit;
+}
+
+.work-filters button[aria-pressed="true"] {
+  background: var(--ink-950);
+  border-color: var(--ink-950);
+  color: var(--bone-50);
+}
+
+.api-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.api-flow li {
+  border: 1px solid var(--line);
+  padding: 0.45rem 0.65rem;
+}
+
+.api-table-wrap {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.api-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-1);
+}
+
+.api-table caption {
+  text-align: left;
+  margin-bottom: 0.4rem;
+  color: var(--muted);
+}
+
+.api-table th,
+.api-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.45rem 0.7rem 0.45rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.api-example {
+  margin: 0;
+}
+
+.api-example pre {
+  overflow: auto;
+  overscroll-behavior: contain;
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0.35rem 0 0;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  background: var(--bone-100);
+}
+
+.api-strip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem 1.2rem;
+  margin: 1.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.api-strip-list a {
+  color: var(--ember-text);
+}
+
+.api-strip-note {
+  margin-top: 0.8rem;
+  color: var(--muted);
+  max-width: 40rem;
+}
+
+.engineering {
+  display: grid;
+  gap: 0.8rem;
+}
+
 .work-preview {
   display: grid;
   gap: 0.8rem;
@@ -1180,6 +1299,12 @@ html.enhance .practice-card {
   padding: clamp(2rem, 5vw, 4rem) var(--pad) clamp(3rem, 7vw, 5rem);
   display: grid;
   gap: 2.2rem;
+  min-width: 0;
+}
+
+.case-body > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .case-body h2 {

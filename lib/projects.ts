@@ -1,3 +1,6 @@
+import { engineeringNotes, projectTags } from "@/lib/engineering";
+import type { Engineering, StackTag } from "@/lib/engineering";
+
 export type Shot = {
   src: string;
   alt: string;
@@ -17,13 +20,15 @@ export type Project = {
   outcome: string;
   highlights: string[];
   stack: string[];
-  repo: string;
+  repo?: string;
   pr?: string;
   live?: string;
   liveLabel?: string;
   reel: boolean;
-  group: "selected" | "also";
+  group: "selected" | "backend" | "professional" | "also";
   shots: Shot[];
+  tags?: StackTag[];
+  engineering?: Engineering;
 };
 
 const gh = "https://github.com/AkhilSingh2";
@@ -834,10 +839,208 @@ export const projects: Project[] = [
       },
     ],
   },
+  {
+    slug: "mymirro-recommendation-api",
+    title: "MyMirro Recommendation API",
+    kicker: "Outfit search and colour",
+    year: "2026",
+    summary:
+      "The REST API behind the MyMirro styling app. It builds outfits from the catalogue, searches similar outfits and products, and recommends colours from a photo or a skin-tone hex.",
+    problem:
+      "The styling app needs a service that can assemble outfits, search by embedding, and read a skin tone, and that can be called without the browser holding the catalogue.",
+    built:
+      "Flask-RESTX mounts the routes under /api/v1 and serves Swagger UI at /swagger/. Outfit generation and similarity search read Supabase. Similar outfits and products use a FAISS index over sentence-transformer embeddings. Colour analysis uses OpenCV, either on a base64 image or on a hex the client already picked.",
+    outcome:
+      "The repository is the source of truth. It documents Railway and Supabase setup, and it does not commit a public base URL, so the study links the repo rather than a live host.",
+    highlights: [
+      "Outfit generation takes a user id and an optional regenerate flag, and writes the result to Supabase.",
+      "Similar outfits are a GET with a count query. Similar products are a POST.",
+      "Colour analysis accepts an image or a hex, and rejects a body that sends both.",
+      "If FAISS and sentence-transformers are not installed, outfit routes answer 503 instead of pretending to search.",
+    ],
+    stack: ["Python", "Flask", "Flask-RESTX", "FAISS", "sentence-transformers", "OpenCV", "Supabase", "Docker", "Railway"],
+    repo: `${gh}/mymirro-backend`,
+    reel: false,
+    group: "backend",
+    shots: [],
+  },
+  {
+    slug: "colour-analysis-api",
+    title: "Colour Analysis API",
+    kicker: "Undertone and contrast",
+    year: "2026",
+    summary:
+      "A Flask service that reads a face photo, names the skin undertone and contrast, and returns a palette with a short reason for each colour.",
+    problem:
+      "A palette picker that does not look at the face is a guess. This service had to find the face, sample even-lit skin, and say why a colour was recommended.",
+    built:
+      "POST /analyze takes a base64 image. OpenCV and dlib’s 68-point landmarks find the face. k-means clusters the skin pixels. Undertone is Warm or Cool, contrast is Low, Medium, or High, and the palette is chosen from those two labels. Swagger UI is mounted at /api/docs.",
+    outcome:
+      "Docker Compose and a Railway guide are in the repo. No public host is committed, so the study links the repository. The shape-predictor file is downloaded separately and is not in git.",
+    highlights: [
+      "A missing image returns 400 with an error string.",
+      "The health check is GET /health and returns status healthy.",
+      "The root path is an HTML form for trying an upload.",
+      "Swagger is generated into static/swagger.json when the process starts.",
+    ],
+    stack: ["Python", "Flask", "OpenCV", "dlib", "scikit-learn", "Docker", "Railway"],
+    repo: `${gh}/color-analysis`,
+    reel: false,
+    group: "backend",
+    shots: [],
+  },
+  {
+    slug: "ai-asset-platform",
+    title: "AI asset platform",
+    kicker: "At Kwalee",
+    year: "2024",
+    summary:
+      "A full-stack platform for cataloguing AI assets, composing recipes, and rendering them. I was the frontend-leaning full-stack engineer on the platform.",
+    problem:
+      "Rendering the same recipe twice wasted compute, and a failed job could leave an asset record with no file, or two records for one render.",
+    built:
+      "The browser is React and TypeScript. The API is Python and FastAPI. Render and recipe work runs on Celery workers that take jobs from SQS queues. A signature deduplicates a render or a recipe before it is queued. A person approves a batch before generation starts, which is how compute cost stays bounded. Retries use the same signature, so a second attempt updates the existing job instead of creating another asset.",
+    outcome:
+      "The platform catalogues assets, composes recipes, and renders them through that queue. Deduplication, approval, and idempotent retries are the reliability path.",
+    highlights: [
+      "Render and recipe deduplication signatures.",
+      "Pre-generation approvals before compute is spent.",
+      "Idempotent retries so a repeat does not orphan an asset or insert a duplicate record.",
+    ],
+    stack: ["React", "TypeScript", "Python", "FastAPI", "Celery", "SQS"],
+    reel: false,
+    group: "professional",
+    shots: [],
+  },
+  {
+    slug: "media-composition",
+    title: "Media composition engine",
+    kicker: "At Kwalee",
+    year: "2024",
+    summary:
+      "A worker pipeline that composes video, GIFs, audio overrides, chroma-key plates, and VP9 output. I worked on the pipeline and the autoscaling around it.",
+    problem:
+      "Composed media failed when audio sample rates did not match, when tracks did not start together, or when a stream ended before the worker expected.",
+    built:
+      "FFmpeg is the composition step: video, GIFs, replacement audio, chroma-key, and VP9. The workers normalise sample rate, align tracks, and treat a short or chunked stream as a finished input instead of a broken one. The worker fleet autoscales with Helm and KEDA on Kubernetes.",
+    outcome: "The workers handle up to 20,000 tasks a day.",
+    highlights: [
+      "One FFmpeg path for video, GIFs, audio overrides, chroma-key, and VP9.",
+      "Sample-rate, alignment, and streaming cases handled in the worker, not left to the caller.",
+      "Helm and KEDA scale the workers on Kubernetes.",
+    ],
+    stack: ["FFmpeg", "Python", "Kubernetes", "Helm", "KEDA"],
+    reel: false,
+    group: "professional",
+    shots: [],
+  },
+  {
+    slug: "localisation-pipeline",
+    title: "Localisation pipeline",
+    kicker: "At Kwalee",
+    year: "2024",
+    summary:
+      "Ingestion for many locales, and a model pass that scores agency translations. I co-developed the pipelines and built the frontend.",
+    problem:
+      "Agency translations arrived as files. There was no repeatable way to ingest them for every locale, or to tell a weak translation from a strong one before someone read it.",
+    built:
+      "The pipelines ingest translation files for 30+ locales. Gemini scores an agency translation against a reference with chrF. A Slack alert fires when a score needs a person. The frontend is the place those scores and the source strings are reviewed.",
+    outcome: "Ingestion covers 30+ locales, with chrF scoring and a Slack alert on the translations that need a look.",
+    highlights: [
+      "Ingestion pipelines co-developed for 30+ locales.",
+      "Gemini produces a chrF score against the agency translation.",
+      "Slack alerts for scores that should be reviewed.",
+      "The review screen is the frontend I built.",
+    ],
+    stack: ["React", "TypeScript", "Python", "Gemini"],
+    reel: false,
+    group: "professional",
+    shots: [],
+  },
+  {
+    slug: "finance-platform",
+    title: "Finance platform",
+    kicker: "At Kwalee",
+    year: "2024",
+    summary:
+      "A monorepo for a finance product, with revenue recognition shared by a React app and a FastAPI service, and an accounting integration. I set up the monorepo and the recognition module.",
+    problem:
+      "A retry of the same financial write created a second row, so the amount was counted twice.",
+    built:
+      "The monorepo holds the React app and the FastAPI service. Revenue recognition is one module called from both. The accounting system is NetSuite, reached through its API. The double count was an upsert that treated a repeated request as a new record. The fix uses a stable business key. The write inserts that key once and, on conflict, updates the same row. A retry sends the same key and the same amount, so the stored total does not move.",
+    outcome:
+      "Revenue recognition runs across the React app and the FastAPI service, and the accounting write no longer doubles a retried amount.",
+    highlights: [
+      "Monorepo for the web app and the API.",
+      "Revenue recognition implemented once and used from both sides.",
+      "NetSuite as the accounting API.",
+      "Idempotent upsert on a stable business key.",
+    ],
+    stack: ["React", "TypeScript", "Python", "FastAPI", "NetSuite"],
+    reel: false,
+    group: "professional",
+    shots: [],
+  },
+  {
+    slug: "cloud-infrastructure",
+    title: "Cloud infrastructure",
+    kicker: "At Kwalee",
+    year: "2024",
+    summary:
+      "Infrastructure as code for container images, the database, object storage, and access, plus autoscaling for the media workers. I wrote the Terraform and the Helm charts.",
+    problem:
+      "Environments were being prepared by hand, and production shared an account with older hosting. That made a change in one place able to touch the other.",
+    built:
+      "Terraform defines ECR, RDS, S3, and IAM, with a separate configuration for each environment. Non-production and production are separate accounts. Helm and KEDA scale the media workers. Hosted web apps that had lived in a legacy account were moved onto Amplify in the newer accounts. The module boundaries are the only detail here. Names, account ids, and policies stay in the private repositories.",
+    outcome:
+      "Images, the database, storage, and access are declared per environment, in separate non-production and production accounts, and the media workers scale with Helm and KEDA.",
+    highlights: [
+      "Terraform for ECR, RDS, S3, and IAM.",
+      "A non-production account and a production account, kept apart.",
+      "Amplify apps moved off a legacy account.",
+      "Helm and KEDA for the worker fleet, up to 20,000 tasks a day on the media pipeline.",
+    ],
+    stack: ["Terraform", "AWS", "Helm", "KEDA", "Kubernetes", "Amplify"],
+    reel: false,
+    group: "professional",
+    shots: [],
+  },
+  {
+    slug: "marketing-site",
+    title: "Marketing site",
+    kicker: "At Kwalee",
+    year: "2024",
+    summary:
+      "The studio’s public marketing site, moved to Next.js and a headless CMS. I led the migration.",
+    problem:
+      "The previous site fetched its content in sequence, hydrated more than the page needed, and shipped a bundle that made the first view slow.",
+    built:
+      "Next.js renders the pages. Strapi is the headless CMS. Requests for independent content run in parallel. Hydration is limited to the parts that actually change on the client. The bundle was cut back to what each route uses.",
+    outcome: "Page load times fell by 45%.",
+    highlights: [
+      "Next.js for the site and Strapi for the content.",
+      "Parallel fetches where the data does not depend on itself.",
+      "Hydration limited to interactive parts.",
+      "Bundle reduced to the route that needs it.",
+    ],
+    stack: ["Next.js", "React", "TypeScript", "Strapi"],
+    reel: false,
+    group: "professional",
+    shots: [],
+  },
 ];
 
+export function decorate<T extends { slug: string }>(project: T) {
+  return {
+    ...project,
+    tags: projectTags[project.slug] ?? [],
+    engineering: engineeringNotes[project.slug],
+  };
+}
+
 export function getProject(slug: string) {
-  return projects.find((project) => project.slug === slug);
+  const project = projects.find((item) => item.slug === slug);
+  return project ? decorate(project) : undefined;
 }
 
 export function selectedProjects() {
@@ -846,6 +1049,10 @@ export function selectedProjects() {
 
 export function alsoProjects() {
   return projects.filter((project) => project.group === "also");
+}
+
+export function backendProjects() {
+  return projects.filter((project) => project.group === "backend");
 }
 
 export function reelProjects() {
