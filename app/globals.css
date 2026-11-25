@@ -2820,6 +2820,19 @@ html.footer-reveal .page-sheet {
   margin-top: 0.35rem;
 }
 
+.mega-blank {
+  display: block;
+  width: 4.4rem;
+  height: 3rem;
+  background: #1c1916;
+  border: 1px solid rgba(243, 236, 223, 0.16);
+}
+
+.spotlight-blank {
+  width: 100%;
+  height: 58%;
+}
+
 .mega-work a,
 .mega-live a,
 .mega-links a {
