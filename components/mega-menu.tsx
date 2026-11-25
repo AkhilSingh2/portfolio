@@ -5,6 +5,7 @@ import Link from "next/link";
 import { forwardRef, useState } from "react";
 import { Media } from "@/components/media";
 import { ResumeDownload } from "@/components/resume-download";
+import { SocialLinks } from "@/components/social-links";
 import { TagList } from "@/components/tag";
 import { featuredProject, liveTools, workGroups } from "@/lib/menu";
 import type { Project } from "@/lib/projects";
@@ -42,6 +43,7 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
         ref={ref}
         id="site-menu"
         className="mega-panel"
+        data-lenis-prevent=""
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -54,6 +56,10 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
           <p id={titleId} className="mega-kicker">
             Index
           </p>
+          <Link href="/work" className="mega-work-link" data-menuitem onClick={onClose}>
+            Work
+          </Link>
+          <SocialLinks className="nav-social mega-social" />
           <button type="button" className="mega-close" data-menuitem onClick={onClose}>
             Close
           </button>
@@ -103,7 +109,7 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
             </AnimatePresence>
           </div>
 
-          <div className="mega-work">
+          <div className="mega-work" data-lenis-prevent="">
             {groups.map((group, index) => (
               <motion.section
                 key={group.id}

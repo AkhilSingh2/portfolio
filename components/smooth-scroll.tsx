@@ -89,7 +89,8 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
       const target = document.querySelector(href);
       if (!lenis || !target) return;
       event.preventDefault();
-      lenis.scrollTo(target as HTMLElement, { offset: -12 });
+      const margin = Number.parseFloat(getComputedStyle(target).scrollMarginTop) || 12;
+      lenis.scrollTo(target as HTMLElement, { offset: -margin });
       history.pushState(null, "", href);
     };
     document.addEventListener("click", onClick);
