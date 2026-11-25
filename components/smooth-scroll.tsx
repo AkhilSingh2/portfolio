@@ -28,9 +28,12 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
     if (reduce || !fine) return;
 
     let destroyed = false;
+    let started = false;
     let removeTicker: (() => void) | undefined;
 
     const boot = async () => {
+      if (started || destroyed) return;
+      started = true;
       const [{ default: LenisCtor }, { default: gsap }, { ScrollTrigger }] = await Promise.all([
         import("lenis"),
         import("gsap"),
@@ -67,7 +70,15 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
       }
     };
 
-    void boot();
+    const arm = () => {
+      window.removeEventListener("wheel", arm);
+      window.removeEventListener("touchstart", arm);
+      window.removeEventListener("keydown", arm);
+      void boot();
+    };
+    window.addEventListener("wheel", arm, { passive: true });
+    window.addEventListener("touchstart", arm, { passive: true });
+    window.addEventListener("keydown", arm);
 
     const onClick = (event: MouseEvent) => {
       const anchor = (event.target as HTMLElement | null)?.closest("a");
@@ -85,6 +96,9 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
 
     return () => {
       destroyed = true;
+      window.removeEventListener("wheel", arm);
+      window.removeEventListener("touchstart", arm);
+      window.removeEventListener("keydown", arm);
       document.removeEventListener("click", onClick);
       removeTicker?.();
     };

@@ -2,7 +2,9 @@
 
 Personal site for a full-stack engineer, frontend-first, in Bangalore. The page is the portfolio piece: a scroll-driven case-study film, and **Calibre**, the design system the site is built with.
 
-Live preview, once GitHub Pages is enabled: [akhilsingh2.github.io/portfolio](https://akhilsingh2.github.io/portfolio/). The same build serves at `/` on Vercel.
+Live: [akhilsingh2.github.io/portfolio](https://akhilsingh2.github.io/portfolio/). The same build serves at `/` on Vercel.
+
+Public images are prefixed with `NEXT_PUBLIC_BASE_PATH` through `asset()` in `lib/site.ts`. Next's image component was emitting `/work/...` on the Pages deploy, so those files 404'd and the film rendered as an empty brown field. Content images are plain `img` tags with that prefix. Internal links go through `next/link`, which knows the base path. A raw `href="/resume"` does not.
 
 ![Home](docs/screenshots/home-desktop.webp)
 
@@ -35,10 +37,13 @@ Tokens live in [`app/globals.css`](app/globals.css) (`--ink-950`, `--t-7`, `--du
 ## Stack
 
 - [Next.js 16](https://nextjs.org/) App Router, static export (`output: "export"`)
-- A short page fade between routes
+- [Framer Motion](https://www.framer.com/motion/) for the page fade, plus CSS letter reveals on the hero
 - [GSAP](https://gsap.com/) ScrollTrigger for the pinned manifesto and the work reel
 - [Lenis](https://github.com/darkroomengineering/lenis) smooth scroll on fine pointers
+- A small WebGL gradient in the hero, a desktop cursor, magnetic buttons, and tilt cards
 - Fraunces and Outfit, self-hosted through `next/font`
+
+The contact form posts to `NEXT_PUBLIC_FORM_ENDPOINT` (Formspree or similar) or to Web3Forms when `NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY` is set. With neither, submit opens a mailto. The address is always on the page.
 
 No client-side data fetching. Content is [`lib/projects.ts`](lib/projects.ts).
 

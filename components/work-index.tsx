@@ -1,54 +1,49 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { Media } from "@/components/media";
 import type { Project } from "@/lib/projects";
 
-export function WorkIndex({
-  projects,
-  labelledBy,
-}: {
-  projects: Project[];
-  labelledBy: string;
-}) {
-  const [active, setActive] = useState(0);
-  const current = projects[active];
-  const shot = current?.shots[0];
-
+export function WorkIndex({ projects, labelledBy }: { projects: Project[]; labelledBy: string }) {
   return (
-    <div className="work-index">
+    <div className="tilt-grid">
       <ol aria-labelledby={labelledBy}>
-        {projects.map((project, index) => (
-          <li key={project.slug} className={index === active ? "is-active" : undefined}>
-            <Link
-              href={`/work/${project.slug}`}
-              transitionTypes={["nav-forward"]}
-              onMouseEnter={() => setActive(index)}
-              onFocus={() => setActive(index)}
-            >
-              <span className="work-num">{String(index + 1).padStart(2, "0")}</span>
-              <span className="work-title">
-                {project.title}
-                <span className="work-kicker">{project.kicker}</span>
-              </span>
-              <span className="work-year">{project.year}</span>
-            </Link>
-          </li>
-        ))}
+        {projects.map((project, index) => {
+          const shot = project.shots[0];
+          return (
+            <li key={project.slug}>
+              <Link
+                href={`/work/${project.slug}`}
+                className="tilt-card"
+                onPointerMove={(event) => {
+                  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+                  if (!window.matchMedia("(pointer: fine)").matches) return;
+                  const card = event.currentTarget;
+                  const rect = card.getBoundingClientRect();
+                  const px = (event.clientX - rect.left) / rect.width - 0.5;
+                  const py = (event.clientY - rect.top) / rect.height - 0.5;
+                  card.style.transform = `rotateX(${(-py * 7).toFixed(2)}deg) rotateY(${(px * 9).toFixed(2)}deg)`;
+                }}
+                onPointerLeave={(event) => {
+                  event.currentTarget.style.transform = "";
+                }}
+              >
+                <span className="work-num">{String(index + 1).padStart(2, "0")}</span>
+                {shot ? (
+                  <span className="tilt-media">
+                    <Media src={shot.src} alt="" width={shot.width} height={shot.height} />
+                  </span>
+                ) : null}
+                <span className="work-title">
+                  {project.title}
+                  <span className="work-kicker">{project.kicker}</span>
+                </span>
+                <span className="work-year">{project.year}</span>
+              </Link>
+            </li>
+          );
+        })}
       </ol>
-      <aside className="work-preview">
-        {shot ? (
-          <Image src={shot.src} alt="" width={shot.width} height={shot.height} sizes="(min-width: 960px) 38vw, 100vw" />
-        ) : (
-          <div className="plate">
-            <p className="eyebrow">{current?.kicker}</p>
-            <p>{current?.title}</p>
-            <p className="plate-note">No interface capture</p>
-          </div>
-        )}
-        <p>{current?.summary}</p>
-      </aside>
     </div>
   );
 }
