@@ -2,7 +2,7 @@ name: Deploy GitHub Pages
 
 on:
   push:
-    branches: [main, cursor/portfolio-site-76b8]
+    branches: [main, cursor/portfolio-v2-76b8]
   workflow_dispatch:
 
 permissions:
@@ -33,6 +33,7 @@ jobs:
           path: out
 
   deploy:
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:

@@ -21,8 +21,8 @@ export default function DesignSystemPage() {
           <p className="eyebrow">Design system</p>
           <h1>Calibre</h1>
           <p className="lede">
-            A standard of measure for interface decisions. Calibre is Akhilendra Singh&apos;s own system, written for
-            this site and used by this site. Ink, bone, one ember. Type does the hierarchy. Motion hands off.
+            I named this system Calibre. It is the measure I use on this site, and it is the code this site runs.
+            Ink and bone carry the page. Ember is the one fire. Type does the hierarchy. Motion hands off.
           </p>
         </header>
 

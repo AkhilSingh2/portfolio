@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { Media } from "@/components/media";
 import { useEffect, useRef } from "react";
 import { TagList } from "@/components/tag";
 import type { Project } from "@/lib/projects";
@@ -16,6 +16,7 @@ export function WorkReel({ projects }: { projects: Project[] }) {
     const mq = window.matchMedia("(min-width: 960px) and (prefers-reduced-motion: no-preference)");
     let token = 0;
     let dead = false;
+    let started = false;
     let revert: (() => void) | undefined;
 
     const clearInert = () => {
@@ -127,14 +128,26 @@ export function WorkReel({ projects }: { projects: Project[] }) {
       ScrollTrigger.refresh();
     };
 
-    void setup();
+    const start = () => {
+      if (started) return;
+      started = true;
+      void setup();
+      mq.addEventListener("change", onChange);
+    };
     const onChange = () => {
       void setup();
     };
-    mq.addEventListener("change", onChange);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) start();
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(root);
 
     return () => {
       dead = true;
+      observer.disconnect();
       mq.removeEventListener("change", onChange);
       destroy();
     };
@@ -151,16 +164,9 @@ export function WorkReel({ projects }: { projects: Project[] }) {
           return (
             <article className="reel-slide" data-slide key={project.slug}>
               <div className="reel-frame" data-frame>
-                {shot ? (
-                  <Image
-                    src={shot.src}
-                    alt={shot.alt}
-                    width={shot.width}
-                    height={shot.height}
-                    priority={index === 0}
-                    sizes="(min-width: 960px) 70vw, 100vw"
-                  />
-                ) : null}
+                  {shot ? (
+                    <Media src={shot.src} alt={shot.alt} width={shot.width} height={shot.height} priority={index === 0} />
+                  ) : null}
               </div>
               <div className="reel-copy" data-copy>
                 <p className="reel-index">

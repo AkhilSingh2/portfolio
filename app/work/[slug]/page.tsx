@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Media } from "@/components/media";
 import { PageShell } from "@/components/page-shell";
 import { TagList } from "@/components/tag";
 import { getProject, neighbors, projects } from "@/lib/projects";
@@ -16,10 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const { slug } = await params;
   const project = getProject(slug);
   if (!project) return { title: "Work" };
-  return {
-    title: project.title,
-    description: project.summary,
-  };
+  return { title: project.title, description: project.summary };
 }
 
 export default async function CaseStudyPage({ params }: { params: Promise<Params> }) {
@@ -35,21 +32,9 @@ export default async function CaseStudyPage({ params }: { params: Promise<Params
         <header className={hero ? "case-hero" : "case-hero case-hero-plain"}>
           {hero ? (
             <div className="case-media">
-              <Image
-                src={hero.src}
-                alt={hero.alt}
-                width={hero.width}
-                height={hero.height}
-                priority
-                sizes="100vw"
-              />
+              <Media src={hero.src} alt={hero.alt} width={hero.width} height={hero.height} priority />
             </div>
-          ) : (
-            <div className="empty-capture">
-              <p className="eyebrow">No interface capture</p>
-              <p>The notes for this project do not include a screenshot. What follows is the work itself.</p>
-            </div>
-          )}
+          ) : null}
           <div className="case-title">
             <p className="eyebrow">
               {project.kicker}
@@ -64,25 +49,14 @@ export default async function CaseStudyPage({ params }: { params: Promise<Params
         <div className="case-body">
           <dl className="case-meta">
             <div>
-              <dt>Role</dt>
-              <dd>{project.role}</dd>
-            </div>
-            {project.with ? (
-              <div>
-                <dt>With</dt>
-                <dd>{project.with}</dd>
-              </div>
-            ) : null}
-            <div>
-              <dt>Year</dt>
-              <dd>{project.year}</dd>
-            </div>
-            <div>
               <dt>Links</dt>
               <dd className="case-links">
-                {project.repo ? (
-                  <a href={project.repo} target="_blank" rel="noreferrer">
-                    Repository
+                <a href={project.repo} target="_blank" rel="noreferrer">
+                  Repository
+                </a>
+                {project.pr ? (
+                  <a href={project.pr} target="_blank" rel="noreferrer">
+                    Pull request
                   </a>
                 ) : null}
                 {project.live ? (
@@ -90,7 +64,6 @@ export default async function CaseStudyPage({ params }: { params: Promise<Params
                     {project.liveLabel ?? "Live"}
                   </a>
                 ) : null}
-                {!project.repo && !project.live ? <span>No public link</span> : null}
               </dd>
             </div>
           </dl>
@@ -99,48 +72,46 @@ export default async function CaseStudyPage({ params }: { params: Promise<Params
             <h2 id="problem-title">Problem</h2>
             <p>{project.problem}</p>
           </section>
-
-          <section aria-labelledby="did-title">
-            <h2 id="did-title">What shipped in the repo</h2>
+          <section aria-labelledby="built-title">
+            <h2 id="built-title">What I built</h2>
+            <p>{project.built}</p>
             <ul className="plain-list">
               {project.highlights.map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>
           </section>
-
-          <section aria-labelledby="stack-title">
-            <h2 id="stack-title">Stack</h2>
-            <TagList items={project.stack} />
+          {project.stack.length > 0 ? (
+            <section aria-labelledby="stack-title">
+              <h2 id="stack-title">Stack</h2>
+              <TagList items={project.stack} />
+            </section>
+          ) : null}
+          <section aria-labelledby="outcome-title">
+            <h2 id="outcome-title">Outcome</h2>
+            <p>{project.outcome}</p>
           </section>
-
-          {project.note ? <p className="case-note">{project.note}</p> : null}
-
+          {hero ? <p className="case-caption">{hero.caption}</p> : null}
           {gallery.length > 0 ? (
             <section className="case-gallery" aria-label="Screenshots">
               {gallery.map((shot) => (
                 <figure key={shot.src}>
-                  <Image src={shot.src} alt={shot.alt} width={shot.width} height={shot.height} sizes="(min-width: 900px) 70vw, 100vw" />
+                  <Media src={shot.src} alt={shot.alt} width={shot.width} height={shot.height} />
                   <figcaption>{shot.caption}</figcaption>
                 </figure>
               ))}
             </section>
           ) : null}
-
-          {hero ? <p className="case-caption">{hero.caption}</p> : null}
-
           <nav className="case-next" aria-label="More work">
-            <Link href="/work" transitionTypes={["nav-back"]}>
-              All work
-            </Link>
+            <Link href="/work">All work</Link>
             {prev ? (
-              <Link href={`/work/${prev.slug}`} transitionTypes={["nav-back"]}>
+              <Link href={`/work/${prev.slug}`}>
                 <span className="eyebrow">Previous</span>
                 {prev.title}
               </Link>
             ) : null}
             {next ? (
-              <Link href={`/work/${next.slug}`} transitionTypes={["nav-forward"]}>
+              <Link href={`/work/${next.slug}`}>
                 <span className="eyebrow">Next</span>
                 {next.title}
               </Link>

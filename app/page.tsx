@@ -1,9 +1,12 @@
 import { Button } from "@/components/button";
+import { Hero } from "@/components/hero";
 import { Manifesto } from "@/components/manifesto";
+import { Marquee } from "@/components/marquee";
 import { PageShell } from "@/components/page-shell";
 import { Portrait } from "@/components/portrait";
 import { TagList } from "@/components/tag";
 import { WorkReel } from "@/components/work-reel";
+import { Reveal } from "@/components/reveal";
 import { reelProjects } from "@/lib/projects";
 import { person } from "@/lib/site";
 import { skillGroups } from "@/lib/tokens";
@@ -30,45 +33,26 @@ const steps = [
 export default function HomePage() {
   return (
     <PageShell>
-      <section className="hero theme-ink">
-        <p className="eyebrow">
-          <span>Full-stack engineer</span>
-          <span className="dot" aria-hidden="true" />
-          <span>Bangalore</span>
-        </p>
-        <h1>
-          <span className="line">Akhilendra</span>
-          <span className="line italic">Singh</span>
-        </h1>
-        <p className="lede">
-          Frontend-first, from the interface to the deploy. {person.availability}.
-        </p>
-        <div className="hero-actions">
-          <Button href="#work" variant="solid">
-            Selected work
-          </Button>
-          <Button href={`mailto:${person.email}`} variant="ghost">
-            Email
-          </Button>
-        </div>
-      </section>
-
+      <Hero />
+      <Marquee />
       <Manifesto />
 
+      <Reveal>
       <section className="about-band theme-bone" id="about" aria-labelledby="about-title">
         <div className="about-grid">
           <Portrait size="small" />
           <div>
             <p className="eyebrow">02 — About</p>
-            <h2 id="about-title">From the first layout to the deployed service.</h2>
+            <h2 id="about-title">I start at the interface and I do not leave at the mock.</h2>
             <p>
-              Akhilendra Singh builds web products starting at the interface and staying through the API, the edge
-              cases, and the release. The last stretch of work pairs a careful UI with a model: a job-search copilot
-              that cannot invent resume facts, a caption companion for YouTube and Netflix, a devotional reader in six
-              languages, and fashion software that recommends outfits from embeddings.
+              I am a full-stack engineer in {person.location.split(",")[0]}. The screen is where I begin, because that
+              is where the product is judged. I stay for the API, the data, and the deploy. Lately the work has a model
+              in it, and I keep one rule: the model does not get to invent the facts.
             </p>
             <p>
-              Based in {person.location}. {person.availability}.
+              {person.availability}. The public record is the case studies: a cited research agent, a multi-tenant
+              SaaS starter, a live collaborative board, product analytics, a local-first ledger, and a reader that is
+              already on the public internet.
             </p>
             <Button href="/about" variant="solid" transitionTypes={["nav-forward"]}>
               About the practice
@@ -76,6 +60,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      </Reveal>
 
       <WorkReel projects={reelProjects()} />
 
@@ -154,7 +139,9 @@ export default function HomePage() {
             </a>
           </li>
           <li>
-            <a href="/resume">Resume</a>
+            <Button href="/contact" variant="line">
+              Write to me
+            </Button>
           </li>
           <li>{person.location}</li>
         </ul>
