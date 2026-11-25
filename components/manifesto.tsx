@@ -103,19 +103,15 @@ export function Manifesto() {
           ))}
         </div>
         <figure className="practice-figure" data-stage="0" aria-hidden="true">
-          <svg className="practice-mark" viewBox="0 0 24 148">
-            <line className="mark-track" x1="8" y1="8" x2="8" y2="140" />
-            <line className="mark-draw" pathLength="1" x1="8" y1="8" x2="8" y2="140" />
-            <circle cx="8" cy="8" r="3.2" />
-            <circle cx="8" cy="74" r="3.2" />
-            <circle cx="8" cy="140" r="3.2" />
-          </svg>
           <ol>
             {stages.map((stage) => (
               <li className="practice-card" key={stage.index}>
-                <span>{stage.index}</span>
+                <span className="practice-dot" />
+                <span className="practice-meta">
+                  <span>{stage.index}</span>
+                  <em>{stage.note}</em>
+                </span>
                 <strong>{stage.title}</strong>
-                <em>{stage.note}</em>
               </li>
             ))}
           </ol>
