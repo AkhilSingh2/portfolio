@@ -35,6 +35,8 @@ Bangalore, India. Open to senior frontend and full-stack roles.
 | [**Subtitle Vocab Explainer**](https://github.com/AkhilSingh2/subtitle-vocab-explainer) | Chrome extension for words and idioms in YouTube and Netflix captions. |
 | [**Sutra UI**](https://github.com/AkhilSingh2/sutra-ui) | Gallery edition. Ivory, ink, antique gold, Fraunces, and Kalamkari as a hairline. Lakh and crore inputs, FAQ JSON-LD. [Live](https://akhilsingh2.github.io/sutra-ui/) |
 | [**MyMirro**](https://github.com/AkhilSingh2/mymirrowebsite) | Styling app. Quiz, outfits, lookbooks. [Live](https://www.mymirro.in) |
+| [**MyMirro Recommendation API**](https://github.com/AkhilSingh2/mymirro-backend) | Flask-RESTX service: outfit generation, FAISS similar outfits and products, skin-tone colour. Supabase and Railway. |
+| [**Colour Analysis API**](https://github.com/AkhilSingh2/color-analysis) | Flask service for undertone, contrast, and a palette. OpenCV, dlib, k-means. Docker and Railway. |
 | [**momoGPT**](https://github.com/AkhilSingh2/momoGPT) | Learns a texting style from a WhatsApp export and replies in it. |
 
 Case studies and screenshots are on the [portfolio](https://akhilsingh2.github.io/portfolio/).

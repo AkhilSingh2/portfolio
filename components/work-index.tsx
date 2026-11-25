@@ -38,6 +38,13 @@ export function WorkIndex({ projects, labelledBy }: { projects: Project[]; label
                   {project.title}
                   <span className="work-kicker">{project.kicker}</span>
                 </span>
+                {project.tags && project.tags.length > 0 ? (
+                  <span className="stack-tags">
+                    {project.tags.map((tag) => (
+                      <span key={tag}>{tag}</span>
+                    ))}
+                  </span>
+                ) : null}
                 <span className="work-year">{project.year}</span>
               </Link>
             </li>
