@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { getPortraitSrc } from "@/lib/assets";
+import { asset } from "@/lib/site";
 
 export function Portrait({ size = "regular" }: { size?: "regular" | "small" }) {
   const src = getPortraitSrc();
@@ -7,17 +7,18 @@ export function Portrait({ size = "regular" }: { size?: "regular" | "small" }) {
     return (
       <figure className={`portrait portrait-empty portrait-${size}`}>
         <div className="portrait-monogram" aria-hidden="true">
-          AS
+          <span>AS</span>
+          <i />
         </div>
-        <figcaption>Portrait to be added</figcaption>
       </figure>
     );
   }
 
   return (
     <figure className={`portrait portrait-${size}`}>
-      <Image src={src} alt="Portrait of Akhilendra Singh" width={900} height={1125} priority={size === "regular"} />
-      <figcaption className="sr-only">Portrait of Akhilendra Singh</figcaption>
+      {/* next/image omits basePath on static export. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={asset(src)} alt="Portrait of Akhilendra Singh" width={900} height={1125} />
     </figure>
   );
 }

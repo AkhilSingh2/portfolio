@@ -5,7 +5,7 @@ import { absUrl } from "@/lib/site";
 export const dynamic = "force-static";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const paths = ["/", "/work", "/design-system", "/about", "/resume", ...projects.map((project) => `/work/${project.slug}`)];
+  const paths = ["/", "/work", "/design-system", "/about", "/contact", "/resume", ...projects.map((project) => `/work/${project.slug}`)];
   return paths.map((path) => ({
     url: absUrl(path),
     changeFrequency: "monthly",

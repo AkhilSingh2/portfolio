@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Outfit } from "next/font/google";
 import Script from "next/script";
+import { Cursor } from "@/components/cursor";
 import { ScrollProgress } from "@/components/scroll-progress";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -47,11 +48,16 @@ export const metadata: Metadata = {
     siteName: person.name,
     title: `${person.name} — Full-stack engineer`,
     description: person.description,
+    images: [{ url: absUrl("/og.png"), width: 1200, height: 630, alt: `${person.name}, full-stack engineer` }],
   },
   twitter: {
     card: "summary_large_image",
     title: `${person.name} — Full-stack engineer`,
     description: person.description,
+    images: [absUrl("/og.png")],
+  },
+  icons: {
+    apple: absUrl("/apple-touch-icon.png"),
   },
   robots: { index: true, follow: true },
 };
@@ -81,6 +87,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a className="skip-link" href="#main">
           Skip to content
         </a>
+        <Cursor />
         <SmoothScroll>
           <ScrollProgress />
           <SiteHeader />

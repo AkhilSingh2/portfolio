@@ -1530,3 +1530,275 @@ code {
     font-size: 2.7rem;
   }
 }
+
+.shader-field {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: radial-gradient(120% 80% at 80% 10%, #6a2a16 0%, transparent 55%), var(--ink-950);
+}
+
+.orb {
+  position: absolute;
+  width: 46vw;
+  height: 46vw;
+  border-radius: 50%;
+  filter: blur(28px);
+  opacity: 0.7;
+  will-change: transform;
+}
+
+.orb-a {
+  background: #9a3412;
+  top: -12%;
+  right: -8%;
+  animation: drift 16s var(--ease-in-out) infinite alternate;
+}
+
+.orb-b {
+  background: #3d2418;
+  bottom: -18%;
+  left: -12%;
+  animation: drift 20s var(--ease-in-out) infinite alternate-reverse;
+}
+
+.orb-c {
+  background: #e24b22;
+  width: 18vw;
+  height: 18vw;
+  top: 30%;
+  right: 18%;
+  opacity: 0.28;
+  animation: drift 12s var(--ease-in-out) infinite alternate;
+}
+
+@keyframes drift {
+  to {
+    transform: translate3d(-8%, 10%, 0) scale(1.08);
+  }
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  width: min(100%, 72rem);
+}
+
+.hero-lede {
+  max-width: 38rem;
+}
+
+.kinetic {
+  display: flex;
+  flex-wrap: nowrap;
+  line-height: 0.86;
+}
+
+.kinetic-italic .glyph {
+  font-style: italic;
+  font-weight: 500;
+}
+
+.mask {
+  display: inline-block;
+  overflow: hidden;
+  padding-bottom: 0.14em;
+}
+
+.glyph {
+  display: inline-block;
+  animation: letter-in 0.9s var(--ease-out) both;
+}
+
+.marquee {
+  overflow: hidden;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--ink-950);
+  color: var(--bone-50);
+}
+
+.marquee-track {
+  display: flex;
+  gap: 0;
+  width: max-content;
+  animation: marquee 28s linear infinite;
+  padding: 0.85rem 0;
+}
+
+.marquee span {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding-right: 1.2rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: var(--t-0);
+}
+
+.marquee i {
+  width: 0.4rem;
+  height: 0.4rem;
+  background: var(--ember-500);
+}
+
+.tilt-grid ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.tilt-card {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.8rem;
+  border: 1px solid var(--line);
+  text-decoration: none;
+  color: inherit;
+  background: transparent;
+  transform-style: preserve-3d;
+  transition: transform 180ms var(--ease-out);
+}
+
+.tilt-grid {
+  perspective: 1200px;
+}
+
+.tilt-media {
+  display: block;
+  overflow: hidden;
+  background: var(--ink-900);
+  aspect-ratio: 16 / 10;
+}
+
+.tilt-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cursor {
+  display: none;
+}
+
+html.has-cursor,
+html.has-cursor a,
+html.has-cursor button {
+  cursor: none;
+}
+
+html.has-cursor .cursor {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border: 1px solid var(--ember-500);
+  border-radius: 99px;
+  pointer-events: none;
+  z-index: 80;
+  mix-blend-mode: difference;
+}
+
+html.has-cursor .cursor.is-hot {
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
+  background: rgba(226, 75, 34, 0.2);
+}
+
+.contact-form {
+  display: grid;
+  gap: 1rem;
+  max-width: 36rem;
+  margin-top: 1.5rem;
+}
+
+.contact-form textarea {
+  min-height: 8rem;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+}
+
+.contact-mail {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 4vw, 3rem);
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.contact-mail a {
+  color: var(--ember-text);
+}
+
+.hp {
+  position: absolute;
+  left: -999px;
+  height: 0;
+  overflow: hidden;
+}
+
+.portrait-monogram {
+  position: relative;
+}
+
+.portrait-monogram i {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 18%;
+  height: 2px;
+  background: var(--ember-500);
+}
+
+@keyframes letter-in {
+  from {
+    transform: translateY(110%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (min-width: 800px) {
+  .tilt-grid ol {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glyph,
+  .marquee-track,
+  .page-fade,
+  .orb {
+    animation: none;
+  }
+
+  .tilt-card {
+    transform: none !important;
+  }
+}

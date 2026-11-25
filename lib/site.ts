@@ -1,5 +1,12 @@
 export const basePath = (process.env.NEXT_PUBLIC_BASE_PATH || "").replace(/\/$/, "");
 
+/** Prefix a public-folder path so GitHub Pages (/portfolio) and Vercel (/) both resolve. */
+export function asset(path: string) {
+  if (!path || path.startsWith("http") || path.startsWith("mailto:") || path.startsWith("data:")) return path;
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${basePath}${normalized}`;
+}
+
 function trimSlash(url: string) {
   return url.replace(/\/$/, "");
 }

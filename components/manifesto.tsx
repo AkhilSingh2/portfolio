@@ -51,13 +51,26 @@ export function Manifesto() {
       revert = () => ctx.revert();
     };
 
-    void setup();
     const onChange = () => {
       void setup();
     };
-    mq.addEventListener("change", onChange);
+    let armed = false;
+    const arm = () => {
+      if (armed) return;
+      armed = true;
+      void setup();
+      mq.addEventListener("change", onChange);
+    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) arm();
+      },
+      { rootMargin: "120px" },
+    );
+    observer.observe(root);
     return () => {
       dead = true;
+      observer.disconnect();
       mq.removeEventListener("change", onChange);
       revert?.();
     };

@@ -9,7 +9,7 @@ const links = [
   { href: "/work", label: "Work" },
   { href: "/design-system", label: "Calibre" },
   { href: "/about", label: "About" },
-  { href: "/#contact", label: "Contact" },
+  { href: "/contact", label: "Contact" },
 ];
 
 function isCurrent(pathname: string, href: string) {
