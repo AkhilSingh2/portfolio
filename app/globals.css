@@ -464,6 +464,11 @@ a {
   padding: calc(var(--header-h) + 2rem) var(--pad) 3rem;
 }
 
+.manifesto-lines {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .manifesto-lines p {
   font-family: var(--font-display);
   font-weight: 500;
@@ -471,63 +476,67 @@ a {
   font-size: clamp(2.4rem, 6.4vw, 5.6rem);
   line-height: 1.02;
   letter-spacing: -0.035em;
-  max-width: 14ch;
+  max-width: min(14ch, 100%);
 }
 
 .practice-figure {
-  display: grid;
-  grid-template-columns: 1.6rem 1fr;
-  gap: 0.8rem 1rem;
-  align-items: center;
+  box-sizing: border-box;
+  width: min(100%, 24rem);
+  max-width: 100%;
   margin: 1.6rem 0 0;
-  padding: 1.1rem 1.15rem 1.15rem;
+  padding: 0.35rem 1.15rem;
   border: 1px solid var(--line);
-  max-width: 22rem;
-}
-
-.practice-mark {
-  width: 1.4rem;
-  height: 9.5rem;
-}
-
-.practice-mark line,
-.practice-mark circle {
-  fill: none;
-  stroke: rgba(243, 236, 223, 0.28);
-  stroke-width: 1.25;
-}
-
-.practice-mark circle {
-  fill: var(--ink-950);
-}
-
-.mark-draw {
-  stroke: var(--ember-500);
-  stroke-dasharray: 1;
-  stroke-dashoffset: 0;
 }
 
 .practice-figure ol {
+  position: relative;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
+.practice-figure ol::before {
+  content: "";
+  position: absolute;
+  top: 2.35rem;
+  bottom: 2.35rem;
+  left: 0.42rem;
+  width: 1px;
+  background: rgba(243, 236, 223, 0.35);
+}
+
 .practice-card {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.1rem 0.7rem;
-  padding: 0.7rem 0;
-  border-top: 1px solid var(--line);
+  grid-template-columns: 0.85rem minmax(6.6rem, 7.4rem) minmax(5.5rem, 1fr);
+  align-items: center;
+  column-gap: 0.85rem;
+  min-height: 4.75rem;
+  border-bottom: 1px solid var(--line);
 }
 
-.practice-card:first-child {
-  border-top: 0;
-  padding-top: 0;
+.practice-card:last-child {
+  border-bottom: 0;
 }
 
-.practice-card span,
-.practice-card em {
+.practice-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  justify-self: center;
+  border: 1px solid rgba(243, 236, 223, 0.55);
+  border-radius: 50%;
+  background: var(--ink-950);
+  position: relative;
+  z-index: 1;
+}
+
+.practice-meta {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.practice-meta span,
+.practice-meta em {
   color: var(--muted);
   font-style: normal;
   font-size: var(--t-0);
@@ -536,15 +545,17 @@ a {
 }
 
 .practice-card strong {
+  justify-self: start;
   font-family: var(--font-display);
-  font-size: 1.7rem;
+  font-size: clamp(1.7rem, 2.4vw, 2.15rem);
   font-weight: 560;
   letter-spacing: -0.03em;
   line-height: 1;
+  text-align: left;
 }
 
 html.enhance .practice-card {
-  opacity: 0.38;
+  opacity: 0.42;
 }
 
 html.enhance .practice-figure[data-stage="0"] .practice-card:nth-child(1),
@@ -553,23 +564,15 @@ html.enhance .practice-figure[data-stage="2"] .practice-card:nth-child(3) {
   opacity: 1;
 }
 
-html.enhance .practice-figure[data-stage="0"] .mark-draw {
-  stroke-dashoffset: 0.68;
+html.enhance .practice-figure[data-stage="0"] .practice-card:nth-child(1) .practice-dot,
+html.enhance .practice-figure[data-stage="1"] .practice-card:nth-child(2) .practice-dot,
+html.enhance .practice-figure[data-stage="2"] .practice-card:nth-child(3) .practice-dot {
+  background: var(--ember-500);
+  border-color: var(--ember-500);
 }
 
-html.enhance .practice-figure[data-stage="1"] .mark-draw {
-  stroke-dashoffset: 0.34;
-}
-
-html.enhance .practice-figure[data-stage="2"] .mark-draw {
-  stroke-dashoffset: 0;
-}
-
-html.enhance .mark-draw,
 html.enhance .practice-card {
-  transition:
-    opacity 0.45s var(--ease-out),
-    stroke-dashoffset 0.45s var(--ease-out);
+  transition: opacity 0.45s var(--ease-out);
 }
 
 .about-band,
@@ -1244,19 +1247,48 @@ html.enhance .practice-card {
 
 .case-next {
   display: grid;
-  gap: 1rem;
-  padding-top: 1rem;
+  grid-template-columns: 1fr;
+  gap: 1.35rem;
+  margin-top: 0.5rem;
+  padding-top: 1.35rem;
   border-top: 1px solid var(--line);
+}
+
+.case-prev:empty,
+.case-forward:empty {
+  display: none;
 }
 
 .case-next a {
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  min-height: 4.6rem;
   text-decoration: none;
+  color: inherit;
+}
+
+.case-next-title,
+.case-all a {
   font-family: var(--font-display);
-  font-size: var(--t-5);
+  font-size: clamp(1.45rem, 2.4vw, 2rem);
+  font-weight: 560;
   letter-spacing: -0.03em;
   line-height: 1.05;
+}
+
+.case-all {
+  display: flex;
+}
+
+.case-all a {
+  justify-content: flex-end;
+}
+
+.case-next a:hover .case-next-title,
+.case-all a:hover {
+  color: var(--ember-text);
 }
 
 .case-next .eyebrow {
@@ -1635,10 +1667,40 @@ code {
   }
 
   .footer-grid,
-  .timeline li,
-  .case-next {
+  .timeline li {
     grid-template-columns: 12rem 1fr;
     align-items: start;
+  }
+
+  .case-next {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: stretch;
+    gap: 1.5rem 2rem;
+  }
+
+  .case-prev:empty,
+  .case-forward:empty {
+    display: block;
+  }
+
+  .case-prev a {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .case-all {
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .case-all a {
+    align-items: center;
+    text-align: center;
+  }
+
+  .case-forward a {
+    align-items: flex-end;
+    text-align: right;
   }
 
   .work-index {
@@ -1665,22 +1727,23 @@ code {
 @media (min-width: 960px) {
   .manifesto-stage {
     display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(15rem, 0.7fr);
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 24rem);
     align-items: center;
-    column-gap: clamp(2rem, 5vw, 4.5rem);
+    column-gap: clamp(1.5rem, 4vw, 4rem);
   }
 
   .manifesto-lines,
   .manifesto-stage > .eyebrow {
     grid-column: 1;
+    min-width: 0;
   }
 
   .practice-figure {
     grid-column: 2;
     grid-row: 1 / span 3;
     margin: 0;
-    justify-self: end;
-    width: min(100%, 22rem);
+    justify-self: stretch;
+    width: 100%;
   }
 }
 
@@ -2283,7 +2346,6 @@ pre,
     transform: none;
   }
 
-  html.enhance .mark-draw,
   html.enhance .practice-card {
     transition: none;
   }
@@ -2449,7 +2511,7 @@ html.footer-reveal .page-sheet {
 }
 
 .nav-pdf {
-  margin-left: auto;
+  margin-left: 0.35rem;
   background: var(--ember-500);
   border-color: var(--ember-500);
   color: var(--ink-950);
@@ -3141,7 +3203,7 @@ html.footer-reveal .site-footer {
   margin-top: 0.7rem;
 }
 
-@media (min-width: 960px) {
+@media (min-width: 1180px) {
   .nav-links {
     display: flex;
   }
@@ -3157,7 +3219,9 @@ html.footer-reveal .site-footer {
   .nav-pdf {
     margin-left: 0.35rem;
   }
+}
 
+@media (min-width: 960px) {
   .mega-layout {
     grid-template-columns: 1.15fr 1.7fr 0.85fr;
     grid-template-areas:

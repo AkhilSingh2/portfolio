@@ -105,19 +105,31 @@ export default async function CaseStudyPage({ params }: { params: Promise<Params
             </section>
           ) : null}
           <nav className="case-next" aria-label="More work">
-            <Link href="/work">All work</Link>
-            {prev ? (
-              <Link href={`/work/${prev.slug}`}>
-                <span className="eyebrow">Previous</span>
-                {prev.title}
-              </Link>
-            ) : null}
-            {next ? (
-              <Link href={`/work/${next.slug}`}>
-                <span className="eyebrow">Next</span>
-                {next.title}
-              </Link>
-            ) : null}
+            <div className="case-prev">
+              {prev ? (
+                <Link href={`/work/${prev.slug}`}>
+                  <span className="eyebrow">Previous</span>
+                  <span className="case-next-title">
+                    <span aria-hidden="true">← </span>
+                    {prev.title}
+                  </span>
+                </Link>
+              ) : null}
+            </div>
+            <div className="case-all">
+              <Link href="/work">All work</Link>
+            </div>
+            <div className="case-forward">
+              {next ? (
+                <Link href={`/work/${next.slug}`}>
+                  <span className="eyebrow">Next</span>
+                  <span className="case-next-title">
+                    {next.title}
+                    <span aria-hidden="true"> →</span>
+                  </span>
+                </Link>
+              ) : null}
+            </div>
           </nav>
         </div>
       </article>
