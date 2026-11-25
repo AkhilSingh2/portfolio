@@ -467,6 +467,10 @@ a {
 .page-intro h1,
 .lost h1,
 .resume-page h1,
+.about-page {
+  padding-top: max(clamp(3.5rem, 8vw, 6.5rem), calc(var(--header-h) + 1rem));
+}
+
 .about-page h1 {
   font-size: var(--t-7);
   max-width: 16ch;
@@ -491,12 +495,21 @@ a {
   width: min(100%, 22rem);
 }
 
+.portrait-small {
+  width: min(100%, 15rem);
+}
+
 .portrait img,
 .portrait-monogram {
   width: 100%;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 1;
   object-fit: cover;
+  object-position: center;
   background: var(--ink-800);
+}
+
+.portrait img {
+  border: 1px solid var(--line);
 }
 
 .portrait-empty {

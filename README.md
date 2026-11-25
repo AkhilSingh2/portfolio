@@ -115,7 +115,7 @@ These are left blank on purpose. Drop the files in and rebuild. The pages alread
 
 | What | Where |
 | --- | --- |
-| Portrait | `public/portrait.webp`, `.jpg`, `.jpeg`, or `.png`. A vertical crop, about 4:5. |
+| Portrait | `public/headshot.webp` with `public/headshot_400.webp` for the smaller source. A square crop. Older `public/portrait.webp`, `.jpg`, `.jpeg`, or `.png` still work if the headshot files are absent. |
 | Resume PDF | `public/Akhilendra-Singh-resume.pdf` |
 | One personal line | The "Personal line" slot on the About page, in [`app/about/page.tsx`](app/about/page.tsx) |
 
