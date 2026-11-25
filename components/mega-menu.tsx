@@ -1,14 +1,18 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
-import { forwardRef, useRef } from "react";
+import { forwardRef, useState } from "react";
 import { Media } from "@/components/media";
 import { ResumeDownload } from "@/components/resume-download";
+import { TagList } from "@/components/tag";
 import { featuredProject, liveTools, workGroups } from "@/lib/menu";
+import type { Project } from "@/lib/projects";
 import { person } from "@/lib/site";
 
-const MotionLink = motion.create(Link);
+type Spot =
+  | { kind: "project"; slug: string }
+  | { kind: "page"; id: string; title: string; body: string; href: string };
 
 const spring = { type: "spring" as const, stiffness: 320, damping: 28 };
 
@@ -17,11 +21,15 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
   ref,
 ) {
   const reduce = useReducedMotion();
-  const spotRef = useRef<HTMLAnchorElement>(null);
   const groups = workGroups();
   const live = liveTools();
   const featured = featuredProject();
-  const shot = featured.shots[0];
+  const catalogue = groups.flatMap((group) => group.projects);
+  const [spot, setSpot] = useState<Spot>({ kind: "project", slug: featured.slug });
+  const active: Project = spot.kind === "project" ? (catalogue.find((item) => item.slug === spot.slug) ?? featured) : featured;
+  const showProject = spot.kind === "project";
+  const focusProject = (slug: string) => setSpot({ kind: "project", slug });
+  const focusPage = (page: Extract<Spot, { kind: "page" }>) => setSpot(page);
 
   const hidden = reduce ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 };
   const shown = { opacity: 1, y: 0, filter: "blur(0px)" };
@@ -51,35 +59,49 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
           </button>
         </div>
         <div className="mega-layout">
-          <MotionLink
-            ref={spotRef}
-            className="spotlight"
-            href={`/work/${featured.slug}`}
-            data-menuitem
-            onClick={onClose}
-            initial={reduce ? false : { opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={reduce ? { duration: 0 } : spring}
-            onPointerMove={(event) => {
-              if (reduce || !spotRef.current) return;
-              const rect = spotRef.current.getBoundingClientRect();
-              const x = (event.clientX - rect.left) / rect.width - 0.5;
-              const y = (event.clientY - rect.top) / rect.height - 0.5;
-              spotRef.current.style.setProperty("--px", `${x * 18}px`);
-              spotRef.current.style.setProperty("--py", `${y * 14}px`);
-            }}
-            onPointerLeave={() => {
-              spotRef.current?.style.setProperty("--px", "0px");
-              spotRef.current?.style.setProperty("--py", "0px");
-            }}
-          >
-            <Media src={shot.src} alt="" width={shot.width} height={shot.height} />
-            <span className="spotlight-copy">
-              <span className="eyebrow">Featured</span>
-              <strong>{featured.title}</strong>
-              <em>{featured.kicker}</em>
-            </span>
-          </MotionLink>
+          <div className="spotlight" aria-live="polite">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={showProject ? active.slug : spot.kind === "page" ? spot.id : "spot"}
+                className="spotlight-pane"
+                initial={reduce ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={reduce ? undefined : { opacity: 0 }}
+                transition={{ duration: reduce ? 0 : 0.28 }}
+              >
+                {showProject ? (
+                  <>
+                    <Media src={active.shots[0].src} alt="" width={active.shots[0].width} height={active.shots[0].height} sizes="320px" />
+                    <span className="spotlight-copy">
+                      <span className="eyebrow">Featured</span>
+                      <strong>{active.title}</strong>
+                      <em>{active.kicker}</em>
+                      <TagList items={active.stack.slice(0, 4)} />
+                      <span className="spotlight-links">
+                        <Link href={`/work/${active.slug}`} data-menuitem onClick={onClose}>
+                          Case study
+                        </Link>
+                        {active.live ? (
+                          <a href={active.live} data-menuitem target="_blank" rel="noreferrer">
+                            {active.liveLabel ?? "Live"}
+                          </a>
+                        ) : null}
+                      </span>
+                    </span>
+                  </>
+                ) : spot.kind === "page" ? (
+                  <span className="spotlight-copy spotlight-page">
+                    <span className="eyebrow">On this site</span>
+                    <strong>{spot.title}</strong>
+                    <em>{spot.body}</em>
+                    <Link href={spot.href} data-menuitem onClick={onClose}>
+                      Open
+                    </Link>
+                  </span>
+                ) : null}
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
           <div className="mega-work">
             {groups.map((group, index) => (
@@ -96,7 +118,13 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
                     const thumb = project.shots[0];
                     return (
                       <li key={project.slug}>
-                        <Link href={`/work/${project.slug}`} data-menuitem onClick={onClose}>
+                        <Link
+                          href={`/work/${project.slug}`}
+                          data-menuitem
+                          onClick={onClose}
+                          onMouseEnter={() => focusProject(project.slug)}
+                          onFocus={() => focusProject(project.slug)}
+                        >
                           <Media src={thumb.src} alt="" width={120} height={75} />
                           <span>
                             <strong>{project.title}</strong>
@@ -122,7 +150,14 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
             <ul>
               {live.map((project) => (
                 <li key={project.slug}>
-                  <a href={project.live} data-menuitem target="_blank" rel="noreferrer">
+                  <a
+                    href={project.live}
+                    data-menuitem
+                    target="_blank"
+                    rel="noreferrer"
+                    onMouseEnter={() => focusProject(project.slug)}
+                    onFocus={() => focusProject(project.slug)}
+                  >
                     <strong>{project.title}</strong>
                     <em>{project.liveLabel || project.kicker}</em>
                   </a>
@@ -141,22 +176,74 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
             <h2 id="mega-about">About</h2>
             <ul className="mega-links">
               <li>
-                <Link href="/about" data-menuitem onClick={onClose}>
+                <Link
+                  href="/about"
+                  data-menuitem
+                  onClick={onClose}
+                  onMouseEnter={() =>
+                    focusPage({
+                      kind: "page",
+                      id: "about",
+                      title: "About",
+                      body: "The practice, in Bangalore. Interface through release.",
+                      href: "/about",
+                    })
+                  }
+                  onFocus={() =>
+                    focusPage({
+                      kind: "page",
+                      id: "about",
+                      title: "About",
+                      body: "The practice, in Bangalore. Interface through release.",
+                      href: "/about",
+                    })
+                  }
+                >
                   About
                 </Link>
               </li>
               <li>
-                <Link href="/design-system" data-menuitem onClick={onClose}>
+                <Link
+                  href="/design-system"
+                  data-menuitem
+                  onClick={onClose}
+                  onMouseEnter={() =>
+                    focusPage({ kind: "page", id: "calibre", title: "Calibre", body: "The system this site is built with. Tokens, type, and measured charts.", href: "/design-system" })
+                  }
+                  onFocus={() =>
+                    focusPage({ kind: "page", id: "calibre", title: "Calibre", body: "The system this site is built with. Tokens, type, and measured charts.", href: "/design-system" })
+                  }
+                >
                   Calibre
                 </Link>
               </li>
               <li>
-                <Link href="/work" data-menuitem onClick={onClose}>
+                <Link
+                  href="/work"
+                  data-menuitem
+                  onClick={onClose}
+                  onMouseEnter={() =>
+                    focusPage({ kind: "page", id: "work", title: "All work", body: "Case studies, with the problem, the build, and the repository.", href: "/work" })
+                  }
+                  onFocus={() =>
+                    focusPage({ kind: "page", id: "work", title: "All work", body: "Case studies, with the problem, the build, and the repository.", href: "/work" })
+                  }
+                >
                   All work
                 </Link>
               </li>
               <li>
-                <Link href="/resume" data-menuitem onClick={onClose}>
+                <Link
+                  href="/resume"
+                  data-menuitem
+                  onClick={onClose}
+                  onMouseEnter={() =>
+                    focusPage({ kind: "page", id: "resume", title: "Resume", body: "The PDF, and the same text on the page. The phone number stays in the file.", href: "/resume" })
+                  }
+                  onFocus={() =>
+                    focusPage({ kind: "page", id: "resume", title: "Resume", body: "The PDF, and the same text on the page. The phone number stays in the file.", href: "/resume" })
+                  }
+                >
                   Resume
                 </Link>
               </li>
@@ -193,7 +280,17 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
                 </a>
               </li>
               <li>
-                <Link href="/contact" data-menuitem onClick={onClose}>
+                <Link
+                  href="/contact"
+                  data-menuitem
+                  onClick={onClose}
+                  onMouseEnter={() =>
+                    focusPage({ kind: "page", id: "contact", title: "Contact", body: person.email, href: "/contact" })
+                  }
+                  onFocus={() =>
+                    focusPage({ kind: "page", id: "contact", title: "Contact", body: person.email, href: "/contact" })
+                  }
+                >
                   Write a note
                 </Link>
               </li>

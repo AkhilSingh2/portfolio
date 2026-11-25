@@ -78,8 +78,7 @@ export function WorkReel({ projects }: { projects: Project[] }) {
 
         gsap.set(frames, { ...fullBox(), autoAlpha: 0 });
         gsap.set(frames[0], { ...restBox(), autoAlpha: 1 });
-        gsap.set(copies, { autoAlpha: 0 });
-        gsap.set(copies[0], { autoAlpha: 1, y: 0 });
+        gsap.set(copies, { autoAlpha: 1, y: 0 });
         gsap.set(slides, { autoAlpha: 0 });
         gsap.set(slides[0], { autoAlpha: 1 });
         setCurrent(0);
@@ -104,19 +103,12 @@ export function WorkReel({ projects }: { projects: Project[] }) {
         slides.forEach((_, index) => {
           const start = index * beat;
           if (index > 0) {
-            timeline.set(slides[index], { autoAlpha: 1 }, start - 0.22);
-            timeline.fromTo(frames[index], { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.22 }, start - 0.22);
+            timeline.set(slides[index - 1], { autoAlpha: 0 }, start);
+            timeline.set(slides[index], { autoAlpha: 1 }, start);
+            timeline.fromTo(frames[index], { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.2 }, start);
             timeline.fromTo(frames[index], fullBox(), { ...restBox(), duration: 0.38 }, start);
-            timeline.fromTo(
-              copies[index],
-              { y: 18, autoAlpha: 0 },
-              { y: 0, autoAlpha: 1, duration: 0.24 },
-              start + 0.22,
-            );
-            timeline.set(slides[index - 1], { autoAlpha: 0 }, start + 0.02);
           }
           if (index < slides.length - 1) {
-            timeline.to(copies[index], { y: -14, autoAlpha: 0, duration: 0.16 }, start + 0.48);
             timeline.to(frames[index], { ...fullBox(), duration: 0.3 }, start + 0.52);
           } else {
             timeline.to(frames[index], { duration: 0.35 }, start + 0.55);
