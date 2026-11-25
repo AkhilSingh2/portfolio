@@ -33,7 +33,7 @@ Bangalore, India. Open to senior frontend and full-stack roles.
 | [**Online Chalisa**](https://github.com/AkhilSingh2/onlinechalisa.com) | Devotional reader in six languages, verse-synced audio. [Live](https://onlinechalisa.com) |
 | [**laa-pi**](https://github.com/AkhilSingh2/laa-pi) | Local job-search copilot. Resumes can only print facts from the profile. |
 | [**Subtitle Vocab Explainer**](https://github.com/AkhilSingh2/subtitle-vocab-explainer) | Chrome extension for words and idioms in YouTube and Netflix captions. |
-| [**Sutra UI**](https://github.com/AkhilSingh2/sutra-ui) | Open-source design system for fast, India-first web tools. |
+| [**Sutra UI**](https://github.com/AkhilSingh2/sutra-ui) | Gallery edition. Ivory, ink, antique gold, Fraunces, and Kalamkari as a hairline. Lakh and crore inputs, FAQ JSON-LD. [Live](https://akhilsingh2.github.io/sutra-ui/) |
 | [**MyMirro**](https://github.com/AkhilSingh2/mymirrowebsite) | Styling app. Quiz, outfits, lookbooks. [Live](https://www.mymirro.in) |
 | [**momoGPT**](https://github.com/AkhilSingh2/momoGPT) | Learns a texting style from a WhatsApp export and replies in it. |
 

@@ -159,9 +159,7 @@ export function SiteHeader() {
             );
           })}
         </nav>
-        <ResumeDownload className="nav-pdf" aria-label="Download resume">
-          PDF
-        </ResumeDownload>
+        <ResumeDownload className="nav-pdf">Resume</ResumeDownload>
         <button
           type="button"
           className="nav-burger"

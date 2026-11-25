@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Media } from "@/components/media";
+import { DeviceFrame } from "@/components/device-frame";
+import { SutraShowcase } from "@/components/sutra-showcase";
 import { PageShell } from "@/components/page-shell";
 import { TagList } from "@/components/tag";
 import { getProject, neighbors, projects } from "@/lib/projects";
@@ -32,7 +33,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<Params
         <header className={hero ? "case-hero" : "case-hero case-hero-plain"}>
           {hero ? (
             <div className="case-media">
-              <Media src={hero.src} alt={hero.alt} width={hero.width} height={hero.height} priority />
+              <DeviceFrame shot={hero} priority />
             </div>
           ) : null}
           <div className="case-title">
@@ -91,12 +92,13 @@ export default async function CaseStudyPage({ params }: { params: Promise<Params
             <h2 id="outcome-title">Outcome</h2>
             <p>{project.outcome}</p>
           </section>
+          {project.slug === "sutra-ui" ? <SutraShowcase /> : null}
           {hero ? <p className="case-caption">{hero.caption}</p> : null}
           {gallery.length > 0 ? (
             <section className="case-gallery" aria-label="Screenshots">
               {gallery.map((shot) => (
                 <figure key={shot.src}>
-                  <Media src={shot.src} alt={shot.alt} width={shot.width} height={shot.height} />
+                  <DeviceFrame shot={shot} />
                   <figcaption>{shot.caption}</figcaption>
                 </figure>
               ))}

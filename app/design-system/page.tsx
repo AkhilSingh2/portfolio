@@ -5,6 +5,7 @@ import { MotionDemo } from "@/components/motion-demo";
 import { PageShell } from "@/components/page-shell";
 import { Swatch } from "@/components/swatch";
 import { TagList } from "@/components/tag";
+import { CalibreCharts } from "@/components/calibre-charts";
 import { colors, easings, elevations, motions, philosophy, radii, spaces, typeSteps } from "@/lib/tokens";
 
 export const metadata: Metadata = {
@@ -22,7 +23,7 @@ export default function DesignSystemPage() {
           <h1>Calibre</h1>
           <p className="lede">
             I named this system Calibre. It is the measure I use on this site, and it is the code this site runs.
-            Ink and bone carry the page. Ember is the one fire. Type does the hierarchy. Motion hands off.
+            Near-black and warm ivory carry the page. Champagne is the signal. Type does the hierarchy. Motion hands off.
           </p>
         </header>
 
@@ -137,6 +138,15 @@ export default function DesignSystemPage() {
             ))}
           </ul>
           <MotionDemo />
+        </section>
+
+        <section className="system-block" id="measured" aria-labelledby="measured-title">
+          <h2 id="measured-title">Measured</h2>
+          <p>
+            These charts are the current build and the tokens in the source. A route that is slower is still on the
+            chart. Nothing here is a target I wished for.
+          </p>
+          <CalibreCharts />
         </section>
 
         <section className="system-block" id="components" aria-labelledby="components-title">
