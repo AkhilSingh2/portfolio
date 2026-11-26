@@ -146,7 +146,7 @@ export const projects: Project[] = [
     built:
       "I put the real session check in server actions. The proxy only looks for a cookie. Every mutation loads the membership and the role. Stripe is real when keys exist and a local checkout stub when they do not. Mail goes to Resend or to an outbox I can read at /dev/emails.",
     outcome:
-      "Seeded demo users open a Northstar workspace. Confirming the local Pro checkout writes the plan, an idempotency row, an audit entry, and a billing email.",
+      "Seeded demo users open a Northstar workspace. Confirming the local Pro checkout writes the plan, an idempotency row, an audit entry, and a billing email. The live link runs in demo mode on Vercel with a Neon Postgres database: one click signs in as the Northstar owner, checkout is simulated, and the sample data resets every day.",
     highlights: [
       "Organisations, invites, and owner, admin, and member roles.",
       "A launch id in the URL is loaded with the organisation from the membership, so one tenant cannot read another tenant's row.",
@@ -155,6 +155,8 @@ export const projects: Project[] = [
     ],
     stack: ["Next.js", "TypeScript", "Postgres", "Drizzle", "Better Auth", "Stripe", "Resend", "Vitest", "Playwright"],
     repo: `${gh}/launchpad-saas`,
+    live: "https://akhil-launchpad.vercel.app",
+    liveLabel: "Live demo",
     pr: `${gh}/launchpad-saas/pull/1`,
     reel: true,
     group: "selected",
