@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750">
+  <rect width="1200" height="750" fill="#100e0c"/>
+  <rect x="48" y="48" width="1104" height="654" fill="none" stroke="#d4c4a8" stroke-opacity="0.45"/>
+  <path d="M80 180 H520 M80 260 H420 M80 340 H360" stroke="#d4c4a8" stroke-opacity="0.55" stroke-width="2"/>
+  <circle cx="980" cy="180" r="72" fill="none" stroke="#d4c4a8" stroke-width="2"/>
+  <text x="980" y="190" text-anchor="middle" fill="#d4c4a8" font-family="Georgia, serif" font-size="42">SYS</text>
+  <text x="80" y="470" fill="#c9bfb2" font-family="Inter, sans-serif" font-size="22" letter-spacing="4">API</text>
+  <text x="80" y="560" fill="#f3ecdf" font-family="Georgia, serif" font-size="54">FastAPI · queue</text>
+</svg>

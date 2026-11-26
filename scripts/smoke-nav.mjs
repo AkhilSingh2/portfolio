@@ -144,6 +144,21 @@ for (const width of widths) {
     const opened = since(bag, mark);
     if (bad(opened)) failures.push({ where: `${viewport.width} menu ${start}`, ...opened });
 
+    const primary = await page.locator('header.site-nav nav[aria-label="Primary"] a').allTextContents();
+    if (primary.some((label) => label.trim() === "Calibre")) {
+      failures.push({ where: `${viewport.width} ${start} primary nav`, message: "Calibre is still in the top nav" });
+    }
+    if (start === "/") {
+      const inMenu = await page.locator('#site-menu a[href*="design-system"]').count();
+      const inFooter = await page.locator('footer a[href*="design-system"]').count();
+      if (!inMenu || !inFooter) {
+        failures.push({
+          where: `${viewport.width} design-system reach`,
+          message: `menu ${inMenu}, footer ${inFooter}`,
+        });
+      }
+    }
+
     const hoverMark = { pageerrors: bag.pageerrors.length, console: bag.console.length, http: bag.http.length };
     const menuLinks = page.locator("#site-menu a[href]");
     const menuCount = await menuLinks.count();
@@ -176,13 +191,20 @@ for (const width of widths) {
           const links = visit.locator(`a[href=${JSON.stringify(href)}]`);
           const count = await links.count();
           let moving = null;
+          let content = null;
           for (let index = 0; index < count; index += 1) {
             const link = links.nth(index);
             if (!(await link.isVisible())) continue;
-            const animated = await link.evaluate((node) => Boolean(node.closest(".reel-stage, .practice-stage")));
-            if (!animated) return { link, force: false };
-            moving = link;
+            const place = await link.evaluate((node) => {
+              if (node.closest(".reel-stage, .practice-stage")) return "moving";
+              if (node.closest("header, footer, #site-menu")) return "chrome";
+              return "content";
+            });
+            if (place === "chrome") return { link, force: false };
+            if (place === "moving") moving = link;
+            else content = link;
           }
+          if (content) return { link: content, force: true };
           return moving ? { link: moving, force: true } : null;
         };
         let link = await find();

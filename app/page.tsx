@@ -10,7 +10,7 @@ import { WorkReel } from "@/components/work-reel";
 import { Reveal } from "@/components/reveal";
 import { reelProjects } from "@/lib/projects";
 import { resumeEducation, resumeRoles } from "@/lib/resume";
-import { asset, person } from "@/lib/site";
+import { asset } from "@/lib/site";
 import { skillGroups } from "@/lib/tokens";
 
 const steps = [
@@ -179,7 +179,7 @@ export default function HomePage() {
         <article className="system-card system-card-flip">
           <div className="system-preview system-preview-sutra">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={asset("/work/sutra-ui/home.webp")} alt="Sutra UI documentation home, ivory page with an antique-gold line" width={1440} height={900} />
+            <img src={asset("/work/sutra-ui/home-dark.webp")} alt="Sutra UI in dark theme, ivory type on a near-black page" width={1600} height={1000} />
           </div>
           <div className="system-copy">
             <p className="eyebrow">Sutra UI</p>
@@ -200,34 +200,6 @@ export default function HomePage() {
         </article>
       </section>
 
-      <section className="contact theme-ink" id="contact" aria-labelledby="contact-title">
-        <p className="eyebrow">07 — Contact</p>
-        <h2 id="contact-title">
-          <a href={`mailto:${person.email}`}>
-            akhisingh2211
-            <wbr />
-            @gmail.com
-          </a>
-        </h2>
-        <ul className="contact-links">
-          <li>
-            <a href={person.linkedin} target="_blank" rel="noreferrer">
-              LinkedIn
-            </a>
-          </li>
-          <li>
-            <a href={person.github} target="_blank" rel="noreferrer">
-              GitHub
-            </a>
-          </li>
-          <li>
-            <Button href="/contact" variant="line">
-              Write to me
-            </Button>
-          </li>
-          <li>{person.location}</li>
-        </ul>
-      </section>
     </PageShell>
   );
 }

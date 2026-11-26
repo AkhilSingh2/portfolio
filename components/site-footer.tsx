@@ -114,7 +114,7 @@ export function SiteFooter() {
   };
 
   return (
-    <footer className="site-footer" ref={ref}>
+    <footer className="site-footer" id="contact" ref={ref}>
       <div className="footer-shade" aria-hidden="true">
         <span className="footer-orb footer-orb-a" />
         <span className="footer-orb footer-orb-b" />

@@ -6,10 +6,12 @@ export function Swatch({
   name,
   variable,
   role,
+  onSelect,
 }: {
   name: string;
   variable: string;
   role: string;
+  onSelect?: () => void;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -18,6 +20,7 @@ export function Swatch({
       type="button"
       className="swatch"
       onClick={() => {
+        onSelect?.();
         const value = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
         const text = value ? `${variable}: ${value}` : variable;
         const mark = () => {

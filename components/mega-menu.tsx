@@ -9,6 +9,7 @@ import { SocialLinks } from "@/components/social-links";
 import { TagList } from "@/components/tag";
 import { featuredProject, liveTools, workGroups } from "@/lib/menu";
 import type { Project, Shot } from "@/lib/projects";
+import { LiveLink, liveDomain } from "@/components/live-link";
 import { person } from "@/lib/site";
 
 type Spot =
@@ -58,16 +59,25 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
         transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 30 }}
       >
         <div className="mega-bar">
-          <p id={titleId} className="mega-kicker">
-            Work
-          </p>
-          <Link href="/work" className="mega-work-link" data-menuitem onClick={onClose}>
-            See all work
-          </Link>
-          <SocialLinks className="nav-social mega-social" />
-          <button type="button" className="mega-close" data-menuitem onClick={onClose}>
-            Close
-          </button>
+          <div className="mega-brand">
+            <p id={titleId} className="mega-kicker">
+              Work
+            </p>
+            <Link href="/work" className="mega-work-link" data-menuitem onClick={onClose}>
+              See all work
+            </Link>
+          </div>
+          <div className="mega-tools">
+            <SocialLinks className="nav-social mega-social" />
+            <a className="mega-mail" href={`mailto:${person.email}`} aria-label="Email" data-menuitem>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M3 5.5h18a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1Zm9 7.2 8.2-5.2H3.8L12 12.7Z" />
+              </svg>
+            </a>
+            <button type="button" className="mega-close" data-menuitem onClick={onClose}>
+              Close
+            </button>
+          </div>
         </div>
         <div className="mega-layout">
           <div className="spotlight" aria-live="polite">
@@ -143,11 +153,7 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
                             <em>{project.kicker}</em>
                           </span>
                         </Link>
-                        {project.live ? (
-                          <a className="mega-row-live" href={project.live} target="_blank" rel="noreferrer">
-                            Live site
-                          </a>
-                        ) : null}
+                        {project.live ? <LiveLink href={project.live} domain={liveDomain(project.liveLabel)} /> : null}
                       </li>
                     );
                   })}

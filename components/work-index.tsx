@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LiveLink, liveDomain } from "@/components/live-link";
 import { Media } from "@/components/media";
 import type { Project } from "@/lib/projects";
 
@@ -47,11 +48,7 @@ export function WorkIndex({ projects, labelledBy }: { projects: Project[]; label
                 ) : null}
                 <span className="work-year">{project.year}</span>
               </Link>
-              {project.live ? (
-                <a className="work-live" href={project.live} target="_blank" rel="noreferrer">
-                  Live site
-                </a>
-              ) : null}
+              {project.live ? <LiveLink href={project.live} domain={liveDomain(project.liveLabel)} /> : null}
             </li>
           );
         })}
