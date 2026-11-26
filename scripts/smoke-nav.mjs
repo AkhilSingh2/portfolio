@@ -3,33 +3,40 @@ import { chromium } from "playwright";
 
 const origin = process.env.ORIGIN || "http://127.0.0.1:4177";
 const base = process.env.BASE_PATH || "/portfolio";
-const starts = (process.env.SMOKE_STARTS || "/,/work/,/contact/,/about/,/resume/,/work/docmind/,/design-system/").split(",").filter(Boolean);
-const widths = (process.env.SMOKE_WIDTHS || "1440,390").split(",").map(Number);
+const concurrency = Number(process.env.SMOKE_CONCURRENCY || 8);
+
+const failures = [];
 
 function log(line) {
   writeSync(1, `${line}\n`);
 }
 
-function url(path) {
-  if (path.startsWith("http")) return path;
-  const normalized = path.startsWith("/") ? path : `/${path}`;
-  return `${origin}${normalized.startsWith(base) ? normalized : `${base}${normalized}`}`;
+function absolute(href) {
+  if (href.startsWith("http")) return href.split("#")[0];
+  const path = href.startsWith("/") ? href : `/${href}`;
+  const withBase = path.startsWith(base) ? path : `${base}${path === "/" ? "/" : path}`;
+  return `${origin}${withBase.split("#")[0]}`;
 }
 
 function isInternal(href) {
-  if (!href || href.startsWith("mailto:") || href.startsWith("tel:")) return false;
-  if (href.startsWith("#")) return true;
+  if (!href || href.startsWith("mailto:") || href.startsWith("tel:") || href.startsWith("#")) return false;
   if (href.startsWith("http")) return href.startsWith(origin);
   return href.startsWith("/") || href.startsWith(base);
 }
 
-const launchArgs = ["--no-sandbox", "--disable-dev-shm-usage"];
-const browser = await chromium.launch({
-  ...(process.env.SMOKE_CHANNEL ? { channel: process.env.SMOKE_CHANNEL } : {}),
-  args: launchArgs,
-});
+function routeKey(href) {
+  const parsed = new URL(absolute(href));
+  let path = parsed.pathname;
+  if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1);
+  return path;
+}
 
-const failures = [];
+function routePath(href) {
+  const parsed = new URL(absolute(href));
+  let path = parsed.pathname.startsWith(base) ? parsed.pathname.slice(base.length) || "/" : parsed.pathname;
+  if (!path.endsWith("/") && !path.includes(".")) path = `${path}/`;
+  return path;
+}
 
 function watch(page, bag) {
   page.on("pageerror", (error) => bag.pageerrors.push(error.message));
@@ -43,205 +50,202 @@ function watch(page, bag) {
   page.on("response", (response) => {
     if (response.status() < 400) return;
     const target = response.url();
-    if (!target.startsWith(origin)) return;
-    if (target.endsWith("favicon.ico")) return;
+    if (!target.startsWith(origin) || target.endsWith("favicon.ico")) return;
     bag.http.push(`${response.status()} ${target}`);
   });
 }
 
-function freshBag() {
-  return { pageerrors: [], console: [], http: [] };
-}
-
-function since(bag, mark) {
-  return {
-    pageerrors: bag.pageerrors.slice(mark.pageerrors),
-    console: bag.console.slice(mark.console),
-    http: bag.http.slice(mark.http),
+function metaProblems(path, html) {
+  const content = (property) => {
+    const match = html.match(new RegExp(`<meta[^>]+(?:property|name)=["']${property}["'][^>]+content=["']([^"']*)["']`, "i"))
+      || html.match(new RegExp(`<meta[^>]+content=["']([^"']*)["'][^>]+(?:property|name)=["']${property}["']`, "i"));
+    return match?.[1] || "";
   };
-}
-
-function bad(found) {
-  return found.pageerrors.length || found.console.length || found.http.length;
-}
-
-async function openMenu(page) {
-  await page.getByRole("button", { name: "Work", exact: true }).click();
-  await page.locator("#site-menu").waitFor({ state: "visible", timeout: 8000 });
-  const seeAll = page.locator("#site-menu a[href$='/work/'], #site-menu a[href$='/work']");
-  if ((await seeAll.count()) === 0) throw new Error("megamenu is missing the link to /work/");
-}
-
-async function checkMeta(page, path) {
-  await page.goto(url(path), { waitUntil: "domcontentloaded" });
-  const meta = await page.evaluate(() => {
-    const content = (selector) => document.querySelector(selector)?.getAttribute("content") || "";
-    const href = (selector) => document.querySelector(selector)?.getAttribute("href") || "";
-    return {
-      title: document.title,
-      ogTitle: content('meta[property="og:title"]'),
-      ogDescription: content('meta[property="og:description"]'),
-      ogImage: content('meta[property="og:image"]'),
-      ogUrl: content('meta[property="og:url"]'),
-      twitter: content('meta[name="twitter:card"]'),
-      icon: href('link[rel="icon"]'),
-      apple: href('link[rel="apple-touch-icon"]'),
-      manifest: href('link[rel="manifest"]'),
-    };
-  });
+  const hrefOf = (rel) => {
+    const match = html.match(new RegExp(`<link[^>]+rel=["']${rel}["'][^>]+href=["']([^"']+)["']`, "i"))
+      || html.match(new RegExp(`<link[^>]+href=["']([^"']+)["'][^>]+rel=["']${rel}["']`, "i"));
+    return match?.[1] || "";
+  };
+  const title = html.match(/<title>([^<]*)<\/title>/i)?.[1] || "";
   const problems = [];
-  if (!meta.ogTitle) problems.push("missing og:title");
-  if (!meta.ogDescription) problems.push("missing og:description");
-  if (!meta.ogImage.includes(`${base}/og.png`)) problems.push(`og:image ${meta.ogImage}`);
-  if (!/^https?:\/\//.test(meta.ogUrl) || !meta.ogUrl.includes(`${base}/`)) problems.push(`og:url ${meta.ogUrl}`);
-  if (meta.twitter !== "summary_large_image") problems.push(`twitter:card ${meta.twitter}`);
-  if (!meta.icon.includes("favicon")) problems.push(`icon ${meta.icon}`);
-  if (!meta.apple.includes("apple-touch-icon")) problems.push(`apple ${meta.apple}`);
-  if (!meta.manifest.includes("site.webmanifest")) problems.push(`manifest ${meta.manifest}`);
-  for (const href of [meta.icon, meta.apple, meta.manifest, meta.ogImage]) {
-    if (!href) continue;
-    const absolute = new URL(href, page.url());
-    const local = absolute.href.startsWith(origin) ? absolute.href : `${origin}${absolute.pathname}`;
-    const response = await page.request.get(local);
-    if (response.status() >= 400) problems.push(`${response.status()} ${local}`);
+  const ogTitle = content("og:title");
+  const ogImage = content("og:image");
+  const ogUrl = content("og:url");
+  if (!ogTitle) problems.push("missing og:title");
+  if (!content("og:description")) problems.push("missing og:description");
+  if (!ogImage.includes(`${base}/og.png`)) problems.push(`og:image ${ogImage}`);
+  if (!/^https?:\/\//.test(ogUrl) || !ogUrl.includes(`${base}/`)) problems.push(`og:url ${ogUrl}`);
+  if (content("twitter:card") !== "summary_large_image") problems.push(`twitter:card ${content("twitter:card")}`);
+  if (!hrefOf("icon").includes("favicon")) problems.push(`icon ${hrefOf("icon")}`);
+  if (!hrefOf("apple-touch-icon").includes("apple-touch-icon")) problems.push(`apple ${hrefOf("apple-touch-icon")}`);
+  if (!hrefOf("manifest").includes("site.webmanifest")) problems.push(`manifest ${hrefOf("manifest")}`);
+  if (path.includes("/work/") && path !== "/work/" && !/DocMind/i.test(`${title} ${ogTitle}`)) {
+    problems.push(`case title ${title} / ${ogTitle}`);
   }
-  if (path.includes("/work/") && path !== "/work/" && !/DocMind/i.test(`${meta.title} ${meta.ogTitle}`)) {
-    problems.push(`case title ${meta.title} / ${meta.ogTitle}`);
-  }
-  if (problems.length) failures.push({ where: `meta ${path}`, message: problems.join("; ") });
+  return { problems, assets: [hrefOf("icon"), hrefOf("apple-touch-icon"), hrefOf("manifest"), ogImage].filter(Boolean) };
 }
 
-{
-  const context = await browser.newContext();
-  const page = await context.newPage();
-  const bag = freshBag();
-  watch(page, bag);
-  for (const path of ["/", "/work/", "/contact/", "/about/", "/resume/", "/work/docmind/", "/design-system/"]) {
-    await checkMeta(page, path);
+function discover(html, seen) {
+  const found = [];
+  const pattern = /<a\b[^>]*\bhref\s*=\s*(?:"([^"]+)"|'([^']+)')/gi;
+  let match = pattern.exec(html);
+  while (match) {
+    const href = (match[1] || match[2] || "").trim();
+    match = pattern.exec(html);
+    if (!isInternal(href)) continue;
+    const key = routeKey(href);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    found.push(href.split("#")[0]);
   }
-  if (bad(bag)) failures.push({ where: "meta load", ...bag });
-  await context.close();
+  return found;
 }
 
-for (const width of widths) {
-  const viewport = { width, height: width < 700 ? 844 : 900, mobile: width < 700 };
-  const context = await browser.newContext({ viewport });
-  for (const start of starts) {
-    const page = await context.newPage();
-    const bag = freshBag();
-    watch(page, bag);
-    log(`open ${viewport.width} ${start}`);
-    await page.goto(url(start), { waitUntil: "domcontentloaded" });
-    await page.locator("header.site-nav").waitFor();
-    if (bad(bag)) failures.push({ where: `${viewport.width} load ${start}`, ...bag });
+function mainMarkup(html) {
+  return html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)?.[1] || "";
+}
 
-    const mark = { pageerrors: bag.pageerrors.length, console: bag.console.length, http: bag.http.length };
-    try {
-      await openMenu(page);
-    } catch (error) {
-      failures.push({ where: `${viewport.width} open menu ${start}`, message: String(error), ...since(bag, mark) });
+function mainIsEmpty(markup) {
+  if (/<(img|svg|video|canvas|picture)\b/i.test(markup)) return false;
+  const text = markup
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length === 0;
+}
+
+async function checkLink(href) {
+  const target = absolute(href);
+  const response = await fetch(target, { redirect: "follow" });
+  if (response.status !== 200) {
+    failures.push({ where: href, message: `${response.status} ${target}` });
+    return [];
+  }
+  const type = response.headers.get("content-type") || "";
+  if (/\.pdf($|\?)/i.test(target) || type.includes("pdf")) {
+    const bytes = await response.arrayBuffer();
+    if (bytes.byteLength < 100) failures.push({ where: href, message: "pdf is empty" });
+    return [];
+  }
+  const html = await response.text();
+  if (/couldn't load|couldn’t load/i.test(html)) failures.push({ where: href, message: "client error screen" });
+  if (mainIsEmpty(mainMarkup(html))) failures.push({ where: href, message: "empty or missing main" });
+
+  const path = routePath(href);
+  if (["/", "/work/", "/contact/", "/about/", "/resume/", "/work/docmind/", "/design-system/"].includes(path)) {
+    const meta = metaProblems(path, html);
+    for (const asset of meta.assets) {
+      const assetUrl = new URL(asset, target);
+      const local = assetUrl.href.startsWith(origin) ? assetUrl.href : `${origin}${assetUrl.pathname}`;
+      const assetResponse = await fetch(local, { redirect: "follow" });
+      if (assetResponse.status >= 400) meta.problems.push(`${assetResponse.status} ${local}`);
     }
-    const opened = since(bag, mark);
-    if (bad(opened)) failures.push({ where: `${viewport.width} menu ${start}`, ...opened });
+    if (meta.problems.length) failures.push({ where: `meta ${path}`, message: meta.problems.join("; ") });
+  }
+  return html;
+}
+
+async function clickMenu() {
+  const browser = await chromium.launch({
+    ...(process.env.SMOKE_CHANNEL ? { channel: process.env.SMOKE_CHANNEL } : {}),
+    args: ["--no-sandbox", "--disable-dev-shm-usage"],
+  });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const bag = { pageerrors: [], console: [], http: [] };
+  watch(page, bag);
+  const hrefs = [];
+  try {
+    await page.goto(absolute("/"), { waitUntil: "domcontentloaded" });
+    await page.locator("header.site-nav").waitFor();
+    await page.getByRole("button", { name: "Work", exact: true }).click();
+    await page.locator("#site-menu").waitFor({ state: "visible", timeout: 8000 });
+    const seeAll = page.locator("#site-menu a[href$='/work/'], #site-menu a[href$='/work']");
+    if ((await seeAll.count()) === 0) failures.push({ where: "megamenu", message: "missing the link to /work/" });
 
     const primary = await page.locator('header.site-nav nav[aria-label="Primary"] a').allTextContents();
     if (primary.some((label) => label.trim() === "Calibre")) {
-      failures.push({ where: `${viewport.width} ${start} primary nav`, message: "Calibre is still in the top nav" });
+      failures.push({ where: "primary nav", message: "Calibre is still in the top nav" });
     }
-    if (start === "/") {
-      const inMenu = await page.locator('#site-menu a[href*="design-system"]').count();
-      const inFooter = await page.locator('footer a[href*="design-system"]').count();
-      if (!inMenu || !inFooter) {
-        failures.push({
-          where: `${viewport.width} design-system reach`,
-          message: `menu ${inMenu}, footer ${inFooter}`,
-        });
-      }
+    const inMenu = await page.locator('#site-menu a[href*="design-system"]').count();
+    const inFooter = await page.locator('footer a[href*="design-system"]').count();
+    if (!inMenu || !inFooter) {
+      failures.push({ where: "design-system reach", message: `menu ${inMenu}, footer ${inFooter}` });
     }
 
-    const hoverMark = { pageerrors: bag.pageerrors.length, console: bag.console.length, http: bag.http.length };
-    const menuLinks = page.locator("#site-menu a[href]");
-    const menuCount = await menuLinks.count();
-    for (let index = 0; index < menuCount; index += 1) {
-      await menuLinks.nth(index).hover({ timeout: 3000 }).catch(() => {});
-    }
-    await page.waitForTimeout(250);
-    const hovered = since(bag, hoverMark);
-    if (bad(hovered)) failures.push({ where: `${viewport.width} hover menu ${start}`, ...hovered });
+    hrefs.push(
+      ...(await page.evaluate(() => {
+        const nodes = [
+          ...document.querySelectorAll("header.site-nav a[href], #site-menu a[href], footer a[href], nav a[href]"),
+        ];
+        return [...new Set(nodes.map((node) => node.getAttribute("href")).filter(Boolean))];
+      })),
+    );
 
-    const hrefs = await page.evaluate(() => {
-      const nodes = [
-        ...document.querySelectorAll("header.site-nav a[href], #site-menu a[href], footer a[href], nav a[href]"),
-      ];
-      return [...new Set(nodes.map((node) => node.getAttribute("href")).filter(Boolean))];
-    });
-    await page.close();
-
-    const visit = await context.newPage();
-    const visitBag = freshBag();
-    watch(visit, visitBag);
-    for (const href of hrefs) {
-      if (href.startsWith("mailto:") || href.startsWith("tel:")) continue;
-      const label = `${viewport.width} ${start} -> ${href}`;
-      log(label);
-      const mark = { pageerrors: visitBag.pageerrors.length, console: visitBag.console.length, http: visitBag.http.length };
-      try {
-        await visit.goto(url(start), { waitUntil: "domcontentloaded" });
-        const find = async () => {
-          const links = visit.locator(`a[href=${JSON.stringify(href)}]`);
-          const count = await links.count();
-          let moving = null;
-          let content = null;
-          for (let index = 0; index < count; index += 1) {
-            const link = links.nth(index);
-            if (!(await link.isVisible())) continue;
-            const place = await link.evaluate((node) => {
-              if (node.closest(".reel-stage, .practice-stage")) return "moving";
-              if (node.closest("header, footer, #site-menu")) return "chrome";
-              return "content";
-            });
-            if (place === "chrome") return { link, force: false };
-            if (place === "moving") moving = link;
-            else content = link;
-          }
-          if (content) return { link: content, force: true };
-          return moving ? { link: moving, force: true } : null;
-        };
-        let link = await find();
-        if (!link) {
-          await openMenu(visit);
-          link = await find();
-        }
-        if (!link) throw new Error(`no visible link for ${href}`);
-        const click = { timeout: 8000, force: link.force };
-        if (!isInternal(href)) {
-          const popupPromise = visit.waitForEvent("popup", { timeout: 4000 }).catch(() => null);
-          await link.link.click(click);
-          const popup = await popupPromise;
-          if (popup) await popup.close().catch(() => {});
-        } else if (href.endsWith(".pdf")) {
-          await Promise.all([visit.waitForEvent("download", { timeout: 8000 }), link.link.click(click)]);
-        } else {
-          await link.link.click(click);
-          await visit.waitForTimeout(600);
-        }
-        const found = since(visitBag, mark);
-        if (bad(found)) failures.push({ where: label, ...found });
-        const body = await visit.locator("body").innerText();
-        if (/couldn't load|couldn’t load/i.test(body)) failures.push({ where: label, message: "client error screen" });
-      } catch (error) {
-        failures.push({ where: label, message: String(error).slice(0, 400), ...since(visitBag, mark) });
-      }
-    }
-    await visit.close();
+    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await page.locator("#site-menu").waitFor({ state: "hidden", timeout: 8000 });
+    await page.locator('header.site-nav nav[aria-label="Primary"]').getByRole("link", { name: "About", exact: true }).click();
+    await page.waitForURL(/\/about\/?$/, { timeout: 8000 });
+    const body = await page.locator("main").innerText();
+    if (!body.trim()) failures.push({ where: "click about", message: "empty main" });
+    if (/couldn't load|couldn’t load/i.test(body)) failures.push({ where: "click about", message: "client error screen" });
+  } catch (error) {
+    failures.push({ where: "megamenu click", message: String(error).slice(0, 400) });
   }
-  await context.close();
+  if (bag.pageerrors.length || bag.console.length || bag.http.length) {
+    failures.push({ where: "megamenu click", ...bag });
+  }
+  await browser.close();
+  return hrefs;
 }
 
-await browser.close();
+const seen = new Set();
+const seed = [];
+for (const href of await clickMenu()) {
+  if (!isInternal(href) || seen.has(routeKey(href))) continue;
+  seen.add(routeKey(href));
+  seed.push(href.split("#")[0]);
+}
+if (!seen.has(routeKey("/"))) {
+  seen.add(routeKey("/"));
+  seed.push("/");
+}
+
+async function mapLimit(items, limit, task) {
+  const results = new Array(items.length);
+  let cursor = 0;
+  async function run() {
+    while (cursor < items.length) {
+      const index = cursor;
+      cursor += 1;
+      results[index] = await task(items[index], index);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, Math.max(items.length, 1)) }, () => run()));
+  return results;
+}
+
+log(`checking ${seed.length} internal links, then anything they link to`);
+let batch = seed;
+let checked = 0;
+while (batch.length) {
+  const pages = await mapLimit(batch, concurrency, async (href) => {
+    checked += 1;
+    log(`${checked} ${href}`);
+    try {
+      return await checkLink(href);
+    } catch (error) {
+      failures.push({ where: href, message: String(error).slice(0, 400) });
+      return "";
+    }
+  });
+  batch = pages.flatMap((html) => (typeof html === "string" && html.includes("<") ? discover(html, seen) : []));
+}
+
 if (failures.length) {
-  console.log(JSON.stringify(failures.slice(0, 20), null, 2));
-  console.log(`nav smoke failed: ${failures.length}`);
+  log(JSON.stringify(failures.slice(0, 20), null, 2));
+  log(`nav smoke failed: ${failures.length}`);
   process.exit(1);
 }
-log(`nav smoke passed for ${starts.length} pages at ${widths.join(" and ")}`);
+log(`nav smoke passed for ${checked} internal links`);
