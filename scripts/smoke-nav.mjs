@@ -289,6 +289,87 @@ async function clickMenu() {
   return hrefs;
 }
 
+async function checkPhoneStory() {
+  const titles = [
+    "Akhilendra Singh",
+    "Lyra",
+    "Online Chalisa",
+    "Sutra UI",
+    "Tandem",
+    "Buzzroom",
+    "MyMirro",
+    "DocMind",
+    "Quorum",
+    "Pulse",
+    "Cadence",
+    "Marketing site",
+    "LaunchPad",
+    "The thread ties off",
+  ];
+  const cases = [
+    { width: 390, height: 844, mobile: false },
+    { width: 440, height: 956, mobile: false },
+    { width: 390, height: 844, mobile: true },
+  ];
+  const browser = await chromium.launch({
+    ...(process.env.SMOKE_CHANNEL ? { channel: process.env.SMOKE_CHANNEL } : {}),
+    args: ["--no-sandbox", "--disable-dev-shm-usage"],
+  });
+  try {
+    for (const item of cases) {
+      const context = await browser.newContext({
+        viewport: { width: item.width, height: item.height },
+        isMobile: item.mobile,
+        hasTouch: item.mobile,
+      });
+      const page = await context.newPage();
+      const where = `story ${item.width}x${item.height}${item.mobile ? " touch" : ""}`;
+      try {
+        await page.goto(absolute("/"), { waitUntil: "domcontentloaded" });
+        await page.waitForFunction(() => document.querySelector(".pin-spacer, .thread-home"), null, { timeout: 8000 });
+        await page.waitForTimeout(700);
+        const found = new Set();
+        const steps = 48;
+        for (let step = 0; step <= steps; step += 1) {
+          await page.evaluate((fraction) => {
+            const home = document.querySelector(".thread-home");
+            const spacer = document.querySelector(".pin-spacer");
+            const host = spacer || home;
+            const top = host.getBoundingClientRect().top + window.scrollY;
+            const distance = Math.max(1, host.offsetHeight - window.innerHeight);
+            window.scrollTo(0, top + distance * fraction);
+          }, step / steps);
+          await page.waitForTimeout(40);
+          const visible = await page.evaluate(() =>
+            [...document.querySelectorAll(".thread-copy h1, .thread-copy h2")]
+              .filter((node) => {
+                const card = node.closest(".thread-beat");
+                const cardStyle = card ? getComputedStyle(card) : null;
+                if (cardStyle && (cardStyle.visibility === "hidden" || Number(cardStyle.opacity) < 0.45)) return false;
+                const rect = node.getBoundingClientRect();
+                return rect.width > 8 && rect.height > 8 && rect.top < window.innerHeight && rect.bottom > 0;
+              })
+              .map((node) => node.textContent.replace(/\s+/g, " ").trim()),
+          );
+          for (const title of titles) {
+            if (visible.some((text) => text.includes(title))) found.add(title);
+          }
+          if (found.size === titles.length) break;
+        }
+        const missing = titles.filter((title) => !found.has(title));
+        if (missing.length) failures.push({ where, message: `missing ${missing.join(", ")}` });
+        else log(`${where} shows all ${titles.length} story titles`);
+      } catch (error) {
+        failures.push({ where, message: String(error).slice(0, 400) });
+      }
+      await context.close();
+    }
+  } finally {
+    await browser.close();
+  }
+}
+
+await checkPhoneStory();
 await checkFooterHeading();
 
 const seen = new Set();
