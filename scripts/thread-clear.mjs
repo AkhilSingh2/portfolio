@@ -7,7 +7,6 @@ const viewports = [
   { width: 1024, height: 768 },
   { width: 390, height: 844 },
 ];
-const stops = [0, 0.18, 0.36, 0.54, 0.72, 0.9];
 
 const browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
 const failures = [];
@@ -20,96 +19,142 @@ for (const viewport of viewports) {
   const page = await browser.newPage({ viewport });
   await page.goto(`${origin}${base}/`, { waitUntil: "networkidle", timeout: 60000 });
   await page.waitForFunction(() => Array.isArray(window.__threadSamples) && window.__threadSamples.length > 20, null, { timeout: 8000 });
-  for (const stop of stops) {
-    await page.evaluate((fraction) => {
-      const home = document.querySelector(".thread-home");
-      const spacer = document.querySelector(".pin-spacer");
-      const top = (spacer || home).getBoundingClientRect().top + window.scrollY;
-      const distance = spacer ? spacer.offsetHeight - window.innerHeight : Math.max(1, home.offsetHeight - window.innerHeight);
-      window.scrollTo(0, top + distance * fraction);
-    }, stop);
-    await page.waitForTimeout(180);
-    const result = await page.evaluate(() => {
-      const points = window.__threadSamples || [];
-      const content = [...document.querySelectorAll(".thread-chapter.is-active .thread-shot, .thread-chapter.is-active .thread-copy, .thread-chapter.is-active .thread-screens")];
-      const rects = content.map((element) => element.getBoundingClientRect());
-      const covered = points.filter((point) => rects.some((rect) => point.x >= rect.left && point.x <= rect.right && point.y >= rect.top && point.y <= rect.bottom));
-      const onTop = covered.filter((point) => {
-        const stack = document.elementsFromPoint(point.x, point.y);
-        const drawing = stack.find((element) => element.classList.contains("thread-field") || element.classList.contains("beat-mark"));
-        const front = stack.find((element) => element.closest(".thread-shot, .thread-copy, .thread-screens"));
-        if (!drawing || !front) return false;
-        return stack.indexOf(drawing) < stack.indexOf(front);
-      });
-      const field = document.querySelector(".thread-field");
-      const mark = document.querySelector(".thread-chapter.is-active .beat-mark");
-      const drawing = mark && getComputedStyle(mark).display !== "none" ? mark : field;
-      const shot = document.querySelector(".thread-chapter.is-active .thread-shot");
-      const frontZ = content.length ? Math.max(...content.map((element) => Number(getComputedStyle(element).zIndex) || 0)) : 0;
-      const drawingZ = drawing ? Number(getComputedStyle(drawing).zIndex) || 0 : 0;
-      return {
-        shape: window.__threadShape || "",
-        points: points.length,
-        onTop: onTop.length,
-        drawingZ,
-        frontZ,
-        shot: shot ? Math.round(shot.getBoundingClientRect().width) : 0,
-      };
-    });
-    if (result.points < 20 && stop < 0.9) failures.push({ viewport, stop, message: `only ${result.points} samples` });
-    if (result.onTop) failures.push({ viewport, stop, shape: result.shape, message: `${result.onTop} points painted on top of the shot or the type` });
-    else log(`${viewport.width} @ ${stop} ${result.shape} behind content (${result.points} pts)`);
-    if (result.drawingZ > result.frontZ && result.frontZ > 0) {
-      failures.push({ viewport, stop, message: `drawing z-index ${result.drawingZ} is above content ${result.frontZ}` });
-    }
-  }
+  const desktop = viewport.width >= 960;
 
-  if (viewport.width >= 960) {
-    const size = await page.evaluate(() => {
-      const beats = document.querySelectorAll(".thread-beat").length;
-      const exitShare = 0.7 / (beats - 1 + 0.7);
-      const progress = (1 / (beats - 1)) * (1 - exitShare);
-      const home = document.querySelector(".thread-home");
-      const spacer = home.closest(".pin-spacer") || home;
-      const top = spacer.getBoundingClientRect().top + window.scrollY;
-      const distance = spacer.offsetHeight - window.innerHeight;
-      window.scrollTo(0, top + distance * progress);
-      return new Promise((resolve) => {
-        window.setTimeout(() => {
-          const points = window.__threadSamples || [];
-          const ys = points.map((point) => point.y);
-          const shot = document.querySelector(".thread-chapter.is-active .thread-shot")?.getBoundingClientRect();
-          const height = ys.length ? Math.max(...ys) - Math.min(...ys) : 0;
-          resolve({
-            shape: window.__threadShape || "",
-            shotRatio: shot ? shot.width / window.innerWidth : 0,
-            objectRatio: height / window.innerHeight,
-            taller: shot ? height > shot.height : false,
-          });
-        }, 220);
-      });
-    });
-    log(`${viewport.width} lyra shot ${size.shotRatio.toFixed(2)} object ${size.objectRatio.toFixed(2)} ${size.shape}`);
-    if (size.shotRatio < 0.45 || size.shotRatio > 0.55) failures.push({ viewport, message: `shot is ${size.shotRatio.toFixed(2)} of the viewport` });
-    if (size.objectRatio < 0.6 || size.objectRatio > 0.75) failures.push({ viewport, message: `object is ${size.objectRatio.toFixed(2)} of the viewport height` });
-    if (!size.taller) failures.push({ viewport, message: "object is not taller than the screenshot" });
+  if (desktop) {
+    const count = await page.locator(".thread-beat").count();
+    for (let index = 0; index < count; index += 1) {
+      const result = await page.evaluate((beat) => {
+        const beats = [...document.querySelectorAll(".thread-beat")];
+        const exitShare = 0.7 / (beats.length - 1 + 0.7);
+        const progress = (beat / (beats.length - 1)) * (1 - exitShare);
+        const home = document.querySelector(".thread-home");
+        const spacer = home.closest(".pin-spacer") || home;
+        const top = spacer.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo(0, top + (spacer.offsetHeight - window.innerHeight) * progress);
+        return new Promise((resolve) => {
+          window.setTimeout(() => {
+            const card = document.querySelector(".thread-beat.is-active");
+            const copy = card?.querySelector(".thread-copy")?.getBoundingClientRect();
+            const img = card?.querySelector(".thread-shot img");
+            const shot = img?.getBoundingClientRect();
+            const points = window.__threadSamples || [];
+            const ys = points.map((point) => point.y);
+            const xs = points.map((point) => point.x);
+            const others = [...document.querySelectorAll(".thread-beat:not(.is-active)")].filter((chapter) => {
+              const style = getComputedStyle(chapter);
+              return style.visibility !== "hidden" || Number(style.opacity) > 0.02;
+            });
+            let imageAbove = true;
+            let shotOpacity = 1;
+            let shotBlend = "normal";
+            if (img && shot) {
+              const field = document.querySelector(".thread-field");
+              const previous = field?.style.pointerEvents;
+              if (field) field.style.pointerEvents = "auto";
+              const stack = document.elementsFromPoint(shot.left + shot.width / 2, shot.top + shot.height / 2);
+              if (field) field.style.pointerEvents = previous || "none";
+              const picture = stack.find((element) => element === img || element.classList.contains("thread-shot"));
+              const drawing = stack.find((element) => element.classList.contains("thread-field"));
+              imageAbove = Boolean(picture && drawing && stack.indexOf(picture) < stack.indexOf(drawing));
+              const frame = card.querySelector(".thread-shot");
+              shotOpacity = Number(getComputedStyle(frame).opacity);
+              shotBlend = getComputedStyle(frame).mixBlendMode;
+            }
+            const hit = (point, rect, pad) =>
+              point.x >= rect.left + pad && point.x <= rect.right - pad && point.y >= rect.top + pad && point.y <= rect.bottom - pad;
+            const veil = copy && window.__threadVeil ? window.__threadVeil(copy.left + copy.width / 2, copy.top + copy.height / 2) : 0;
+            const textHits = copy ? points.filter((point) => hit(point, copy, 10)).length : 0;
+            const bright = copy
+              ? points.filter((point) => hit(point, copy, 12) && window.__threadVeil && window.__threadVeil(point.x, point.y) > 0.35).length
+              : 0;
+            resolve({
+              chapter: card?.getAttribute("data-chapter") || "",
+              shape: window.__threadShape || "",
+              placement: window.__threadPlacement || card?.getAttribute("data-placement") || "",
+              expected: card?.getAttribute("data-placement") || "",
+              others: others.length,
+              imageAbove,
+              shotOpacity,
+              shotBlend,
+              cardOpacity: card ? Number(getComputedStyle(card).opacity) : 0,
+              veil,
+              textHits,
+              bright,
+              height: ys.length ? (Math.max(...ys) - Math.min(...ys)) / window.innerHeight : 0,
+              width: xs.length ? (Math.max(...xs) - Math.min(...xs)) / window.innerWidth : 0,
+              scrim: card ? getComputedStyle(card.querySelector(".thread-copy"), "::before").backgroundImage.includes("radial-gradient") : false,
+            });
+          }, 220);
+        });
+      }, index);
+      log(`${viewport.width} ${result.chapter} ${result.shape} ${result.placement} h${result.height.toFixed(2)} w${result.width.toFixed(2)} veil ${result.veil.toFixed(2)}`);
+      if (result.placement !== result.expected) failures.push({ viewport, chapter: result.chapter, message: `placement ${result.placement} expected ${result.expected}` });
+      if (result.others) failures.push({ viewport, chapter: result.chapter, message: `${result.others} other chapters still visible` });
+      if (result.cardOpacity < 0.99) failures.push({ viewport, chapter: result.chapter, message: `active card opacity ${result.cardOpacity}` });
+      if (!result.scrim) failures.push({ viewport, chapter: result.chapter, message: "text scrim missing" });
+      if (result.veil > 0.28) failures.push({ viewport, chapter: result.chapter, message: `thread veil ${result.veil.toFixed(2)} inside the text` });
+      if (result.bright) failures.push({ viewport, chapter: result.chapter, message: `${result.bright} full-opacity thread samples inside the text` });
+      if (result.shotOpacity && result.imageAbove === false) failures.push({ viewport, chapter: result.chapter, message: "screenshot is not above the thread" });
+      if (result.shotBlend && result.shotBlend !== "normal") failures.push({ viewport, chapter: result.chapter, message: `shot blend ${result.shotBlend}` });
+      if (result.shotOpacity && result.shotOpacity < 0.99) failures.push({ viewport, chapter: result.chapter, message: `shot opacity ${result.shotOpacity}` });
+      if ((result.placement === "left" || result.placement === "right") && result.textHits > 0) {
+        failures.push({ viewport, chapter: result.chapter, message: `${result.textHits} samples overlap the text` });
+      }
+      if (result.placement === "behind" && result.shape !== "knot" && result.height < 0.5 && result.width < 0.7) {
+        failures.push({ viewport, chapter: result.chapter, message: `behind object is small h${result.height.toFixed(2)} w${result.width.toFixed(2)}` });
+      }
+      if (result.placement === "behind" && result.shape !== "knot" && result.height > 0.8) {
+        failures.push({ viewport, chapter: result.chapter, message: `behind object height ${result.height.toFixed(2)}` });
+      }
+      if (result.placement === "full-bleed" && result.width < 0.9) {
+        failures.push({ viewport, chapter: result.chapter, message: `full-bleed width ${result.width.toFixed(2)}` });
+      }
+    }
   } else {
-    await page.evaluate(() => document.querySelector('[data-chapter="lyra"]')?.scrollIntoView({ inline: "center", block: "start" }));
-    await page.waitForTimeout(200);
-    const phone = await page.evaluate(() => {
-      const card = document.querySelector('[data-chapter="lyra"]');
-      const shot = card?.querySelector(".thread-shot")?.getBoundingClientRect();
-      const mark = card?.querySelector(".beat-mark")?.getBoundingClientRect();
-      const cardBox = card?.getBoundingClientRect();
-      return {
-        card: cardBox ? cardBox.width / window.innerWidth : 0,
-        shot: shot?.width || 0,
-        mark: mark?.height || 0,
-      };
-    });
-    log(`${viewport.width} card ${phone.card.toFixed(2)} shot ${Math.round(phone.shot)} mark ${Math.round(phone.mark)}`);
-    if (phone.card < 0.95) failures.push({ viewport, message: `phone card is ${phone.card.toFixed(2)} of the viewport` });
-    if (phone.mark <= phone.shot) failures.push({ viewport, message: "phone object is not larger than the screenshot" });
+    const chapters = await page.locator(".thread-beat").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-chapter")));
+    for (const chapter of chapters) {
+      const result = await page.evaluate((id) => {
+        const card = document.querySelector(`[data-chapter="${id}"]`);
+        const stage = document.querySelector(".thread-stage");
+        stage.scrollLeft = card.offsetLeft;
+        card.scrollIntoView({ block: "start", inline: "start" });
+        return new Promise((resolve) => {
+          window.setTimeout(() => {
+            const shot = card.querySelector(".thread-shot")?.getBoundingClientRect();
+            const mark = card.querySelector(".beat-mark")?.getBoundingClientRect();
+            const copy = card.querySelector(".thread-copy")?.getBoundingClientRect();
+            let imageAbove = true;
+            if (shot && mark) {
+              const drawingEl = card.querySelector(".beat-mark");
+              const previous = drawingEl?.style.pointerEvents;
+              if (drawingEl) drawingEl.style.pointerEvents = "auto";
+              const stack = document.elementsFromPoint(shot.left + shot.width / 2, shot.top + Math.min(shot.height / 2, 36));
+              if (drawingEl) drawingEl.style.pointerEvents = previous || "none";
+              const picture = stack.find((element) => element.tagName === "IMG" || element.classList.contains("thread-shot"));
+              const drawing = stack.find((element) => element.classList.contains("beat-mark"));
+              imageAbove = !drawing || Boolean(picture && stack.indexOf(picture) < stack.indexOf(drawing));
+            }
+            const overlapY = copy && mark ? Math.min(copy.bottom - 8, Math.max(copy.top + 8, mark.top + 8)) : 0;
+            const overlaps = Boolean(copy && mark && overlapY >= mark.top && overlapY <= mark.bottom && overlapY >= copy.top && overlapY <= copy.bottom);
+            const veil = overlaps && window.__threadVeil ? window.__threadVeil(copy.left + copy.width / 2, overlapY) : 0;
+            resolve({
+              card: card.getBoundingClientRect().width / window.innerWidth,
+              mark: mark ? mark.height / window.innerHeight : 0,
+              imageAbove,
+              veil,
+              scrim: getComputedStyle(card.querySelector(".thread-copy"), "::before").backgroundImage.includes("radial-gradient"),
+            });
+          }, 180);
+        });
+      }, chapter);
+      log(`${viewport.width} ${chapter} card ${result.card.toFixed(2)} mark ${result.mark.toFixed(2)} veil ${result.veil.toFixed(2)}`);
+      if (result.card < 0.95) failures.push({ viewport, chapter, message: `card is ${result.card.toFixed(2)} of the viewport` });
+      if (result.mark > 0.55 || result.mark < 0.28) failures.push({ viewport, chapter, message: `phone object is ${result.mark.toFixed(2)} of the viewport` });
+      if (!result.imageAbove) failures.push({ viewport, chapter, message: "screenshot is not above the thread" });
+      if (!result.scrim) failures.push({ viewport, chapter, message: "text scrim missing" });
+      if (result.veil > 0.28) failures.push({ viewport, chapter, message: `thread veil ${result.veil.toFixed(2)} inside the text` });
+    }
   }
   await page.close();
 }
@@ -119,4 +164,4 @@ if (failures.length) {
   console.error(JSON.stringify(failures, null, 2));
   process.exit(1);
 }
-log("thread stays behind the screenshot and the type");
+log("thread stays behind the screenshot, dim under the words, and each step keeps its placement");

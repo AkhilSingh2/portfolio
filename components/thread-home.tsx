@@ -6,7 +6,9 @@ import { Media } from "@/components/media";
 import { ResumeDownload } from "@/components/resume-download";
 import { ThreadField } from "@/components/thread-field";
 import { threadDrawings } from "@/lib/thread-art";
+import { threadLayouts } from "@/lib/thread-layout";
 import { unwindDrawing } from "@/lib/thread-shapes";
+import { applyVeil, publishVeil, renderVeil } from "@/lib/thread-veil";
 import { getProject, type Shot } from "@/lib/projects";
 import { person } from "@/lib/site";
 
@@ -79,7 +81,8 @@ function BeatMark({ shape }: { shape: string }) {
           maxY = Math.max(maxY, point.y);
         }
       }
-      const scale = Math.min(width * 0.92 / Math.max(1, maxX - minX), height * 0.9 / Math.max(1, maxY - minY));
+      const scale = Math.min(width * 0.78 / Math.max(1, maxX - minX), height * 0.72 / Math.max(1, maxY - minY));
+      const yShift = -height * 0.06;
       let drawn = strokes;
       let dot: { x: number; y: number; r: number; a: number } | null = null;
       if (shape === "knot") {
@@ -103,7 +106,7 @@ function BeatMark({ shape }: { shape: string }) {
         ctx.beginPath();
         stroke.forEach((point, index) => {
           const x = width / 2 + point.x * scale;
-          const y = height / 2 + point.y * scale;
+          const y = height / 2 + yShift + point.y * scale;
           if (index === 0) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);
           if (index % 8 === 0) samples.push({ x, y });
@@ -117,7 +120,7 @@ function BeatMark({ shape }: { shape: string }) {
         ctx.shadowColor = "rgba(212, 196, 168, 0.95)";
         ctx.shadowBlur = 12;
         ctx.beginPath();
-        ctx.arc(width / 2 + dot.x * scale, height / 2 + dot.y * scale, Math.min(6.5, Math.max(1.6, dot.r * scale)), 0, Math.PI * 2);
+        ctx.arc(width / 2 + dot.x * scale, height / 2 + yShift + dot.y * scale, Math.min(6.5, Math.max(1.6, dot.r * scale)), 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       }
@@ -129,16 +132,31 @@ function BeatMark({ shape }: { shape: string }) {
       window.__threadMarkScore = score;
       window.__threadSamples = samples.map((point) => ({ x: rect.left + point.x, y: rect.top + point.y }));
       window.__threadShape = shape;
+      const copy = canvas.closest(".thread-beat")?.querySelector(".thread-copy");
+      if (copy instanceof HTMLElement) {
+        const words = copy.getBoundingClientRect();
+        const mask = renderVeil(rect.width, rect.height, {
+          x: words.left - rect.left,
+          y: words.top - rect.top,
+          w: words.width,
+          h: words.height,
+        });
+        applyVeil(canvas, mask);
+        publishVeil({ canvas: mask, left: rect.left, top: rect.top, width: rect.width, height: rect.height });
+      }
       window.setTimeout(() => {
         delete window.__threadMarkScore;
       }, 0);
     };
     draw();
+    const stage = canvas.closest(".thread-stage");
     window.addEventListener("resize", draw);
     window.addEventListener("scroll", draw, { passive: true });
+    stage?.addEventListener("scroll", draw, { passive: true });
     return () => {
       window.removeEventListener("resize", draw);
       window.removeEventListener("scroll", draw);
+      stage?.removeEventListener("scroll", draw);
     };
   }, [shape]);
 
@@ -164,15 +182,15 @@ export function ThreadHome() {
       const clamped = Math.min(1, Math.max(0, progress));
       const cursor = clamped * (beats.length - 1);
       cards.forEach((card, index) => {
-        const delta = Math.max(-1, Math.min(1, index - cursor));
-        const distance = Math.abs(index - cursor);
-        card.style.transform = `translate3d(${delta * 24}%, 0, 0)`;
-        card.style.opacity = distance > 1 ? "0" : String(Math.max(0, 1 - distance));
-        card.style.pointerEvents = distance < 0.5 ? "auto" : "none";
-        card.style.zIndex = distance < 0.5 ? "2" : "1";
-        card.classList.toggle("is-active", distance < 0.5);
+        const active = index === Math.min(beats.length - 1, Math.max(0, Math.round(cursor)));
+        card.style.transform = "translate3d(0, 0, 0)";
+        card.style.opacity = active ? "1" : "0";
+        card.style.visibility = active ? "visible" : "hidden";
+        card.style.pointerEvents = active ? "auto" : "none";
+        card.style.zIndex = active ? "2" : "1";
+        card.classList.toggle("is-active", active);
         const shot = card.querySelector<HTMLElement>(".thread-shot");
-        if (shot) shot.style.transform = `scale(${Math.max(0.92, 1 - distance * 0.1)})`;
+        if (shot) shot.style.transform = "none";
       });
       document.documentElement.dataset.threadProgress = clamped.toFixed(4);
       const shell = root.closest(".thread-shell");
@@ -253,6 +271,8 @@ export function ThreadHome() {
                 <article
                   className={`thread-beat thread-chapter${index === 0 ? " is-active" : ""}`}
                   data-chapter={beat.id}
+                  data-placement={threadLayouts[beat.shape]?.placement ?? "behind"}
+                  data-shot={threadLayouts[beat.shape]?.shot ?? "left"}
                   id={beat.anchor}
                   key={beat.id}
                 >
