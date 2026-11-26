@@ -7,6 +7,9 @@ import { useEffect, useRef } from "react";
 import { TagList } from "@/components/tag";
 import type { Project } from "@/lib/projects";
 
+const closedMask = "inset(31% 30% 31% 30%)";
+const openMask = "inset(0% 0% 0% 0%)";
+
 export function WorkReel({ projects }: { projects: Project[] }) {
   const rootRef = useRef<HTMLElement>(null);
 
@@ -14,7 +17,8 @@ export function WorkReel({ projects }: { projects: Project[] }) {
     const root = rootRef.current;
     if (!root) return;
 
-    const mq = window.matchMedia("(min-width: 960px) and (prefers-reduced-motion: no-preference)");
+    const desktopQuery = window.matchMedia("(min-width: 960px)");
+    const reduceQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     let token = 0;
     let dead = false;
     let started = false;
@@ -30,45 +34,67 @@ export function WorkReel({ projects }: { projects: Project[] }) {
       revert?.();
       revert = undefined;
       clearInert();
+      document.documentElement.classList.remove("enhance");
     };
 
     const setup = async () => {
       const mine = ++token;
       destroy();
-      const film = mq.matches;
+      if (reduceQuery.matches) return;
+      const film = desktopQuery.matches;
       document.documentElement.classList.toggle("enhance", film);
-      if (!film) return;
 
-      const [{ gsap }, { ScrollTrigger }] = await Promise.all([
-        import("gsap"),
-        import("gsap/ScrollTrigger"),
-      ]);
-      if (dead || mine !== token || !mq.matches) return;
+      const [{ gsap }, { ScrollTrigger }] = await Promise.all([import("gsap"), import("gsap/ScrollTrigger")]);
+      if (dead || mine !== token || reduceQuery.matches) return;
       gsap.registerPlugin(ScrollTrigger);
 
       const ctx = gsap.context(() => {
         const slides = gsap.utils.toArray<HTMLElement>("[data-slide]", root);
-        const frames = slides.map((slide) => slide.querySelector<HTMLElement>("[data-frame]"));
-        const copies = slides.map((slide) => slide.querySelector<HTMLElement>("[data-copy]"));
-        if (frames.some((frame) => !frame) || copies.some((copy) => !copy)) return;
+        if (!slides.length) return;
 
-        const restBox = () => ({
-          top: "23%",
-          left: "46%",
-          width: "49%",
-          height: "54%",
-          right: "auto",
-          bottom: "auto",
-        });
-        const fullBox = () => ({
-          top: "8%",
-          left: "6%",
-          width: "88%",
-          height: "84%",
-          right: "auto",
-          bottom: "auto",
-        });
-        const beat = 1;
+        if (!film) {
+          slides.forEach((slide) => {
+            const mask = slide.querySelector("[data-mask]");
+            const image = slide.querySelector("img");
+            const type = slide.querySelector("[data-type]");
+            if (mask) {
+              gsap.fromTo(
+                mask,
+                { clipPath: "inset(16% 8% 16% 8%)" },
+                {
+                  clipPath: openMask,
+                  ease: "none",
+                  scrollTrigger: { trigger: slide, start: "top 85%", end: "top 35%", scrub: 0.45 },
+                },
+              );
+            }
+            if (image) {
+              gsap.fromTo(
+                image,
+                { scale: 1.22 },
+                {
+                  scale: 1,
+                  ease: "none",
+                  scrollTrigger: { trigger: slide, start: "top bottom", end: "bottom top", scrub: true },
+                },
+              );
+            }
+            if (type) {
+              gsap.fromTo(
+                type,
+                { opacity: 0, y: 36, scale: 1.08 },
+                {
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  ease: "none",
+                  scrollTrigger: { trigger: slide, start: "top 78%", end: "top 42%", scrub: 0.45 },
+                },
+              );
+            }
+          });
+          return;
+        }
 
         const setCurrent = (index: number) => {
           slides.forEach((slide, slideIndex) => {
@@ -77,21 +103,19 @@ export function WorkReel({ projects }: { projects: Project[] }) {
           });
         };
 
-        gsap.set(frames, { ...fullBox(), autoAlpha: 0 });
-        gsap.set(frames[0], { ...restBox(), autoAlpha: 1 });
-        gsap.set(copies, { autoAlpha: 1, y: 0 });
         gsap.set(slides, { autoAlpha: 0 });
         gsap.set(slides[0], { autoAlpha: 1 });
         setCurrent(0);
 
+        const beat = 1;
         const timeline = gsap.timeline({
           defaults: { ease: "none" },
           scrollTrigger: {
             trigger: root,
             start: "top top",
-            end: () => `+=${window.innerHeight * slides.length}`,
+            end: () => `+=${window.innerHeight * slides.length * 0.95}`,
             pin: true,
-            scrub: 0.55,
+            scrub: 0.65,
             anticipatePin: 1,
             invalidateOnRefresh: true,
             onUpdate: (self) => {
@@ -101,18 +125,35 @@ export function WorkReel({ projects }: { projects: Project[] }) {
           },
         });
 
-        slides.forEach((_, index) => {
+        slides.forEach((slide, index) => {
+          const mask = slide.querySelector("[data-mask]");
+          const image = slide.querySelector("img");
+          const type = slide.querySelector("[data-type]");
           const start = index * beat;
           if (index > 0) {
-            timeline.set(slides[index - 1], { autoAlpha: 0 }, start);
-            timeline.set(slides[index], { autoAlpha: 1 }, start);
-            timeline.fromTo(frames[index], { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.2 }, start);
-            timeline.fromTo(frames[index], fullBox(), { ...restBox(), duration: 0.38 }, start);
+            timeline.fromTo(slide, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.22 }, start);
+            timeline.to(slides[index - 1], { autoAlpha: 0, duration: 0.22 }, start);
           }
-          if (index < slides.length - 1) {
-            timeline.to(frames[index], { ...fullBox(), duration: 0.3 }, start + 0.52);
-          } else {
-            timeline.to(frames[index], { duration: 0.35 }, start + 0.55);
+          if (mask) {
+            timeline.fromTo(mask, { clipPath: closedMask }, { clipPath: openMask, duration: 0.46 }, start);
+          }
+          if (image) {
+            timeline.fromTo(image, { scale: 1.48, yPercent: 6 }, { scale: 1.04, yPercent: -3, duration: 0.72 }, start);
+          }
+          if (type) {
+            if (index === 0) {
+              gsap.set(type, { opacity: 1, y: 0, scale: 1 });
+            } else {
+              timeline.fromTo(
+                type,
+                { opacity: 0, y: 54, scale: 1.18 },
+                { opacity: 1, y: 0, scale: 1, duration: 0.26 },
+                start + 0.06,
+              );
+            }
+            if (index < slides.length - 1) {
+              timeline.to(type, { opacity: 0, y: -42, scale: 0.94, duration: 0.18 }, start + 0.8);
+            }
           }
         });
       }, root);
@@ -133,23 +174,26 @@ export function WorkReel({ projects }: { projects: Project[] }) {
       if (started) return;
       started = true;
       void setup();
-      mq.addEventListener("change", onChange);
+      desktopQuery.addEventListener("change", onChange);
+      reduceQuery.addEventListener("change", onChange);
     };
     const onChange = () => {
-      void setup();
+      started = false;
+      start();
     };
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) start();
       },
-      { rootMargin: "200px" },
+      { rootMargin: "240px" },
     );
     observer.observe(root);
 
     return () => {
       dead = true;
       observer.disconnect();
-      mq.removeEventListener("change", onChange);
+      desktopQuery.removeEventListener("change", onChange);
+      reduceQuery.removeEventListener("change", onChange);
       destroy();
     };
   }, [projects.length]);
@@ -158,7 +202,7 @@ export function WorkReel({ projects }: { projects: Project[] }) {
     <section className="reel theme-ink" id="work" ref={rootRef} aria-label="Selected work">
       <div className="reel-stage">
         <p className="reel-kicker">
-          <span className="eyebrow">03 — Selected work</span>
+          <span className="eyebrow">Selected work</span>
           <Link href="/work" className="reel-all">
             See all work
           </Link>
@@ -168,26 +212,30 @@ export function WorkReel({ projects }: { projects: Project[] }) {
           return (
             <article className="reel-slide" data-slide key={project.slug}>
               <div className="reel-frame" data-frame>
+                <div className="reel-mask" data-mask>
                   {shot ? (
                     <Media src={shot.src} alt={shot.alt} width={shot.width} height={shot.height} priority={index === 0} />
                   ) : null}
+                </div>
               </div>
               <div className="reel-copy" data-copy>
-                <p className="reel-index">
-                  <span>
-                    {String(index + 1).padStart(2, "0")}
-                    <span className="reel-total"> / {String(projects.length).padStart(2, "0")}</span>
+                <div className="reel-type" data-type>
+                  <p className="reel-index">
+                    <span>
+                      {String(index + 1).padStart(2, "0")}
+                      <span className="reel-total"> / {String(projects.length).padStart(2, "0")}</span>
+                    </span>
+                  </p>
+                  <h2>{project.title}</h2>
+                  <p>{project.summary}</p>
+                  <TagList items={project.stack.slice(0, 4)} />
+                  <span className="reel-links">
+                    <Link href={`/work/${project.slug}`} transitionTypes={["nav-forward"]} className="text-link">
+                      Case study
+                    </Link>
+                    {project.live ? <LiveLink href={project.live} domain={liveDomain(project.liveLabel)} /> : null}
                   </span>
-                </p>
-                <h2>{project.title}</h2>
-                <p>{project.summary}</p>
-                <TagList items={project.stack.slice(0, 5)} />
-                <span className="reel-links">
-                  <Link href={`/work/${project.slug}`} transitionTypes={["nav-forward"]} className="text-link">
-                    Case study
-                  </Link>
-                  {project.live ? <LiveLink href={project.live} domain={liveDomain(project.liveLabel)} /> : null}
-                </span>
+                </div>
               </div>
             </article>
           );
