@@ -67,7 +67,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<Params
                 ) : null}
                 {project.live ? (
                   <a href={project.live} target="_blank" rel="noreferrer">
-                    {project.liveLabel ?? "Live"}
+                    Live site
                   </a>
                 ) : null}
               </dd>

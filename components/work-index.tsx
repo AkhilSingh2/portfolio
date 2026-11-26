@@ -47,6 +47,11 @@ export function WorkIndex({ projects, labelledBy }: { projects: Project[]; label
                 ) : null}
                 <span className="work-year">{project.year}</span>
               </Link>
+              {project.live ? (
+                <a className="work-live" href={project.live} target="_blank" rel="noreferrer">
+                  Live site
+                </a>
+              ) : null}
             </li>
           );
         })}
