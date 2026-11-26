@@ -179,7 +179,7 @@ for (const width of widths) {
           for (let index = 0; index < count; index += 1) {
             const link = links.nth(index);
             if (!(await link.isVisible())) continue;
-            const animated = await link.evaluate((node) => Boolean(node.closest(".reel-stage")));
+            const animated = await link.evaluate((node) => Boolean(node.closest(".reel-stage, .practice-stage")));
             if (!animated) return { link, force: false };
             moving = link;
           }
