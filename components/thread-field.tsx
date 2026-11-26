@@ -24,6 +24,20 @@ function readProgress() {
   return Math.min(1, Math.max(0, (window.scrollY - top) / span));
 }
 
+/** While the story is pinned the knot stays put. Once it unpins, the drawing leaves with that block and does not draw over Now. */
+function storyMotion(): { shift: number } | null {
+  const home = document.querySelector(".thread-home");
+  if (!(home instanceof HTMLElement)) return null;
+  const rect = home.getBoundingClientRect();
+  if (rect.bottom < 72 || rect.top > 12) return null;
+  const ground = document.querySelector(".ground");
+  if (ground && rect.top < -8) {
+    const groundTop = ground.getBoundingClientRect().top;
+    if (groundTop < window.innerHeight * 0.42) return null;
+  }
+  return { shift: Math.min(0, rect.top) };
+}
+
 function shown(element: Element) {
   const chapter = element.closest(".thread-chapter");
   if (chapter) {
@@ -36,7 +50,7 @@ function shown(element: Element) {
 
 function obstacles(): Rect[] {
   const nodes = document.querySelectorAll("[data-obstacle], header.site-nav, .thread-beat.is-active .thread-shot, .thread-beat.is-active .thread-copy, .thread-beat.is-active .thread-screens");
-  return [...nodes].filter(shown).map((element) => {
+  return [...nodes].filter((element) => !element.closest(".ground") && shown(element)).map((element) => {
     const rect = element.getBoundingClientRect();
     const pad = 18;
     return {
@@ -77,11 +91,10 @@ function bands(blocks: Rect[]): Slot[] {
 
 function anchorY() {
   const copy = document.querySelector(".thread-chapter.is-active .thread-copy");
-  if (copy) {
-    const rect = copy.getBoundingClientRect();
-    if (rect.height > 20 && rect.bottom > 40 && rect.top < window.innerHeight - 40) return rect.top + rect.height / 2;
-  }
-  return window.innerHeight / 2;
+  if (!copy) return null;
+  const rect = copy.getBoundingClientRect();
+  if (rect.height > 20 && rect.bottom > 48 && rect.top < window.innerHeight - 24) return rect.top + rect.height / 2;
+  return null;
 }
 
 function slotsFor(blocks: Rect[]): Slot[] {
@@ -196,14 +209,20 @@ export function ThreadField() {
     if (host) watch.observe(host);
 
     const layout = () => {
-      if (!running) {
+      const motion = storyMotion();
+      if (!running || !motion) {
+        window.__threadSamples = [];
+        return [];
+      }
+      const focus = anchorY();
+      if (focus == null) {
         window.__threadSamples = [];
         return [];
       }
       const drawing = threadDrawing(readProgress(), { reduced: reduce });
       const blocks = obstacles();
       for (const slot of slotsFor(blocks)) {
-        const strokes = place(drawing.strokes, slot, blocks, anchorY());
+        const strokes = place(drawing.strokes, slot, blocks, focus);
         if (strokes) {
           window.__threadSamples = strokes.flat();
           window.__threadShape = drawing.name;

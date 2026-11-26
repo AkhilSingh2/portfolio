@@ -11,10 +11,30 @@ const building = [
 ];
 
 const toolbox = [
-  { title: "Frontend", items: ["React", "Next.js", "TypeScript", "Tailwind"] },
-  { title: "Backend", items: ["Node", "Postgres", "Neon", "REST", "WebSockets"] },
-  { title: "AI", items: ["LLM APIs", "RAG"] },
-  { title: "Cloud", items: ["AWS Amplify", "Vercel", "GitHub Actions"] },
+  { title: "Languages", items: ["TypeScript", "JavaScript (ES6+)", "Python", "HTML5", "CSS3"] },
+  {
+    title: "Frontend",
+    items: ["React", "Next.js", "Vue.js", "Tailwind CSS", "Storybook", "Figma Prototyping", "Design Systems"],
+  },
+  { title: "Backend", items: ["Python", "FastAPI", "Node.js", "RESTful APIs", "Celery", "SQS", "NetSuite / CRM Integrations"] },
+  { title: "Data", items: ["PostgreSQL", "MongoDB"] },
+  { title: "AI", items: ["Gemini LLM Integration", "Prompt Engineering", "RAG Architectures"] },
+  {
+    title: "Cloud and DevOps",
+    items: [
+      "Azure (CI/CD, Cloud Workflows)",
+      "AWS (S3, ECR, RDS, IAM, SQS)",
+      "Kubernetes (Helm)",
+      "KEDA (Autoscaling)",
+      "Terraform",
+      "Docker",
+      "GitHub Actions",
+    ],
+  },
+  {
+    title: "Tooling",
+    items: ["Bitbucket", "FFmpeg Media Pipelines", "Sentry", "Biome", "SonarQube", "Monorepo Architecture", "Jira SDLC"],
+  },
 ];
 
 export function GroundNote() {
@@ -68,7 +88,11 @@ export function GroundNote() {
           {toolbox.map((group) => (
             <li key={group.title}>
               <strong>{group.title}</strong>
-              <span>{group.items.join(" · ")}</span>
+              <ul className="tool-chips">
+                {group.items.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
             </li>
           ))}
         </ul>
