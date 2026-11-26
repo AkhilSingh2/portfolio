@@ -1186,7 +1186,7 @@ export const projects: Project[] = [
     kicker: "At Kwalee",
     year: "2024",
     summary:
-      "The studio’s public marketing site, moved to Next.js and a headless CMS. I led the migration.",
+      "Kwalee's public marketing site, moved to Next.js and a headless CMS. I led the migration.",
     problem:
       "The previous site fetched its content in sequence, hydrated more than the page needed, and shipped a bundle that made the first view slow.",
     built:

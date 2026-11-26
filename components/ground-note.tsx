@@ -1,32 +1,20 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef } from "react";
-import { ResumeDownload } from "@/components/resume-download";
 import { person } from "@/lib/site";
 
-const roles = [
-  {
-    when: "2024 – present",
-    where: "A UK games publisher",
-    line: "Full-stack platforms for media and localisation, and the public site. Moving that site to Next.js cut load time by 45%.",
-  },
-  {
-    when: "2023 – 2024",
-    where: "Groove Digital",
-    line: "React pages tuned for search. Organic traffic rose 40% in three months.",
-  },
-  {
-    when: "2021 – 2023",
-    where: "Unthinkable Solutions",
-    line: "A CMS and a desktop app that cut publishing turnaround by 50%.",
-  },
+const building = [
+  { href: "/work/launchpad", title: "LaunchPad", line: "A SaaS starter, from the session to the plan on the server." },
+  { href: "/work/cadence", title: "Cadence", line: "A voice-first coach that reshapes the day from recovery and mood." },
+  { href: "/work/buzzroom", title: "Buzzroom", line: "A trivia night for one screen and a room full of phones." },
 ];
 
-const capabilities = [
-  { title: "Frontend", line: "React, Next.js, TypeScript, and design systems." },
-  { title: "Backend and APIs", line: "Python, FastAPI, and the services behind the screen." },
-  { title: "AI", line: "Models in the product, from the prompt to the answer." },
-  { title: "Cloud and DevOps", line: "AWS, Kubernetes, and the pipelines that ship the work." },
+const toolbox = [
+  { title: "Frontend", items: ["React", "Next.js", "TypeScript", "Tailwind"] },
+  { title: "Backend", items: ["Node", "Postgres", "Neon", "REST", "WebSockets"] },
+  { title: "AI", items: ["LLM APIs", "RAG"] },
+  { title: "Cloud", items: ["AWS Amplify", "Vercel", "GitHub Actions"] },
 ];
 
 export function GroundNote() {
@@ -50,33 +38,40 @@ export function GroundNote() {
   }, []);
 
   return (
-    <section className="ground" ref={ref} data-obstacle aria-label="About and experience">
+    <section className="ground" ref={ref} data-obstacle aria-label="Now and toolbox">
       <div className="ground-intro">
-        <p className="thread-kicker">About</p>
-        <h2>Six years, from the interface to the system behind it.</h2>
+        <p className="thread-kicker">Now</p>
+        <h2>What I’m building, and what I’m open to.</h2>
       </div>
-      <ol className="ground-roles">
-        {roles.map((role) => (
-          <li key={role.where}>
-            <span>{role.when}</span>
-            <strong>{role.where}</strong>
-            <p>{role.line}</p>
-          </li>
-        ))}
-      </ol>
-      <ul className="ground-caps">
-        {capabilities.map((item) => (
-          <li key={item.title}>
-            <strong>{item.title}</strong>
-            <span>{item.line}</span>
-          </li>
-        ))}
-      </ul>
-      <div className="ground-cta">
-        <a className="btn btn-solid" href={`mailto:${person.email}`}>
-          {person.email}
-        </a>
-        <ResumeDownload className="btn btn-ghost">Resume</ResumeDownload>
+      <div className="now-grid">
+        <div>
+          <h3>Building</h3>
+          <ul className="now-list">
+            {building.map((item) => (
+              <li key={item.href}>
+                <Link href={item.href}>{item.title}</Link>
+                <p>{item.line}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3>Open to</h3>
+          <p>{person.availability}. Bengaluru or remote.</p>
+          <h3>Exploring</h3>
+          <p>AI agents and realtime collaboration.</p>
+        </div>
+      </div>
+      <div>
+        <p className="thread-kicker">Toolbox</p>
+        <ul className="tool-grid">
+          {toolbox.map((group) => (
+            <li key={group.title}>
+              <strong>{group.title}</strong>
+              <span>{group.items.join(" · ")}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

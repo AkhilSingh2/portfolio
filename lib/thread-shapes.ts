@@ -44,7 +44,8 @@ export const threadShapeNames: Record<string, string> = {
 
 /** Scroll progress alone drives the line. Between objects it relaxes back into the thread. */
 export function threadDrawing(progress: number, options?: { reduced?: boolean }): { name: string; strokes: Point[][] } {
-  const scaled = Math.min(0.9999, Math.max(0, progress)) * threadOrder.length;
+  const span = Math.max(1, threadOrder.length - 1);
+  const scaled = Math.min(span, Math.max(0, progress) * span);
   const index = Math.min(threadOrder.length - 1, Math.floor(scaled));
   const local = scaled - index;
   const name = threadOrder[index];
@@ -53,13 +54,12 @@ export function threadDrawing(progress: number, options?: { reduced?: boolean })
     if (progress < 0.02) return { name: "thread", strokes: thread };
     return { name, strokes: object };
   }
-  const formed = local < 0.28 ? local / 0.28 : local > 0.72 ? (1 - local) / 0.28 : 1;
-  const towardThread = local > 0.72;
-  const strokes = towardThread ? mixAll(object, thread, 1 - formed) : mixAll(thread, object, formed);
-  const showing = formed > 0.62 ? name : "thread";
-  if (index === threadOrder.length - 1) {
-    const end = Math.min(1, local / 0.55);
-    return { name: end > 0.62 ? name : "thread", strokes: mixAll(thread, object, end) };
+  if (index === threadOrder.length - 1) return { name, strokes: object };
+  const next = threadDrawings[threadOrder[index + 1]];
+  if (local < 0.5) {
+    const amount = local / 0.5;
+    return { name: amount < 0.45 ? name : "thread", strokes: mixAll(object, thread, amount) };
   }
-  return { name: showing, strokes };
+  const amount = (local - 0.5) / 0.5;
+  return { name: amount > 0.55 ? threadOrder[index + 1] : "thread", strokes: mixAll(thread, next, amount) };
 }
