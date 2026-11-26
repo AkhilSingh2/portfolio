@@ -89,12 +89,12 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
                       <em>{active.kicker}</em>
                       <TagList items={active.stack.slice(0, 4)} />
                       <span className="spotlight-links">
-                        <Link href={`/work/${active.slug}`} data-menuitem onClick={onClose}>
+                          <Link href={`/work/${active.slug}`} data-menuitem onClick={onClose}>
                           Case study
                         </Link>
                         {active.live ? (
                           <a href={active.live} data-menuitem target="_blank" rel="noreferrer">
-                            {active.liveLabel ?? "Live"}
+                            Live site
                           </a>
                         ) : null}
                       </span>
@@ -128,8 +128,9 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
                   {group.projects.map((project) => {
                     const thumb = project.shots[0];
                     return (
-                      <li key={project.slug}>
+                      <li key={project.slug} className="mega-item">
                         <Link
+                          className="mega-project"
                           href={`/work/${project.slug}`}
                           data-menuitem
                           onClick={onClose}
@@ -142,6 +143,11 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
                             <em>{project.kicker}</em>
                           </span>
                         </Link>
+                        {project.live ? (
+                          <a className="mega-row-live" href={project.live} target="_blank" rel="noreferrer">
+                            Live site
+                          </a>
+                        ) : null}
                       </li>
                     );
                   })}

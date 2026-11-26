@@ -10,6 +10,7 @@ export function ScrollProgress() {
     if (!el) return;
     const onScroll = () => {
       const root = document.documentElement;
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const max = root.scrollHeight - window.innerHeight;
       const progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
       el.style.transform = `scaleX(${progress})`;
@@ -17,7 +18,7 @@ export function ScrollProgress() {
 
       let reveal = 1;
       const footer = document.querySelector(".site-footer");
-      if (max > 0 && footer) {
+      if (!reduce && max > 0 && footer) {
         if (root.classList.contains("footer-reveal")) {
           const footerH = Number.parseFloat(getComputedStyle(root).getPropertyValue("--footer-h")) || footer.clientHeight;
           const into = window.scrollY - (max - footerH);

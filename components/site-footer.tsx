@@ -43,6 +43,25 @@ function IconMail() {
   );
 }
 
+function CopyEmail() {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(person.email);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      window.location.href = `mailto:${person.email}`;
+    }
+  };
+  return (
+    <button type="button" className="footer-mail" onClick={copy}>
+      <span>{person.email}</span>
+      <em>{copied ? "Copied" : "Copy"}</em>
+    </button>
+  );
+}
+
 export function SiteFooter() {
   const ref = useRef<HTMLElement>(null);
   const [time, setTime] = useState<string | null>(null);
@@ -102,17 +121,45 @@ export function SiteFooter() {
         <span className="footer-noise" />
       </div>
       <div className="footer-inner">
-        <div className="footer-hero">
-          <p className="eyebrow">
-            <span className="status-dot" aria-hidden="true" />
-            {person.availability}
-          </p>
-          <h2>Let&apos;s build something</h2>
-          <Magnetic>
-            <Link className="btn btn-solid" href="/contact">
-              Start a conversation
-            </Link>
-          </Magnetic>
+        <div className="footer-close">
+          <div className="footer-hero">
+            <p className="eyebrow">
+              <span className="status-dot" aria-hidden="true" />
+              {person.availability}
+            </p>
+            <h2>Let&apos;s build something</h2>
+            <Magnetic>
+              <Link className="btn btn-solid" href="/contact">
+                Start a conversation
+              </Link>
+            </Magnetic>
+          </div>
+          <ul className="footer-actions">
+            <li>
+              <CopyEmail />
+            </li>
+            <li>
+              <a href={person.linkedin} target="_blank" rel="noreferrer">
+                LinkedIn
+              </a>
+            </li>
+            <li>
+              <a href={person.github} target="_blank" rel="noreferrer">
+                GitHub
+              </a>
+            </li>
+            <li>
+              <ResumeDownload>Resume</ResumeDownload>
+            </li>
+            <li>
+              <span className="footer-where">
+                Bengaluru
+                <span>
+                  IST <span className="footer-clock-inline">{time ?? "—:—:—"}</span>
+                </span>
+              </span>
+            </li>
+          </ul>
         </div>
 
         <p className="footer-wordmark" aria-hidden="true">

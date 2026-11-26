@@ -10,7 +10,7 @@ import { WorkReel } from "@/components/work-reel";
 import { Reveal } from "@/components/reveal";
 import { reelProjects } from "@/lib/projects";
 import { resumeEducation, resumeRoles } from "@/lib/resume";
-import { person } from "@/lib/site";
+import { asset, person } from "@/lib/site";
 import { skillGroups } from "@/lib/tokens";
 
 const steps = [
@@ -150,44 +150,54 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="system-teaser theme-bone" aria-labelledby="calibre-title">
-        <div className="teaser-copy">
-          <p className="eyebrow">06 — Calibre</p>
-          <h2 id="calibre-title">A design system with a name, a measure, and the code to prove it.</h2>
-          <p>
-            Calibre is the system this site is built with. Near-black and warm ivory carry the page. Champagne is the
-            signal. The tokens are the CSS variables, and the charts on the system page are measured.
-          </p>
-          <Button href="/design-system" variant="solid" transitionTypes={["nav-forward"]}>
-            Open the system
-          </Button>
-        </div>
-        <div className="teaser-board" aria-hidden="true">
-          <span className="teaser-swatch" style={{ background: "var(--ink-950)" }} />
-          <span className="teaser-swatch" style={{ background: "var(--bone-50)" }} />
-          <span className="teaser-swatch" style={{ background: "var(--ember-500)" }} />
-          <span className="teaser-swatch" style={{ background: "var(--sage-500)" }} />
-          <p className="teaser-type">
-            Aa <em>Aa</em>
-          </p>
-        </div>
-      </section>
-
-      <section className="sutra-band theme-bone" aria-labelledby="sutra-home-title">
-        <p className="eyebrow">Sutra UI</p>
-        <h2 id="sutra-home-title">A separate system, for the tools.</h2>
-        <p>
-          Sutra UI is the gallery edition for calculators and converters: ivory and ink, antique gold as a line,
-          Fraunces for the title, and Kalamkari as a hairline. This site stays on Calibre. The docs are live.
-        </p>
-        <div className="hero-actions">
-          <Button href="/work/sutra-ui" variant="solid" transitionTypes={["nav-forward"]}>
-            Open the showcase
-          </Button>
-          <a className="btn btn-line" href="https://akhilsingh2.github.io/sutra-ui/" target="_blank" rel="noreferrer">
-            Live docs
-          </a>
-        </div>
+      <section className="systems theme-bone" aria-label="Design systems">
+        <article className="system-card">
+          <div className="system-preview system-preview-calibre" aria-hidden="true">
+            <ul className="system-tokens">
+              <li><i style={{ background: "var(--ink-950)" }} /> Ink <code>#100e0c</code></li>
+              <li><i style={{ background: "var(--bone-50)" }} /> Ivory <code>#f3ecdf</code></li>
+              <li><i style={{ background: "var(--ember-500)" }} /> Champagne <code>#d4c4a8</code></li>
+            </ul>
+            <p className="system-type">Aa <em>Aa</em></p>
+            <p className="system-sample">
+              <span className="btn btn-solid">Solid</span>
+              <span className="btn btn-line">Line</span>
+            </p>
+          </div>
+          <div className="system-copy">
+            <p className="eyebrow">06 — Calibre</p>
+            <h2 id="calibre-title">A design system with a name, a measure, and the code to prove it.</h2>
+            <p>
+              Calibre is the system this site is built with. Near-black and warm ivory carry the page. Champagne is the
+              signal. The tokens are the CSS variables, and the charts on the system page are measured.
+            </p>
+            <Button href="/design-system" variant="solid" transitionTypes={["nav-forward"]}>
+              Open the system
+            </Button>
+          </div>
+        </article>
+        <article className="system-card system-card-flip">
+          <div className="system-preview system-preview-sutra">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={asset("/work/sutra-ui/home.webp")} alt="Sutra UI documentation home, ivory page with an antique-gold line" width={1440} height={900} />
+          </div>
+          <div className="system-copy">
+            <p className="eyebrow">Sutra UI</p>
+            <h2 id="sutra-home-title">A separate system, for the tools.</h2>
+            <p>
+              Sutra UI is the gallery edition for calculators and converters: ivory and ink, antique gold as a line,
+              Fraunces for the title, and Kalamkari as a hairline. This site stays on Calibre. The docs are live.
+            </p>
+            <div className="hero-actions">
+              <Button href="/work/sutra-ui" variant="solid" transitionTypes={["nav-forward"]}>
+                Open the showcase
+              </Button>
+              <a className="btn btn-line" href="https://akhilsingh2.github.io/sutra-ui/" target="_blank" rel="noreferrer">
+                Live docs
+              </a>
+            </div>
+          </div>
+        </article>
       </section>
 
       <section className="contact theme-ink" id="contact" aria-labelledby="contact-title">
