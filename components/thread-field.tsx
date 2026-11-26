@@ -14,8 +14,13 @@ declare global {
 }
 
 function readProgress() {
-  const value = Number.parseFloat(document.documentElement.dataset.threadProgress || "0");
-  return Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0;
+  const home = document.querySelector(".thread-home");
+  if (!(home instanceof HTMLElement)) return 0;
+  const spacer = home.closest(".pin-spacer");
+  const host = spacer instanceof HTMLElement ? spacer : home;
+  const top = host.getBoundingClientRect().top + window.scrollY;
+  const span = Math.max(1, host.offsetHeight - window.innerHeight);
+  return Math.min(1, Math.max(0, (window.scrollY - top) / span));
 }
 
 function shown(element: Element) {
@@ -94,7 +99,8 @@ function slotsFor(blocks: Rect[]): Slot[] {
 }
 
 function place(drawing: Point[], slot: Slot, blocks: Rect[]) {
-  let scale = Math.min(slot.w, slot.h) * 0.48;
+  const phone = window.innerWidth < 960;
+  let scale = Math.min(slot.w, slot.h) * (phone ? 0.32 : 0.48);
   const cx = slot.x + slot.w / 2;
   const cy = slot.y + slot.h / 2;
   for (let attempt = 0; attempt < 12; attempt += 1) {
@@ -113,8 +119,9 @@ function paint2d(ctx: CanvasRenderingContext2D, points: { x: number; y: number }
   ctx.save();
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
+  const phone = window.innerWidth < 960;
   ctx.strokeStyle = "rgba(212, 196, 168, 0.28)";
-  ctx.lineWidth = 10;
+  ctx.lineWidth = phone ? 6 : 10;
   ctx.shadowColor = "rgba(212, 196, 168, 0.85)";
   ctx.shadowBlur = 16;
   ctx.beginPath();
@@ -122,7 +129,7 @@ function paint2d(ctx: CanvasRenderingContext2D, points: { x: number; y: number }
   ctx.stroke();
   ctx.shadowBlur = 0;
   ctx.strokeStyle = "rgba(243, 236, 223, 0.95)";
-  ctx.lineWidth = 1.7;
+  ctx.lineWidth = phone ? 1.3 : 1.7;
   ctx.stroke();
   ctx.restore();
 }
@@ -149,9 +156,7 @@ export function ThreadField() {
     if (host) watch.observe(host);
 
     const layout = () => {
-      const active = [...document.querySelectorAll("[data-chapter]")].findIndex((element) => element.classList.contains("is-active"));
-      const local = Number.parseFloat(document.documentElement.dataset.threadLocal || "");
-      const drawing = threadDrawing(readProgress(), active >= 0 ? active : undefined, Number.isFinite(local) ? local : undefined);
+      const drawing = threadDrawing(readProgress(), { reduced: reduce });
       const blocks = obstacles();
       for (const slot of slotsFor(blocks)) {
         const points = place(drawing.points, slot, blocks);

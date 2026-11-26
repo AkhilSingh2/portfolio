@@ -44,6 +44,14 @@ function resample(points: Point[], count = COUNT): Point[] {
 }
 
 const shapes: Record<string, Point[]> = {
+  thread: resample(
+    box(
+      Array.from({ length: 48 }, (_, index) => {
+        const t = index / 47;
+        return [50 + Math.sin(t * Math.PI * 2.4) * 12, 8 + t * 84] as [number, number];
+      }),
+    ),
+  ),
   cursor: resample(
     box([
       [50, 8],
@@ -266,13 +274,23 @@ const shapes: Record<string, Point[]> = {
   ),
 };
 
-const story = [
-  ["cursor", "spark"],
-  ["headphones", "diya", "petal"],
-  ["cursors", "controller", "shirt"],
-  ["document", "microphone", "chart", "heartbeat"],
-  ["fan", "globe"],
-  ["car", "knot"],
+const order = [
+  "cursor",
+  "spark",
+  "headphones",
+  "diya",
+  "petal",
+  "cursors",
+  "controller",
+  "shirt",
+  "document",
+  "microphone",
+  "chart",
+  "heartbeat",
+  "fan",
+  "globe",
+  "car",
+  "knot",
 ] as const;
 
 export const threadShapeNames = {
@@ -294,24 +312,32 @@ export const threadShapeNames = {
   knot: "a signature knot",
 } as const;
 
-export function threadDrawing(progress: number, chapterIndex?: number, localProgress?: number): { name: string; points: Point[] } {
-  const scaled = clamp(progress, 0, 0.999) * story.length;
-  const chapter = clamp(chapterIndex ?? Math.floor(scaled), 0, story.length - 1);
-  const local = clamp(localProgress ?? scaled - Math.floor(scaled), 0, 0.999);
-  const names = story[chapter];
-  const nextNames = story[Math.min(story.length - 1, chapter + 1)];
-  const span = names.length;
-  const cursor = local * span;
-  const index = Math.min(names.length - 1, Math.floor(cursor));
-  const along = cursor - index;
-  const morph = along < 0.72 ? 0 : (along - 0.72) / 0.28;
-  const from = names[index];
-  const to = index < names.length - 1 ? names[index + 1] : nextNames[0];
-  const a = shapes[from];
-  const b = shapes[to];
-  const points = a.map((point, pointIndex) => ({
-    x: point.x + (b[pointIndex].x - point.x) * morph,
-    y: point.y + (b[pointIndex].y - point.y) * morph,
+function mix(from: Point[], to: Point[], amount: number): Point[] {
+  return from.map((point, index) => ({
+    x: point.x + (to[index].x - point.x) * amount,
+    y: point.y + (to[index].y - point.y) * amount,
   }));
-  return { name: morph > 0.65 && to !== from ? to : from, points };
+}
+
+/** Scroll progress alone drives the line: thread, then each object, relaxing to a thread between them. */
+export function threadDrawing(progress: number, options?: { reduced?: boolean }): { name: string; points: Point[] } {
+  const thread = shapes.thread;
+  const scaled = clamp(progress, 0, 0.9999) * order.length;
+  const index = Math.min(order.length - 1, Math.floor(scaled));
+  const local = scaled - index;
+  const name = order[index];
+  const object = shapes[name];
+  if (options?.reduced) {
+    if (progress < 0.03) return { name: "thread", points: thread };
+    return { name, points: object };
+  }
+  if (index === order.length - 1) {
+    return { name: local > 0.45 ? name : "thread", points: mix(thread, object, local) };
+  }
+  if (local < 0.58) {
+    const amount = local / 0.58;
+    return { name: amount > 0.55 ? name : "thread", points: mix(thread, object, amount) };
+  }
+  const amount = (local - 0.58) / 0.42;
+  return { name: amount < 0.45 ? name : "thread", points: mix(object, thread, amount) };
 }

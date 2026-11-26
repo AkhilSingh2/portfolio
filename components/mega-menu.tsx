@@ -130,20 +130,41 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
                     const thumb = project.shots[0];
                     return (
                       <li key={project.slug} className="mega-item">
-                        <Link
-                          className="mega-project"
-                          href={`/work/${project.slug}`}
-                          data-menuitem
-                          onClick={onClose}
-                          onMouseEnter={() => focusProject(project.slug)}
-                          onFocus={() => focusProject(project.slug)}
-                        >
-                          <Thumb shot={thumb} sizes="80px" />
-                          <span>
-                            <strong>{project.title}</strong>
+                        <span className="mega-project">
+                          <Link
+                            className="mega-thumb"
+                            href={`/work/${project.slug}`}
+                            data-menuitem
+                            onClick={onClose}
+                            onMouseEnter={() => focusProject(project.slug)}
+                            onFocus={() => focusProject(project.slug)}
+                          >
+                            <Thumb shot={thumb} sizes="80px" />
+                          </Link>
+                          <span className="mega-name">
+                            <Link
+                              href={`/work/${project.slug}`}
+                              data-menuitem
+                              onClick={onClose}
+                              onMouseEnter={() => focusProject(project.slug)}
+                              onFocus={() => focusProject(project.slug)}
+                            >
+                              <strong>{project.title}</strong>
+                            </Link>
+                            {project.live ? (
+                              <a className="mega-arrow" href={project.live} target="_blank" rel="noreferrer" aria-label={`Open ${project.title}`}>
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                  <path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              </a>
+                            ) : null}
                           </span>
-                        </Link>
-                        {project.live ? <LiveLink href={project.live} domain={liveDomain(project.liveLabel)} /> : null}
+                        </span>
+                        {liveDomain(project.liveLabel) ? (
+                          <a className="mega-domain" href={project.live} target="_blank" rel="noreferrer">
+                            {liveDomain(project.liveLabel)}
+                          </a>
+                        ) : null}
                       </li>
                     );
                   })}
