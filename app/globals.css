@@ -3328,23 +3328,45 @@ html.footer-reveal .page-sheet {
   min-width: 0;
 }
 
-.mega-project > span {
+.mega-name {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.28rem;
   min-width: 0;
 }
 
-.mega-item > .live-link {
+.mega-name > a:first-child {
+  min-width: 0;
+}
+
+.mega-work .mega-arrow,
+.mega-work .mega-domain {
+  color: var(--ember-500);
+}
+
+.mega-arrow {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  color: var(--ember-500);
+  line-height: 0;
+}
+
+.mega-arrow svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.mega-domain {
   grid-column: 2;
   grid-row: 2;
   justify-self: start;
   max-width: 100%;
   color: var(--ember-500);
   font-size: 0.75rem;
+  text-decoration: none;
   white-space: nowrap;
-}
-
-.mega-item > .live-link span {
-  font-size: 0.75rem;
-  letter-spacing: 0;
 }
 
 .mega-row-live {
