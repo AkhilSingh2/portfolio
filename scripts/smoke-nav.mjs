@@ -147,6 +147,94 @@ async function checkLink(href) {
   return html;
 }
 
+async function checkFooterHeading() {
+  const viewports = [
+    { width: 1440, height: 600 },
+    { width: 1440, height: 640 },
+    { width: 1440, height: 1000 },
+    { width: 1024, height: 600 },
+    { width: 1024, height: 1000 },
+    { width: 390, height: 600 },
+    { width: 390, height: 1000 },
+  ];
+  const browser = await chromium.launch({
+    ...(process.env.SMOKE_CHANNEL ? { channel: process.env.SMOKE_CHANNEL } : {}),
+    args: ["--no-sandbox", "--disable-dev-shm-usage"],
+  });
+  try {
+    for (const viewport of viewports) {
+      const page = await browser.newPage({ viewport });
+      await page.goto(absolute("/"), { waitUntil: "domcontentloaded" });
+      await page.locator("[data-close-title]").waitFor({ timeout: 8000 });
+      await page.waitForTimeout(600);
+      await page.evaluate(async () => {
+        const jump = () => {
+          const max = document.documentElement.scrollHeight - window.innerHeight;
+          window.scrollTo(0, max);
+          document.documentElement.scrollTop = max;
+          document.body.scrollTop = max;
+        };
+        jump();
+        await new Promise((resolve) => window.setTimeout(resolve, 400));
+        jump();
+      });
+      await page.waitForFunction(
+        () => {
+          const max = document.documentElement.scrollHeight - window.innerHeight;
+          return window.scrollY >= max - 4 && document.querySelector("[data-close-title]")?.classList.contains("is-open");
+        },
+        null,
+        { timeout: 5000 },
+      );
+      const result = await page.evaluate(() => {
+        const heading = document.querySelector("[data-close-title]");
+        const rect = heading.getBoundingClientRect();
+        const style = getComputedStyle(heading);
+        const fontSize = Number.parseFloat(style.fontSize) || 16;
+        let clipped = false;
+        let node = heading.parentElement;
+        while (node && node !== document.documentElement) {
+          const parent = getComputedStyle(node);
+          const hidden = parent.overflow === "hidden" || parent.overflowY === "hidden" || parent.overflowX === "hidden";
+          if (hidden) {
+            const box = node.getBoundingClientRect();
+            if (rect.top < box.top - 1 || rect.bottom > box.bottom + 1 || rect.left < box.left - 1 || rect.right > box.right + 1) clipped = true;
+          }
+          node = node.parentElement;
+        }
+        const clip = style.clipPath || "none";
+        const topCut = /inset\(\s*([\d.]+)px/.exec(clip);
+        const visible =
+          rect.top >= -1 &&
+          rect.left >= -1 &&
+          rect.bottom <= window.innerHeight + 1 &&
+          rect.right <= window.innerWidth + 1 &&
+          rect.height >= fontSize * 0.95;
+        return {
+          text: heading.textContent || "",
+          top: Math.round(rect.top),
+          bottom: Math.round(rect.bottom),
+          height: Math.round(rect.height),
+          clip,
+          clipped,
+          visible,
+          cut: topCut ? Number(topCut[1]) : 0,
+        };
+      });
+      const where = `footer ${viewport.width}x${viewport.height}`;
+      if (!/Let.s build something/.test(result.text)) failures.push({ where, message: `heading text ${result.text}` });
+      if (!result.visible) failures.push({ where, message: `heading box top ${result.top} bottom ${result.bottom} height ${result.height}` });
+      if (result.clipped) failures.push({ where, message: "heading is clipped by an ancestor" });
+      if (result.cut > 1) failures.push({ where, message: `clip-path still cuts ${result.clip}` });
+      else log(`${where} heading visible (${result.height}px)`);
+      await page.close();
+    }
+  } catch (error) {
+    failures.push({ where: "footer heading", message: String(error).slice(0, 400) });
+  }
+  await browser.close();
+}
+
 async function clickMenu() {
   const browser = await chromium.launch({
     ...(process.env.SMOKE_CHANNEL ? { channel: process.env.SMOKE_CHANNEL } : {}),
@@ -200,6 +288,8 @@ async function clickMenu() {
   await browser.close();
   return hrefs;
 }
+
+await checkFooterHeading();
 
 const seen = new Set();
 const seed = [];

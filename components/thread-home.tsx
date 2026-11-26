@@ -6,9 +6,9 @@ import { Media } from "@/components/media";
 import { ResumeDownload } from "@/components/resume-download";
 import { ThreadField } from "@/components/thread-field";
 import { threadDrawings } from "@/lib/thread-art";
-import { threadLayouts } from "@/lib/thread-layout";
+import { contentWave, threadLayouts } from "@/lib/thread-layout";
 import { unwindDrawing } from "@/lib/thread-shapes";
-import { applyVeil, publishVeil, renderVeil } from "@/lib/thread-veil";
+import { applyVeil, holesForOverlap, publishVeil, renderVeil } from "@/lib/thread-veil";
 import { getProject, type Shot } from "@/lib/projects";
 import { person } from "@/lib/site";
 
@@ -130,17 +130,22 @@ function BeatMark({ shape }: { shape: string }) {
       const current = window.__threadMarkScore;
       if (current !== undefined && score > current) return;
       window.__threadMarkScore = score;
-      window.__threadSamples = samples.map((point) => ({ x: rect.left + point.x, y: rect.top + point.y }));
+      const pageSamples = samples.map((point) => ({ x: rect.left + point.x, y: rect.top + point.y }));
+      window.__threadSamples = pageSamples;
       window.__threadShape = shape;
-      const copy = canvas.closest(".thread-beat")?.querySelector(".thread-copy");
-      if (copy instanceof HTMLElement) {
-        const words = copy.getBoundingClientRect();
-        const mask = renderVeil(rect.width, rect.height, {
-          x: words.left - rect.left,
-          y: words.top - rect.top,
-          w: words.width,
-          h: words.height,
-        });
+      const card = canvas.closest(".thread-beat");
+      const copy = card?.querySelector(".thread-copy");
+      const blocks = card
+        ? [...card.querySelectorAll(".thread-copy h1, .thread-copy h2, .thread-copy p, .thread-copy a, .thread-shot")].map((node) => node.getBoundingClientRect())
+        : [];
+      const holes = holesForOverlap(pageSamples, blocks, rect);
+      if (copy instanceof HTMLElement) copy.classList.toggle("is-veiled", holes.length > 0);
+      if (!holes.length) {
+        canvas.style.maskImage = "";
+        canvas.style.setProperty("-webkit-mask-image", "");
+        window.__threadVeil = () => 1;
+      } else {
+        const mask = renderVeil(rect.width, rect.height, holes);
         applyVeil(canvas, mask);
         publishVeil({ canvas: mask, left: rect.left, top: rect.top, width: rect.width, height: rect.height });
       }
@@ -193,6 +198,10 @@ export function ThreadHome() {
         if (shot) shot.style.transform = "none";
       });
       document.documentElement.dataset.threadProgress = clamped.toFixed(4);
+      const wave = contentWave(clamped, beats.length);
+      root.style.setProperty("--content-x", wave.x.toFixed(4));
+      root.style.setProperty("--content-scale", wave.scale.toFixed(4));
+      window.__contentX = wave.x;
       const shell = root.closest(".thread-shell");
       const copy = root.querySelector(".thread-beat.is-active .thread-copy");
       if (shell instanceof HTMLElement && copy instanceof HTMLElement) {
@@ -277,6 +286,7 @@ export function ThreadHome() {
                   key={beat.id}
                 >
                   <BeatMark shape={beat.shape} />
+                  <div className="thread-panel">
                   {beat.hero ? (
                     <div className="thread-copy">
                       <p className="thread-kicker">
@@ -346,6 +356,7 @@ export function ThreadHome() {
                       </div>
                     </>
                   ) : null}
+                  </div>
                 </article>
               );
             })}

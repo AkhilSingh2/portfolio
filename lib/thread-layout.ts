@@ -38,32 +38,51 @@ function padFor(vw: number) {
   return Math.min(40, Math.max(20, vw * 0.022));
 }
 
-/** Where a shape sits for one step. Slots are viewport math so they can tween before the next card is shown. */
-export function threadSlot(shape: string, vw: number, vh: number): ThreadSlot {
+/** 0 is content on the left, 0.5 centred, 1 on the right. The sequence is left, centre, right, centre, and back. */
+export function contentAlignAt(index: number) {
+  const phase = ((index % 4) + 4) % 4;
+  if (phase === 0) return 0;
+  if (phase === 2) return 1;
+  return 0.5;
+}
+
+export function contentWave(progress: number, count: number) {
+  const span = Math.max(1, count - 1);
+  const scaled = Math.min(span, Math.max(0, progress) * span);
+  const index = Math.floor(scaled);
+  const next = Math.min(span, index + 1);
+  const local = index === next ? 0 : scaled - index;
+  const t = local * local * (3 - 2 * local);
+  const x = contentAlignAt(index) + (contentAlignAt(next) - contentAlignAt(index)) * t;
+  const scale = 1 - 0.06 * Math.sin(local * Math.PI);
+  return { x, scale };
+}
+
+/** Where a shape sits. `align` is the content wave so the object glides with the words. */
+export function threadSlot(shape: string, vw: number, vh: number, align = 0.5): ThreadSlot {
   const layout = threadLayouts[shape] ?? { placement: "behind" as const, scale: 0.66, shot: "left" as const, text: "left" as const };
   const pad = padFor(vw);
   if (layout.placement === "full-bleed") {
     return { cx: vw / 2, cy: vh * 0.5, maxW: vw * layout.scale, maxH: vh * 0.86, placement: "full-bleed" };
   }
   if (layout.placement === "left" || layout.placement === "right") {
-    const contentW = vw * 0.48;
-    const free =
-      layout.placement === "left"
-        ? { start: pad, end: vw - pad - contentW - 36 }
-        : { start: pad + contentW + 36, end: vw - pad };
+    const edgeW = vw * 0.32;
+    const span = Math.max(0, vw - pad * 2 - edgeW);
+    const objectX = 1 - align;
+    const centered = 1 - Math.min(1, Math.abs(align - 0.5) * 2);
+    const edgeCx = pad + edgeW / 2 + objectX * span;
     return {
-      cx: (free.start + free.end) / 2,
+      cx: edgeCx + (vw / 2 - edgeCx) * centered,
       cy: vh * 0.5,
-      maxW: Math.max(120, free.end - free.start),
+      maxW: vw * (0.32 + centered * 0.28),
       maxH: vh * layout.scale,
-      placement: layout.placement,
+      placement: centered > 0.65 ? "behind" : objectX > 0.5 ? "right" : "left",
     };
   }
-  const lean = layout.text === "right" ? -1 : 1;
   return {
-    cx: vw / 2 + lean * vw * 0.07,
+    cx: vw / 2 + (0.5 - align) * vw * 0.22,
     cy: vh * 0.46,
-    maxW: vw * 0.84,
+    maxW: vw * 0.7,
     maxH: vh * layout.scale,
     placement: "behind",
   };

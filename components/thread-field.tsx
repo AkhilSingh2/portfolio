@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { mixSlot, threadSlot } from "@/lib/thread-layout";
+import { contentWave, mixSlot, threadSlot } from "@/lib/thread-layout";
 import { threadDrawing, unwindDrawing, type Point, type ThreadDot } from "@/lib/thread-shapes";
 import { threadOrder } from "@/lib/thread-art";
-import { applyVeil, publishVeil, renderVeil } from "@/lib/thread-veil";
+import { applyVeil, holesForOverlap, publishVeil, renderVeil } from "@/lib/thread-veil";
 
 declare global {
   interface Window {
@@ -75,11 +75,13 @@ function placeLarge(drawing: Point[][], progress: number) {
   const scaled = Math.min(span, Math.max(0, progress) * span);
   const index = Math.min(span, Math.floor(scaled));
   const next = Math.min(span, index + 1);
+  const wave = contentWave(scaled / span, threadOrder.length);
   const slot = mixSlot(
-    threadSlot(threadOrder[index], window.innerWidth, window.innerHeight),
-    threadSlot(threadOrder[next], window.innerWidth, window.innerHeight),
+    threadSlot(threadOrder[index], window.innerWidth, window.innerHeight, wave.x),
+    threadSlot(threadOrder[next], window.innerWidth, window.innerHeight, wave.x),
     index === next ? 0 : scaled - index,
   );
+  window.__contentX = wave.x;
   window.__threadPlacement = slot.placement;
   const box = bounds(drawing);
   const scale = Math.min(slot.maxW / box.w, slot.maxH / box.h);
@@ -90,30 +92,44 @@ function placeLarge(drawing: Point[][], progress: number) {
 
 let veilKey = "";
 
-function syncVeil(canvas: HTMLCanvasElement) {
+function clearVeil(canvas: HTMLCanvasElement) {
+  if (veilKey === "none") return;
+  veilKey = "none";
+  canvas.style.maskImage = "";
+  canvas.style.setProperty("-webkit-mask-image", "");
+  window.__threadVeil = () => 1;
+  document.querySelector(".thread-chapter.is-active .thread-copy")?.classList.remove("is-veiled");
+}
+
+function syncVeil(canvas: HTMLCanvasElement, samples: { x: number; y: number }[]) {
   const copy = document.querySelector(".thread-chapter.is-active .thread-copy");
   const host = canvas.getBoundingClientRect();
   if (!(copy instanceof HTMLElement) || host.width < 20) {
-    if (veilKey !== "none") {
-      veilKey = "none";
-      canvas.style.maskImage = "";
-      canvas.style.setProperty("-webkit-mask-image", "");
-      window.__threadVeil = () => 1;
-    }
+    clearVeil(canvas);
     return;
   }
-  const rect = copy.getBoundingClientRect();
-  const key = [Math.round(rect.left), Math.round(rect.top), Math.round(rect.width), Math.round(rect.height), Math.round(host.width), Math.round(host.height)].join(":");
+  const nodes = document.querySelectorAll(
+    ".thread-chapter.is-active .thread-copy h1, .thread-chapter.is-active .thread-copy h2, .thread-chapter.is-active .thread-copy p, .thread-chapter.is-active .thread-copy a, .thread-chapter.is-active .thread-shot",
+  );
+  const holes = holesForOverlap(
+    samples,
+    [...nodes].map((node) => node.getBoundingClientRect()),
+    host,
+  );
+  const key = holes.length ? holes.map((hole) => `${Math.round(hole.x)}:${Math.round(hole.y)}:${Math.round(hole.w)}:${Math.round(hole.h)}`).join("|") : "none";
   if (key === veilKey) return;
   veilKey = key;
-  const mask = renderVeil(host.width, host.height, {
-    x: rect.left - host.left,
-    y: rect.top - host.top,
-    w: rect.width,
-    h: rect.height,
-  });
+  if (!holes.length) {
+    canvas.style.maskImage = "";
+    canvas.style.setProperty("-webkit-mask-image", "");
+    window.__threadVeil = () => 1;
+    copy.classList.remove("is-veiled");
+    return;
+  }
+  const mask = renderVeil(host.width, host.height, holes);
   applyVeil(canvas, mask);
   publishVeil({ canvas: mask, left: host.left, top: host.top, width: host.width, height: host.height });
+  copy.classList.add("is-veiled");
 }
 
 function paintDot(ctx: CanvasRenderingContext2D, dot: ThreadDot) {
@@ -233,7 +249,7 @@ export function ThreadField() {
       const draw = () => {
         resize2d(ctx);
         const strokes = layout();
-        syncVeil(canvas);
+        syncVeil(canvas, window.__threadSamples || []);
         paint2d(ctx, strokes, frameDot);
       };
       if (reduce) {
@@ -337,7 +353,7 @@ export function ThreadField() {
         if (dead) return;
         if (!document.hidden) {
           const strokes = layout();
-          syncVeil(canvas);
+          syncVeil(canvas, window.__threadSamples || []);
           const ink = frameDot?.a ?? 1;
           glowMaterial.opacity = 0.2 * ink;
           coreMaterial.opacity = 0.62 * ink;

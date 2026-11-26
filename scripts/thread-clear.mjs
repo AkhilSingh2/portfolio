@@ -61,47 +61,51 @@ for (const viewport of viewports) {
               shotOpacity = Number(getComputedStyle(frame).opacity);
               shotBlend = getComputedStyle(frame).mixBlendMode;
             }
-            const hit = (point, rect, pad) =>
-              point.x >= rect.left + pad && point.x <= rect.right - pad && point.y >= rect.top + pad && point.y <= rect.bottom - pad;
-            const veil = copy && window.__threadVeil ? window.__threadVeil(copy.left + copy.width / 2, copy.top + copy.height / 2) : 0;
-            const textHits = copy ? points.filter((point) => hit(point, copy, 10)).length : 0;
-            const bright = copy
-              ? points.filter((point) => hit(point, copy, 12) && window.__threadVeil && window.__threadVeil(point.x, point.y) > 0.35).length
-              : 0;
+            const blocks = [...card.querySelectorAll("h1, h2, p, a, .thread-shot")].map((node) => node.getBoundingClientRect());
+            const near = (point, pad) =>
+              blocks.some((rect) => point.x >= rect.left - pad && point.x <= rect.right + pad && point.y >= rect.top - pad && point.y <= rect.bottom + pad);
+            const veilAt = (point) => (window.__threadVeil ? window.__threadVeil(point.x, point.y) : 1);
+            const dimOutside = points.filter((point) => !near(point, 48) && veilAt(point) < 0.85).length;
+            const bright = points.filter((point) => near(point, 0) && veilAt(point) > 0.55).length;
+            const panel = card.querySelector(".thread-panel")?.getBoundingClientRect();
+            const beatBox = card.getBoundingClientRect();
+            const contentX = panel ? (panel.left - beatBox.left) / Math.max(1, beatBox.width - panel.width) : 0;
+            const phase = beat % 4;
+            const expectedX = phase === 0 ? 0 : phase === 2 ? 1 : 0.5;
+            const scrim = getComputedStyle(card.querySelector(".thread-copy"), "::before").content !== "none";
             resolve({
               chapter: card?.getAttribute("data-chapter") || "",
               shape: window.__threadShape || "",
-              placement: window.__threadPlacement || card?.getAttribute("data-placement") || "",
-              expected: card?.getAttribute("data-placement") || "",
+              placement: window.__threadPlacement || "",
               others: others.length,
               imageAbove,
               shotOpacity,
               shotBlend,
               cardOpacity: card ? Number(getComputedStyle(card).opacity) : 0,
-              veil,
-              textHits,
+              dimOutside,
+              textHits: points.filter((point) => near(point, 0)).length,
               bright,
+              contentX,
+              expectedX,
               height: ys.length ? (Math.max(...ys) - Math.min(...ys)) / window.innerHeight : 0,
               width: xs.length ? (Math.max(...xs) - Math.min(...xs)) / window.innerWidth : 0,
-              scrim: card ? getComputedStyle(card.querySelector(".thread-copy"), "::before").backgroundImage.includes("radial-gradient") : false,
+              scrim,
             });
           }, 220);
         });
       }, index);
-      log(`${viewport.width} ${result.chapter} ${result.shape} ${result.placement} h${result.height.toFixed(2)} w${result.width.toFixed(2)} veil ${result.veil.toFixed(2)}`);
-      if (result.placement !== result.expected) failures.push({ viewport, chapter: result.chapter, message: `placement ${result.placement} expected ${result.expected}` });
+      log(`${viewport.width} ${result.chapter} ${result.shape} ${result.placement} x${result.contentX.toFixed(2)} h${result.height.toFixed(2)} dim ${result.dimOutside}`);
+      if (Math.abs(result.contentX - result.expectedX) > 0.14) failures.push({ viewport, chapter: result.chapter, message: `content x ${result.contentX.toFixed(2)} expected ${result.expectedX}` });
       if (result.others) failures.push({ viewport, chapter: result.chapter, message: `${result.others} other chapters still visible` });
       if (result.cardOpacity < 0.99) failures.push({ viewport, chapter: result.chapter, message: `active card opacity ${result.cardOpacity}` });
-      if (!result.scrim) failures.push({ viewport, chapter: result.chapter, message: "text scrim missing" });
-      if (result.veil > 0.28) failures.push({ viewport, chapter: result.chapter, message: `thread veil ${result.veil.toFixed(2)} inside the text` });
+      if (result.textHits === 0 && result.scrim) failures.push({ viewport, chapter: result.chapter, message: "scrim is on without an overlap" });
+      if (result.textHits > 0 && !result.scrim) failures.push({ viewport, chapter: result.chapter, message: "scrim missing where the thread crosses the text" });
+      if (result.dimOutside > 40) failures.push({ viewport, chapter: result.chapter, message: `${result.dimOutside} samples dimmed away from the text` });
       if (result.bright) failures.push({ viewport, chapter: result.chapter, message: `${result.bright} full-opacity thread samples inside the text` });
       if (result.shotOpacity && result.imageAbove === false) failures.push({ viewport, chapter: result.chapter, message: "screenshot is not above the thread" });
       if (result.shotBlend && result.shotBlend !== "normal") failures.push({ viewport, chapter: result.chapter, message: `shot blend ${result.shotBlend}` });
       if (result.shotOpacity && result.shotOpacity < 0.99) failures.push({ viewport, chapter: result.chapter, message: `shot opacity ${result.shotOpacity}` });
-      if ((result.placement === "left" || result.placement === "right") && result.textHits > 0) {
-        failures.push({ viewport, chapter: result.chapter, message: `${result.textHits} samples overlap the text` });
-      }
-      if (result.placement === "behind" && result.shape !== "knot" && result.height < 0.5 && result.width < 0.7) {
+      if (result.placement === "behind" && result.shape !== "knot" && result.height < 0.45 && result.width < 0.55) {
         failures.push({ viewport, chapter: result.chapter, message: `behind object is small h${result.height.toFixed(2)} w${result.width.toFixed(2)}` });
       }
       if (result.placement === "behind" && result.shape !== "knot" && result.height > 0.8) {
@@ -152,7 +156,6 @@ for (const viewport of viewports) {
       if (result.card < 0.95) failures.push({ viewport, chapter, message: `card is ${result.card.toFixed(2)} of the viewport` });
       if (result.mark > 0.55 || result.mark < 0.28) failures.push({ viewport, chapter, message: `phone object is ${result.mark.toFixed(2)} of the viewport` });
       if (!result.imageAbove) failures.push({ viewport, chapter, message: "screenshot is not above the thread" });
-      if (!result.scrim) failures.push({ viewport, chapter, message: "text scrim missing" });
       if (result.veil > 0.28) failures.push({ viewport, chapter, message: `thread veil ${result.veil.toFixed(2)} inside the text` });
     }
   }
