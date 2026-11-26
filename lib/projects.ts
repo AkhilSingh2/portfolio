@@ -1188,6 +1188,10 @@ export function backendProjects() {
   return projects.filter((project) => project.group === "backend");
 }
 
+export function professionalProjects() {
+  return projects.filter((project) => project.group === "professional");
+}
+
 export function reelProjects() {
   return projects.filter((project) => project.reel);
 }
