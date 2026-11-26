@@ -50,6 +50,63 @@ export function SiteFooter() {
   }, []);
 
   useEffect(() => {
+    const root = ref.current;
+    if (!root) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (reduce.matches) return;
+    let dead = false;
+    let revert: (() => void) | undefined;
+    const run = async () => {
+      const [{ gsap }, { ScrollTrigger }] = await Promise.all([import("gsap"), import("gsap/ScrollTrigger")]);
+      if (dead) return;
+      gsap.registerPlugin(ScrollTrigger);
+      const title = root.querySelector("[data-close-title]");
+      const rule = root.querySelector("[data-close-rule]");
+      const copy = root.querySelector("[data-close-copy]");
+      const items = root.querySelectorAll(".close-list > li");
+      const trigger = ".page-sheet";
+      const start = "bottom bottom";
+      const end = "bottom 58%";
+      const ctx = gsap.context(() => {
+        if (title) {
+          gsap.fromTo(
+            title,
+            { clipPath: "inset(100% 0 0 0)", scale: 1.12 },
+            {
+              clipPath: "inset(0% 0 0 0)",
+              scale: 1,
+              transformOrigin: "0% 100%",
+              ease: "none",
+              scrollTrigger: { trigger, start, end, scrub: 0.4 },
+            },
+          );
+        }
+        if (rule) {
+          gsap.fromTo(rule, { scaleX: 0 }, { scaleX: 1, ease: "none", scrollTrigger: { trigger, start, end, scrub: 0.4 } });
+        }
+        if (copy) {
+          gsap.from(copy, { y: 16, opacity: 0, ease: "power3.out", scrollTrigger: { trigger, start: end } });
+        }
+        if (items.length) {
+          gsap.from(items, {
+            y: 14,
+            opacity: 0,
+            stagger: 0.06,
+            ease: "power3.out",
+            scrollTrigger: { trigger, start: end },
+          });
+        }
+      }, root);
+      revert = () => ctx.revert();
+    };
+    void run();
+    return () => {
+      dead = true;
+      revert?.();
+    };
+  }, []);
+
+  useEffect(() => {
     const format = () =>
       new Intl.DateTimeFormat("en-GB", {
         timeZone: "Asia/Kolkata",
@@ -81,8 +138,9 @@ export function SiteFooter() {
             <span className="status-dot" aria-hidden="true" />
             {person.availability}
           </p>
-          <h2>Let&apos;s build something</h2>
-          <p className="close-lede">One note is enough. The email copies, the resume is the PDF, and the form is there if you would rather write.</p>
+          <h2 data-close-title>Let&apos;s build something</h2>
+          <span className="close-rule" data-close-rule aria-hidden="true" />
+          <p className="close-lede" data-close-copy>One note is enough. The email copies, the resume is the PDF, and the form is there if you would rather write.</p>
           <ul className="close-list">
             <li>
               <CopyEmail />

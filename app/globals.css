@@ -896,6 +896,11 @@ a {
   aspect-ratio: 16 / 10;
 }
 
+.reel-mask {
+  height: 100%;
+  overflow: hidden;
+}
+
 .reel-frame img {
   width: 100%;
   height: 100%;
@@ -2260,34 +2265,64 @@ code {
 
   html.enhance .reel-frame {
     position: absolute;
-    top: 23%;
-    left: 46%;
-    width: 49%;
-    height: 54%;
-    right: auto;
-    bottom: auto;
+    inset: 0;
+    width: auto;
+    height: auto;
     aspect-ratio: auto;
-    clip-path: none;
-    background: #171512;
-    box-shadow: 0 0 0 1px rgba(246, 241, 232, 0.16);
+    overflow: hidden;
+    background: #100e0c;
+    box-shadow: none;
+  }
+
+  html.enhance .reel-mask {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
   }
 
   html.enhance .reel-frame img {
-  object-fit: contain;
-  object-position: center;
-  background: #141210;
-}
-
-  html.enhance .reel-slide:first-child .reel-frame {
-    clip-path: none;
+    width: 100%;
+    height: 118%;
+    max-width: none;
+    object-fit: cover;
+    object-position: center;
+    transform-origin: center center;
   }
 
   html.enhance .reel-copy {
     position: absolute;
     z-index: 2;
     left: var(--pad);
-    bottom: clamp(1.5rem, 6vh, 3.5rem);
-    width: min(34rem, 40vw);
+    bottom: clamp(1.6rem, 7vh, 3.8rem);
+    width: min(40rem, 52vw);
+    pointer-events: none;
+  }
+
+  html.enhance .reel-type {
+    pointer-events: auto;
+    transform-origin: 0% 100%;
+  }
+
+  html.enhance .reel-copy h2 {
+    font-size: clamp(4.4rem, 10vw, 8.2rem);
+    line-height: 0.9;
+    letter-spacing: -0.05em;
+    max-width: 10ch;
+  }
+}
+
+@media (max-width: 959px) and (prefers-reduced-motion: no-preference) {
+  .reel-slide {
+    min-height: 100svh;
+    align-content: end;
+  }
+
+  .reel-frame {
+    aspect-ratio: 4 / 5;
+  }
+
+  .reel-copy h2 {
+    font-size: clamp(3rem, 14vw, 4.8rem);
   }
 }
 
@@ -4738,6 +4773,76 @@ html.footer-reveal .site-footer {
 
   .footer-clock {
     justify-self: end;
+  }
+}
+
+.api-flowline {
+  position: relative;
+  height: 1px;
+  margin: 0 0 1.15rem;
+  background: rgba(22, 19, 15, 0.16);
+}
+
+.api-flowline span {
+  position: absolute;
+  inset: 0;
+  background: var(--ink-950);
+  transform-origin: left center;
+}
+
+.pro-window {
+  overflow: hidden;
+}
+
+.pro-track {
+  display: grid;
+  gap: 1rem;
+}
+
+.pro-stage.is-reel .pro-track {
+  display: flex;
+  width: max-content;
+  gap: 1rem;
+}
+
+.pro-stage.is-reel .study-card {
+  flex: none;
+  width: min(36rem, 72vw);
+}
+
+.close-rule {
+  display: block;
+  width: min(10rem, 40%);
+  height: 1px;
+  margin: 0.2rem 0 0.9rem;
+  background: var(--ember-500);
+  transform-origin: left center;
+}
+
+@media (min-width: 800px) {
+  .pro-stage:not(.is-reel) .pro-track {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-lede {
+    animation: hero-in 0.9s var(--ease-out) 0.28s both;
+  }
+
+  .hero-actions {
+    animation: hero-in 0.9s var(--ease-out) 0.42s both;
+  }
+}
+
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
