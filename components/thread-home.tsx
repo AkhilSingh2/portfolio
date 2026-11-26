@@ -86,11 +86,15 @@ function BeatMark({ shape }: { shape: string }) {
       let drawn = strokes;
       let dot: { x: number; y: number; r: number; a: number } | null = null;
       if (shape === "knot") {
-        const heading = document.querySelector(".ground h2");
-        const headingTop = heading?.getBoundingClientRect().top ?? window.innerHeight * 2;
-        const start = window.innerHeight * 1.02;
-        const done = window.innerHeight * 0.7;
-        const exit = headingTop >= start ? 0 : Math.min(1, (start - headingTop) / (start - done));
+        const published = Number.parseFloat(document.documentElement.dataset.threadExit || "");
+        let exit = Number.isFinite(published) ? published : 0;
+        if (!Number.isFinite(published)) {
+          const heading = document.querySelector(".ground h2");
+          const headingTop = heading?.getBoundingClientRect().top ?? window.innerHeight * 2;
+          const start = window.innerHeight * 1.02;
+          const done = window.innerHeight * 0.7;
+          exit = headingTop >= start ? 0 : Math.min(1, (start - headingTop) / (start - done));
+        }
         const unwound = unwindDrawing(strokes, exit);
         if (!unwound) return;
         drawn = unwound.strokes;
@@ -210,7 +214,59 @@ export function ThreadHome() {
       }
     };
 
-    if (reduce.matches || !desktop.matches) {
+    const placePhone = (progress: number) => {
+      const clamped = Math.min(1, Math.max(0, progress));
+      const cursor = clamped * (beats.length - 1);
+      cards.forEach((card, index) => {
+        const distance = Math.abs(index - cursor);
+        const shown = reduce.matches ? distance < 0.5 : distance < 1;
+        const opacity = !shown ? 0 : reduce.matches ? 1 : 1 - distance;
+        card.style.opacity = String(opacity);
+        card.style.visibility = opacity < 0.02 ? "hidden" : "visible";
+        card.style.pointerEvents = distance < 0.5 ? "auto" : "none";
+        card.style.zIndex = distance < 0.5 ? "2" : "1";
+        card.classList.toggle("is-active", distance < 0.5);
+      });
+      document.documentElement.dataset.threadProgress = clamped.toFixed(4);
+    };
+
+    if (!desktop.matches) {
+      document.documentElement.classList.add("thread-phone");
+      placePhone(0);
+      const runPhone = async () => {
+        const { ScrollTrigger } = await import("gsap/ScrollTrigger");
+        const { gsap } = await import("gsap");
+        if (dead) return;
+        gsap.registerPlugin(ScrollTrigger);
+        const exitShare = 0.7 / (beats.length - 1 + 0.7);
+        const trigger = ScrollTrigger.create({
+          trigger: root,
+          start: "top top",
+          end: () => `+=${window.innerHeight * (beats.length - 1 + 0.7)}`,
+          pin: true,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            const storySpan = 1 - exitShare;
+            const story = Math.min(1, self.progress / storySpan);
+            const exit = Math.max(0, (self.progress - storySpan) / exitShare);
+            placePhone(story);
+            document.documentElement.dataset.threadExit = exit.toFixed(4);
+          },
+        });
+        revert = () => trigger.kill();
+        ScrollTrigger.refresh();
+      };
+      void runPhone();
+      return () => {
+        dead = true;
+        revert?.();
+        document.documentElement.classList.remove("thread-phone");
+        delete document.documentElement.dataset.threadProgress;
+        delete document.documentElement.dataset.threadExit;
+      };
+    }
+
+    if (reduce.matches) {
       return () => {
         delete document.documentElement.dataset.threadProgress;
       };
