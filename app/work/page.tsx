@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PageShell } from "@/components/page-shell";
 import { WorkBoard } from "@/components/work-board";
 import { pageMeta } from "@/lib/meta";
@@ -19,6 +20,9 @@ export default function WorkPage() {
           <p className="lede">
             Each card opens a case study: the problem, what I built, the stack, and where the code lives. Live sites
             are linked only when they are actually live.
+          </p>
+          <p className="work-calibre">
+            <Link href="/design-system">Calibre</Link> is the design system for this site, kept with the studies rather than in the navigation.
           </p>
         </header>
         <WorkBoard projects={projects.map((project) => decorate(project))} />

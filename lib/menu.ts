@@ -9,7 +9,8 @@ const groups = [
     label: "Utility tools",
     slugs: ["devkit", "india-salary-tax", "cgpa-upi", "subtitle-vocab-explainer"],
   },
-  { id: "open", label: "Open source and Devotional", slugs: ["kinetic", "sutra-ui", "online-chalisa"] },
+  { id: "open", label: "Open source and Devotional", slugs: ["kinetic", "online-chalisa"] },
+  { id: "systems", label: "Design systems", slugs: ["sutra-ui"] },
   { id: "backend", label: "Backend and APIs", slugs: ["mymirro-recommendation-api", "colour-analysis-api"] },
   {
     id: "professional",

@@ -140,7 +140,6 @@ export function SiteFooter() {
           </p>
           <h2 data-close-title>Let&apos;s build something</h2>
           <span className="close-rule" data-close-rule aria-hidden="true" />
-          <p className="close-lede" data-close-copy>One note is enough. The email copies, the resume is the PDF, and the form is there if you would rather write.</p>
           <ul className="close-list">
             <li>
               <CopyEmail />
@@ -168,7 +167,6 @@ export function SiteFooter() {
           <nav className="footer-nav" aria-label="Footer">
             <Link href="/work">Work</Link>
             <Link href="/about">About</Link>
-            <Link href="/design-system">Calibre</Link>
             <Link href="/contact">Contact</Link>
           </nav>
           <p className="footer-clock">
@@ -177,7 +175,7 @@ export function SiteFooter() {
             </span>
             <span className="footer-place">{person.location}</span>
           </p>
-          <p className="footer-colophon">Calibre. {person.name}.</p>
+          <p className="footer-colophon">© 2026 {person.name}</p>
           <button type="button" className="to-top" onClick={toTop} aria-label="Back to top">
             <svg viewBox="0 0 36 36" aria-hidden="true">
               <circle className="to-top-track" cx="18" cy="18" r="16" />
