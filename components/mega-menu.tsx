@@ -147,6 +147,39 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
                       </li>
                     );
                   })}
+                  {group.id === "systems" ? (
+                    <li className="mega-item">
+                      <Link
+                        className="mega-project"
+                        href="/design-system"
+                        data-menuitem
+                        onClick={onClose}
+                        onMouseEnter={() =>
+                          focusPage({
+                            kind: "page",
+                            id: "calibre",
+                            title: "Calibre",
+                            body: "The system this site is built with. Tokens, type, and measured charts.",
+                            href: "/design-system",
+                          })
+                        }
+                        onFocus={() =>
+                          focusPage({
+                            kind: "page",
+                            id: "calibre",
+                            title: "Calibre",
+                            body: "The system this site is built with. Tokens, type, and measured charts.",
+                            href: "/design-system",
+                          })
+                        }
+                      >
+                        <Media src="/work/calibre/studio.webp" alt="" width={1440} height={900} sizes="80px" />
+                        <span>
+                          <strong>Calibre</strong>
+                        </span>
+                      </Link>
+                    </li>
+                  ) : null}
                 </ul>
               </motion.section>
             ))}
@@ -186,21 +219,6 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
                   }
                 >
                   About
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/design-system"
-                  data-menuitem
-                  onClick={onClose}
-                  onMouseEnter={() =>
-                    focusPage({ kind: "page", id: "calibre", title: "Calibre", body: "The system this site is built with. Tokens, type, and measured charts.", href: "/design-system" })
-                  }
-                  onFocus={() =>
-                    focusPage({ kind: "page", id: "calibre", title: "Calibre", body: "The system this site is built with. Tokens, type, and measured charts.", href: "/design-system" })
-                  }
-                >
-                  Calibre
                 </Link>
               </li>
               <li>

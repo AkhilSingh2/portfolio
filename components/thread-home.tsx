@@ -4,14 +4,33 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { LiveLink, liveDomain } from "@/components/live-link";
 import { Media } from "@/components/media";
-import { ThreadField } from "@/components/thread-field";
+import { ResumeDownload } from "@/components/resume-download";
+import { ThreadMotif } from "@/components/thread-field";
 import { threadChapters } from "@/lib/thread-chapters";
 import type { Shot } from "@/lib/projects";
 import { person } from "@/lib/site";
 
 const chapters = threadChapters();
 
+const returnShots = ["/work/launchpad/dashboard.webp", "/work/launchpad/billing.webp"];
+
 function framesFor(chapter: (typeof chapters)[number]): { projectTitle: string; slug: string; live?: string; liveLabel?: string; shot: Shot }[] {
+  if (chapter.id === "return") {
+    const project = chapter.projects[0];
+    return returnShots.flatMap((src, shotIndex) => {
+      const shot = project?.shots.find((item) => item.src === src);
+      if (!shot || !project) return [];
+      return [
+        {
+          projectTitle: shot.caption || project.title,
+          slug: project.slug,
+          live: shotIndex === 0 ? project.live : undefined,
+          liveLabel: shotIndex === 0 ? project.liveLabel : undefined,
+          shot,
+        },
+      ];
+    });
+  }
   if (chapter.projects.length === 1) {
     const project = chapter.projects[0];
     return project.shots.slice(0, 2).map((shot, shotIndex) => ({
@@ -127,10 +146,10 @@ export function ThreadHome() {
 
   return (
       <div className="thread-shell">
-      <ThreadField />
       <section className="thread-home" id="thread" ref={rootRef} aria-label="The thread">
         {chapters.map((chapter, index) => {
           const frames = framesFor(chapter);
+          const motif = chapter.id as "tap" | "surface" | "signal" | "engine" | "scale" | "return";
           return (
             <article
               className={`thread-chapter${index === 0 ? " is-active" : ""}`}
@@ -138,15 +157,40 @@ export function ThreadHome() {
               id={chapter.id === "surface" ? "work" : chapter.id === "scale" ? "professional" : undefined}
               key={chapter.id}
             >
-              <p className="thread-kicker">
-                <span>{String(index).padStart(2, "0")}</span>
-                <span aria-hidden="true">—</span>
-                <span>{chapter.label}</span>
-              </p>
-              <h2>
-                {chapter.title} <em>{chapter.accent}</em>.
-              </h2>
-              <p className="thread-intro">{chapter.intro}</p>
+              <div className="thread-copy">
+                <p className="thread-kicker">
+                  <span>{String(index).padStart(2, "0")}</span>
+                  <span aria-hidden="true">—</span>
+                  <span>{chapter.label}</span>
+                </p>
+                {index === 0 ? (
+                  <>
+                    <h1>{person.name}</h1>
+                    <p className="thread-role">Full-stack engineer · frontend to backend, AI</p>
+                    <p className="thread-intro">
+                      I build the interface and the system behind it: screens, APIs, and the models that answer.
+                    </p>
+                    <p className="thread-status">{person.availability}</p>
+                    <div className="thread-actions">
+                      <Link className="btn btn-solid" href="/#work">
+                        View work
+                      </Link>
+                      <ResumeDownload className="btn btn-ghost">Resume</ResumeDownload>
+                    </div>
+                    <p className="thread-tagline">
+                      One tap, carried <em>end to end</em>.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h2>
+                      {chapter.title} <em>{chapter.accent}</em>.
+                    </h2>
+                    <p className="thread-intro">{chapter.intro}</p>
+                  </>
+                )}
+              </div>
+              <ThreadMotif motif={motif} />
               {frames.length ? (
                 <ul className="thread-screens">
                   {frames.map((frame) => (
@@ -161,14 +205,6 @@ export function ThreadHome() {
                     </li>
                   ))}
                 </ul>
-              ) : (
-                <p className="thread-birth">A cursor meets the ink. The thread starts here.</p>
-              )}
-              {chapter.signature ? (
-                <p className="thread-sign">
-                  <span>{person.name.split(" ")[0]}</span>
-                  <Link href="/contact">Write a note</Link>
-                </p>
               ) : null}
             </article>
           );

@@ -170,9 +170,10 @@ async function clickMenu() {
     }
     const inMenu = await page.locator('#site-menu a[href*="design-system"]').count();
     const inFooter = await page.locator('footer a[href*="design-system"]').count();
-    if (!inMenu || !inFooter) {
-      failures.push({ where: "design-system reach", message: `menu ${inMenu}, footer ${inFooter}` });
-    }
+    const colophon = await page.locator(".footer-colophon").innerText();
+    if (!inMenu) failures.push({ where: "design-system reach", message: "missing from the work menu" });
+    if (inFooter) failures.push({ where: "footer", message: "Calibre is still linked in the footer" });
+    if (/calibre/i.test(colophon)) failures.push({ where: "footer", message: `colophon still names Calibre: ${colophon}` });
 
     hrefs.push(
       ...(await page.evaluate(() => {

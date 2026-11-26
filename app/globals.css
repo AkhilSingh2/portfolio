@@ -5287,34 +5287,6 @@ html.footer-reveal .site-footer {
   position: relative;
 }
 
-.thread-field,
-.thread-static {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.thread-field {
-  opacity: 0;
-}
-
-html[data-thread-live="1"] .thread-field {
-  opacity: 1;
-}
-
-.thread-static {
-  display: none;
-  margin: auto;
-  width: min(18rem, 46vw);
-  height: 70vh;
-  top: 12vh;
-  left: 0;
-  right: 0;
-}
-
 .thread-home {
   position: relative;
   z-index: 2;
@@ -5324,10 +5296,102 @@ html[data-thread-live="1"] .thread-field {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 0.85rem;
   min-height: 100svh;
   padding: calc(var(--header-h) + 0.7rem) var(--pad) 1.4rem;
   color: var(--bone-50);
+}
+
+.thread-art {
+  position: relative;
+  z-index: 0;
+  height: 13.5rem;
+  overflow: hidden;
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(212, 196, 168, 0.2), transparent 64%),
+    #171512;
+  border: 1px solid rgba(246, 241, 232, 0.12);
+}
+
+.thread-art canvas,
+.thread-art .thread-static {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.thread-static {
+  display: none;
+}
+
+.thread-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.7rem;
+  max-width: 40rem;
+}
+
+.thread-chapter h1 {
+  margin: 0;
+  font-size: clamp(2.8rem, 6vw, 4.6rem);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+}
+
+.thread-role {
+  margin: 0;
+  color: var(--ember-500);
+  font-size: 1.05rem;
+  letter-spacing: 0.01em;
+}
+
+.thread-status {
+  margin: 0;
+  color: var(--bone-50);
+  font-size: 0.95rem;
+}
+
+.thread-status::before {
+  content: "";
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-right: 0.45rem;
+  border-radius: 99px;
+  background: #8fbf8a;
+  transform: translateY(-1px);
+}
+
+.thread-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 0.2rem;
+}
+
+.thread-tagline {
+  margin: 0.15rem 0 0;
+  color: var(--bone-200);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.thread-tagline em {
+  font-style: italic;
+  color: var(--ember-500);
+}
+
+.work-calibre {
+  max-width: 36rem;
+  margin-top: 0.85rem;
+}
+
+.work-calibre a {
+  color: inherit;
 }
 
 .thread-kicker {
@@ -5483,12 +5547,55 @@ html[data-thread-live="1"] .thread-field {
     grid-template-columns: 1fr;
   }
 
+  .thread-chapter h1 {
+    font-size: clamp(2.5rem, 11vw, 3.3rem);
+  }
+
   .thread-chapter h2 {
-    font-size: clamp(2.4rem, 11vw, 3.4rem);
+    font-size: clamp(2.2rem, 10vw, 3.1rem);
+  }
+
+  .thread-art {
+    order: -1;
+  }
+
+  .thread-chapter[data-chapter="tap"] .thread-art {
+    height: 15rem;
   }
 }
 
 @media (min-width: 960px) {
+  .thread-chapter {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(240px, 0.78fr);
+    column-gap: 1.6rem;
+    row-gap: 0.85rem;
+    align-content: safe center;
+  }
+
+  .thread-copy {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .thread-art {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    height: auto;
+    min-height: 18rem;
+    align-self: stretch;
+  }
+
+  .thread-chapter[data-chapter="tap"] .thread-art {
+    grid-row: 1;
+    min-height: 26rem;
+  }
+
+  .thread-screens {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
   .thread-shot {
     max-height: 30vh;
   }
@@ -5511,7 +5618,7 @@ html[data-thread-live="1"] .thread-field {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .thread-field {
+  .thread-art canvas {
     display: none;
   }
 
