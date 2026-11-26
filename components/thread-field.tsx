@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { mixSlot, threadSlot } from "@/lib/thread-layout";
 import { threadDrawing, unwindDrawing, type Point, type ThreadDot } from "@/lib/thread-shapes";
+import { threadOrder } from "@/lib/thread-art";
+import { applyVeil, publishVeil, renderVeil } from "@/lib/thread-veil";
 
 declare global {
   interface Window {
@@ -66,16 +69,51 @@ function bounds(strokes: Point[][]) {
   return { minX, maxX, minY, maxY, w: Math.max(0.001, maxX - minX), h: Math.max(0.001, maxY - minY) };
 }
 
-/** A large drawing centred behind the story. It may pass under the shot and the type. */
-function placeLarge(drawing: Point[][]) {
+/** Fit the drawing in the slot for this scroll position, sliding toward the next step's slot. */
+function placeLarge(drawing: Point[][], progress: number) {
+  const span = Math.max(1, threadOrder.length - 1);
+  const scaled = Math.min(span, Math.max(0, progress) * span);
+  const index = Math.min(span, Math.floor(scaled));
+  const next = Math.min(span, index + 1);
+  const slot = mixSlot(
+    threadSlot(threadOrder[index], window.innerWidth, window.innerHeight),
+    threadSlot(threadOrder[next], window.innerWidth, window.innerHeight),
+    index === next ? 0 : scaled - index,
+  );
+  window.__threadPlacement = slot.placement;
   const box = bounds(drawing);
-  const heightTarget = window.innerHeight * 0.68;
-  let scale = heightTarget / box.h;
-  const widest = window.innerWidth * 0.96;
-  if (box.w * scale > widest && (box.h * (widest / box.w)) / window.innerHeight >= 0.6) scale = widest / box.w;
-  const originX = window.innerWidth / 2 - ((box.minX + box.maxX) / 2) * scale;
-  const originY = window.innerHeight / 2 - ((box.minY + box.maxY) / 2) * scale;
+  const scale = Math.min(slot.maxW / box.w, slot.maxH / box.h);
+  const originX = slot.cx - ((box.minX + box.maxX) / 2) * scale;
+  const originY = slot.cy - ((box.minY + box.maxY) / 2) * scale;
   return drawing.map((stroke) => stroke.map((point) => ({ x: originX + point.x * scale, y: originY + point.y * scale })));
+}
+
+let veilKey = "";
+
+function syncVeil(canvas: HTMLCanvasElement) {
+  const copy = document.querySelector(".thread-chapter.is-active .thread-copy");
+  const host = canvas.getBoundingClientRect();
+  if (!(copy instanceof HTMLElement) || host.width < 20) {
+    if (veilKey !== "none") {
+      veilKey = "none";
+      canvas.style.maskImage = "";
+      canvas.style.setProperty("-webkit-mask-image", "");
+      window.__threadVeil = () => 1;
+    }
+    return;
+  }
+  const rect = copy.getBoundingClientRect();
+  const key = [Math.round(rect.left), Math.round(rect.top), Math.round(rect.width), Math.round(rect.height), Math.round(host.width), Math.round(host.height)].join(":");
+  if (key === veilKey) return;
+  veilKey = key;
+  const mask = renderVeil(host.width, host.height, {
+    x: rect.left - host.left,
+    y: rect.top - host.top,
+    w: rect.width,
+    h: rect.height,
+  });
+  applyVeil(canvas, mask);
+  publishVeil({ canvas: mask, left: host.left, top: host.top, width: host.width, height: host.height });
 }
 
 function paintDot(ctx: CanvasRenderingContext2D, dot: ThreadDot) {
@@ -163,7 +201,7 @@ export function ThreadField() {
         return [];
       }
       const drawing = threadDrawing(readProgress(), { reduced: reduce });
-      const placed = placeLarge(drawing.strokes);
+      const placed = placeLarge(drawing.strokes, readProgress());
       const unwound = unwindDrawing(placed, readExit());
       if (!unwound) {
         window.__threadSamples = [];
@@ -195,6 +233,7 @@ export function ThreadField() {
       const draw = () => {
         resize2d(ctx);
         const strokes = layout();
+        syncVeil(canvas);
         paint2d(ctx, strokes, frameDot);
       };
       if (reduce) {
@@ -298,6 +337,7 @@ export function ThreadField() {
         if (dead) return;
         if (!document.hidden) {
           const strokes = layout();
+          syncVeil(canvas);
           const ink = frameDot?.a ?? 1;
           glowMaterial.opacity = 0.2 * ink;
           coreMaterial.opacity = 0.62 * ink;
@@ -345,6 +385,9 @@ export function ThreadField() {
       watch.disconnect();
       delete window.__threadSamples;
       delete window.__threadShape;
+      delete window.__threadPlacement;
+      delete window.__threadVeil;
+      veilKey = "";
     };
   }, []);
 
