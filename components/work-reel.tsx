@@ -4,10 +4,9 @@ import Link from "next/link";
 import { LiveLink, liveDomain } from "@/components/live-link";
 import { Media } from "@/components/media";
 import { useEffect, useRef } from "react";
-import { TagList } from "@/components/tag";
 import type { Project } from "@/lib/projects";
 
-const closedMask = "inset(31% 30% 31% 30%)";
+const closedMask = "inset(16% 14% 16% 14%)";
 const openMask = "inset(0% 0% 0% 0%)";
 
 export function WorkReel({ projects }: { projects: Project[] }) {
@@ -71,11 +70,11 @@ export function WorkReel({ projects }: { projects: Project[] }) {
             if (image) {
               gsap.fromTo(
                 image,
-                { scale: 1.22 },
+                { scale: 1.12 },
                 {
                   scale: 1,
                   ease: "none",
-                  scrollTrigger: { trigger: slide, start: "top bottom", end: "bottom top", scrub: true },
+                  scrollTrigger: { trigger: slide, start: "top 90%", end: "top 40%", scrub: true },
                 },
               );
             }
@@ -138,7 +137,7 @@ export function WorkReel({ projects }: { projects: Project[] }) {
             timeline.fromTo(mask, { clipPath: closedMask }, { clipPath: openMask, duration: 0.46 }, start);
           }
           if (image) {
-            timeline.fromTo(image, { scale: 1.48, yPercent: 6 }, { scale: 1.04, yPercent: -3, duration: 0.72 }, start);
+            timeline.fromTo(image, { scale: 1.28 }, { scale: 1, duration: 0.55 }, start);
           }
           if (type) {
             if (index === 0) {
@@ -228,7 +227,6 @@ export function WorkReel({ projects }: { projects: Project[] }) {
                   </p>
                   <h2>{project.title}</h2>
                   <p>{project.summary}</p>
-                  <TagList items={project.stack.slice(0, 4)} />
                   <span className="reel-links">
                     <Link href={`/work/${project.slug}`} transitionTypes={["nav-forward"]} className="text-link">
                       Case study

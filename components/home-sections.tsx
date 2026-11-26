@@ -4,20 +4,10 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/button";
 import { Media } from "@/components/media";
-import { TagList } from "@/components/tag";
 import { backendProjects, professionalProjects } from "@/lib/projects";
 import { asset } from "@/lib/site";
 
 const stripSlugs = ["media-composition", "localisation-pipeline", "marketing-site"];
-
-const roles: Record<string, string> = {
-  "ai-asset-platform": "Frontend-leaning full-stack",
-  "media-composition": "Pipeline and autoscaling",
-  "localisation-pipeline": "Ingestion and the review screen",
-  "finance-platform": "Monorepo and revenue recognition",
-  "cloud-infrastructure": "Infrastructure as code",
-  "marketing-site": "Public site migration",
-};
 
 type GsapApi = typeof import("gsap").gsap;
 
@@ -223,10 +213,8 @@ export function BackendWork() {
                 </div>
               ) : null}
               <div className="gallery-body">
-                <p className="gallery-kicker">{project.kicker}</p>
                 <h3>{project.title}</h3>
                 <p>{project.summary}</p>
-                <TagList items={project.stack.slice(0, 5)} />
                 <div className="study-links">
                   <Link className="text-link" href={`/work/${project.slug}`}>
                     Case study
@@ -271,14 +259,10 @@ export function ProfessionalWork() {
                   </div>
                 ) : null}
                 <div className="gallery-body">
-                  <p className="gallery-kicker">{roles[project.slug] ?? project.year}</p>
                   <h3>
                     <Link href={`/work/${project.slug}`}>{project.title}</Link>
                   </h3>
-                  <p className="study-outcome">
-                    <span>Outcome</span>
-                    <span>{project.outcome}</span>
-                  </p>
+                  <p>{project.outcome}</p>
                   <div className="study-links">
                     <Link className="text-link" href={`/work/${project.slug}`}>
                       Case study
@@ -290,11 +274,6 @@ export function ProfessionalWork() {
           })}
         </div>
       </div>
-      <p className="home-more">
-        <Link className="text-link" href="/work">
-          See all work
-        </Link>
-      </p>
     </section>
   );
 }
@@ -325,9 +304,8 @@ export function SystemPair() {
             />
           </div>
           <div className="gallery-body">
-            <p className="gallery-kicker">Calibre</p>
-            <h3>Ink, ivory, champagne.</h3>
-            <p>Near-black and warm ivory carry the page. Champagne is the only signal. The system page is the tokens, measured.</p>
+            <h3>Calibre</h3>
+            <p>Near-black and warm ivory carry the page. Champagne is the only signal.</p>
             <div className="study-links">
               <Button href="/design-system" variant="solid" transitionTypes={["nav-forward"]}>
                 Open the system
@@ -346,16 +324,12 @@ export function SystemPair() {
             />
           </div>
           <div className="gallery-body">
-            <p className="gallery-kicker">Sutra UI</p>
-            <h3>The dark theme, in the same frame.</h3>
-            <p>Ivory and ink for calculators and converters, antique gold as a line. This portfolio stays on Calibre. The docs are live.</p>
+            <h3>Sutra UI</h3>
+            <p>Ivory and ink for the tools, antique gold as a line. The frame is the dark theme.</p>
             <div className="study-links">
               <Button href="/work/sutra-ui" variant="solid" transitionTypes={["nav-forward"]}>
                 Open the showcase
               </Button>
-              <a className="btn btn-line" href="https://akhilsingh2.github.io/sutra-ui/" target="_blank" rel="noreferrer">
-                Live docs
-              </a>
             </div>
           </div>
         </article>

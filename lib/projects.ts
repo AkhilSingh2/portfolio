@@ -74,6 +74,13 @@ export const projects: Project[] = [
     group: "selected",
     shots: [
       {
+        src: "/work/reel/kinetic.webp",
+        alt: "A tight view of the Lyra headphone, the milled cups and the arc.",
+        width: 1400,
+        height: 988,
+        caption: "The headphone, held in the frame.",
+      },
+      {
         src: "/work/kinetic/hero.webp",
         alt: "Lyra hero. A milled headphone floats on a warm black field with the line The room disappears.",
         width: 1440,
@@ -131,6 +138,13 @@ export const projects: Project[] = [
     group: "selected",
     shots: [
       {
+        src: "/work/reel/docmind.webp",
+        alt: "DocMind answer with a retrieved passage and numbered citations.",
+        width: 1600,
+        height: 1189,
+        caption: "The answer, with the citation still attached.",
+      },
+      {
         src: "/work/docmind/desktop.webp",
         alt: "DocMind workspace with a library, a cited answer, and the source passage open.",
         width: 1440,
@@ -173,6 +187,13 @@ export const projects: Project[] = [
     reel: true,
     group: "selected",
     shots: [
+      {
+        src: "/work/reel/launchpad.webp",
+        alt: "LaunchPad card for the Northstar public beta, with the checklist and the plan.",
+        width: 968,
+        height: 632,
+        caption: "The launch card.",
+      },
       {
         src: "/work/launchpad/landing.webp",
         alt: "LaunchPad marketing landing page.",
@@ -231,6 +252,13 @@ export const projects: Project[] = [
     group: "selected",
     shots: [
       {
+        src: "/work/reel/tandem.webp",
+        alt: "Tandem board for a spring search, with cards in Wishlist and Interview.",
+        width: 912,
+        height: 366,
+        caption: "The shared board.",
+      },
+      {
         src: "/work/tandem/landing.webp",
         alt: "Tandem landing page introducing the shared job-hunt studio.",
         width: 1440,
@@ -280,6 +308,13 @@ export const projects: Project[] = [
     reel: true,
     group: "selected",
     shots: [
+      {
+        src: "/work/reel/pulse.webp",
+        alt: "Pulse event-volume chart, two lines across a month of synthetic traffic.",
+        width: 1600,
+        height: 472,
+        caption: "The chart, not the whole dashboard.",
+      },
       {
         src: "/work/pulse/overview.webp",
         alt: "Pulse overview dashboard with traffic for the fictional Northstar product.",
@@ -441,6 +476,13 @@ export const projects: Project[] = [
     reel: true,
     group: "selected",
     shots: [
+      {
+        src: "/work/reel/chalisa.webp",
+        alt: "Hanuman Chalisa opening dohas in Devanagari with the English line beneath.",
+        width: 1020,
+        height: 482,
+        caption: "The verse, in its own card.",
+      },
       {
         src: "/work/onlinechalisa/home.webp",
         alt: "Online Chalisa home page inviting a reading of the Hanuman Chalisa.",
