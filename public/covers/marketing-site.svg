@@ -1,9 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750">
-  <rect width="1200" height="750" fill="#100e0c"/>
-  <rect x="48" y="48" width="1104" height="654" fill="none" stroke="#d4c4a8" stroke-opacity="0.45"/>
-  <path d="M80 180 H520 M80 260 H420 M80 340 H360" stroke="#d4c4a8" stroke-opacity="0.55" stroke-width="2"/>
-  <circle cx="980" cy="180" r="72" fill="none" stroke="#d4c4a8" stroke-width="2"/>
-  <text x="980" y="190" text-anchor="middle" fill="#d4c4a8" font-family="Georgia, serif" font-size="42">WEB</text>
-  <text x="80" y="470" fill="#c9bfb2" font-family="Inter, sans-serif" font-size="22" letter-spacing="4">SITE</text>
-  <text x="80" y="560" fill="#f3ecdf" font-family="Georgia, serif" font-size="54">Next.js · Strapi</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000">
+  <rect width="1600" height="1000" fill="#100e0c"/>
+  <rect x="72" y="72" width="1456" height="856" rx="28" fill="#171512"/>
+  <text x="120" y="156" fill="#e6d7bc" font-family="Inter, sans-serif" font-size="22" letter-spacing="5">FIRST VIEW</text>
+  <text x="120" y="220" fill="#f3ecdf" font-family="Georgia, serif" font-size="52">Faster to the page</text>
+  <g>
+    <rect x="120" y="300" width="460" height="520" rx="22" fill="#221e1a"/>
+    <text x="156" y="352" fill="#8c8276" font-family="Inter, sans-serif" font-size="18" letter-spacing="3">BEFORE</text>
+    <rect x="156" y="384" width="180" height="22" rx="6" fill="#3a342c"/>
+    <rect x="156" y="430" width="388" height="150" rx="12" fill="#2a261f"/>
+    <rect x="156" y="604" width="180" height="120" rx="12" fill="#2a261f"/>
+    <rect x="356" y="604" width="188" height="120" rx="12" fill="#2a261f"/>
+    <text x="156" y="770" fill="#8c8276" font-family="Inter, sans-serif" font-size="20">Serial fetches</text>
+  </g>
+  <g>
+    <rect x="640" y="300" width="460" height="520" rx="22" fill="#f3ecdf"/>
+    <text x="676" y="352" fill="#6d6256" font-family="Inter, sans-serif" font-size="18" letter-spacing="3">AFTER</text>
+    <rect x="676" y="384" width="160" height="22" rx="6" fill="#100e0c"/>
+    <rect x="676" y="430" width="388" height="150" rx="12" fill="#d4c4a8"/>
+    <rect x="676" y="604" width="180" height="120" rx="12" fill="#e7dcc8"/>
+    <rect x="876" y="604" width="188" height="120" rx="12" fill="#e7dcc8"/>
+    <text x="676" y="770" fill="#3a3128" font-family="Inter, sans-serif" font-size="20">Next.js · Strapi</text>
+  </g>
+  <g>
+    <text x="1180" y="430" fill="#f3ecdf" font-family="Georgia, serif" font-size="92">45%</text>
+    <text x="1180" y="490" fill="#c9bfb2" font-family="Inter, sans-serif" font-size="26">faster to</text>
+    <text x="1180" y="528" fill="#c9bfb2" font-family="Inter, sans-serif" font-size="26">first view</text>
+    <rect x="1180" y="580" width="280" height="8" rx="4" fill="#3a3128"/>
+    <rect x="1180" y="580" width="154" height="8" rx="4" fill="#d4c4a8"/>
+  </g>
 </svg>

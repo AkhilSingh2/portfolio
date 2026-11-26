@@ -6,7 +6,7 @@ import { forwardRef, useState } from "react";
 import { Media } from "@/components/media";
 import { ResumeDownload } from "@/components/resume-download";
 import { SocialLinks } from "@/components/social-links";
-import { featuredProject, liveTools, workGroups } from "@/lib/menu";
+import { featuredProject, workGroups } from "@/lib/menu";
 import type { Project, Shot } from "@/lib/projects";
 import { LiveLink, liveDomain } from "@/components/live-link";
 import { person } from "@/lib/site";
@@ -28,7 +28,6 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
 ) {
   const reduce = useReducedMotion();
   const groups = workGroups();
-  const live = liveTools();
   const featured = featuredProject();
   const catalogue = groups.flatMap((group) => group.projects);
   const [spot, setSpot] = useState<Spot>({ kind: "project", slug: featured.slug });
@@ -94,6 +93,7 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
                     <Thumb shot={active.shots[0]} sizes="320px" className="spotlight-blank" />
                     <span className="spotlight-copy">
                       <strong>{active.title}</strong>
+                      <p className="spotlight-blurb">{active.summary.split(/(?<=\.)\s+/)[0]}</p>
                       <span className="spotlight-links">
                           <Link href={`/work/${active.slug}`} data-menuitem onClick={onClose}>
                           Case study
@@ -151,32 +151,6 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
               </motion.section>
             ))}
           </div>
-
-          <motion.section
-            className="mega-live"
-            aria-labelledby="mega-live"
-            initial={reduce ? false : hidden}
-            animate={shown}
-            transition={reduce ? { duration: 0 } : { ...spring, delay: 0.08 }}
-          >
-            <h2 id="mega-live">Live tools</h2>
-            <ul>
-              {live.map((project) => (
-                <li key={project.slug}>
-                  <a
-                    href={project.live}
-                    data-menuitem
-                    target="_blank"
-                    rel="noreferrer"
-                    onMouseEnter={() => focusProject(project.slug)}
-                    onFocus={() => focusProject(project.slug)}
-                  >
-                    <strong>{project.title}</strong>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </motion.section>
 
           <motion.section
             className="mega-about"

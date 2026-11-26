@@ -84,7 +84,6 @@ function stageBackend(gsap: GsapApi, root: HTMLElement) {
 
 function stageProfessional(gsap: GsapApi, root: HTMLElement) {
   const heads = root.querySelectorAll("[data-reveal]");
-  const track = root.querySelector<HTMLElement>("[data-track]");
   const cards = root.querySelectorAll("[data-card]");
   gsap.from(heads, {
     y: 28,
@@ -97,44 +96,13 @@ function stageProfessional(gsap: GsapApi, root: HTMLElement) {
     scrollTrigger: { trigger: root, start: "top 82%" },
   });
 
-  const wide = window.matchMedia("(min-width: 960px)").matches && track;
-  if (wide && track) {
-    root.classList.add("is-reel");
-    const distance = () => Math.max(0, track.scrollWidth - (track.parentElement?.clientWidth ?? track.scrollWidth));
-    if (distance() > 32) {
-      gsap.to(track, {
-        x: () => -distance(),
-        ease: "none",
-        scrollTrigger: {
-          trigger: root,
-          start: "top top",
-          end: () => `+=${distance() + 120}`,
-          pin: true,
-          scrub: 0.55,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-        },
-      });
-    }
-    gsap.from(cards, {
-      clipPath: "inset(0 12% 0 0)",
-      opacity: 0,
-      duration: 0.7,
-      stagger: 0.1,
-      ease: "power3.out",
-      scrollTrigger: { trigger: root, start: "top 78%" },
-    });
-    return;
-  }
-
   gsap.from(cards, {
-    y: 32,
+    y: 24,
     opacity: 0,
-    clipPath: "inset(10% 0 0 0)",
-    duration: 0.7,
-    stagger: 0.12,
+    duration: 0.6,
+    stagger: 0.1,
     ease: "power3.out",
-    scrollTrigger: { trigger: root, start: "top 80%" },
+    scrollTrigger: { trigger: root, start: "top 82%", toggleActions: "play none none none" },
   });
 }
 
