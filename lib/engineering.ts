@@ -35,7 +35,7 @@ export const projectTags: Record<string, StackTag[]> = {
   mymirro: ["Frontend", "Data"],
   momogpt: ["Frontend", "Backend", "AI"],
   buzzroom: ["Frontend", "Backend", "Infra"],
-  trainer: ["Frontend", "Backend", "Data", "AI"],
+  cadence: ["Frontend", "Backend", "Data", "AI"],
   "mymirro-recommendation-api": ["Backend", "Data", "AI", "Infra"],
   "colour-analysis-api": ["Backend", "AI", "Infra"],
   "ai-asset-platform": ["Frontend", "Backend", "AI", "Infra"],
@@ -310,7 +310,7 @@ export const engineeringNotes: Record<string, Engineering> = {
       "The Pages demo bundles the same server.js with esbuild and swaps Socket.IO, Express, and fs for in-memory shims.",
     ],
   },
-  trainer: {
+  cadence: {
     heading: "Backend",
     summary:
       "FastAPI with an asyncpg pool over Postgres and pgvector. Every logging route rebuilds and saves the day's plan, and the same API serves the web UI at the root.",
