@@ -65,7 +65,7 @@ export function WorkBoard({ projects }: { projects: Project[] }) {
           </section>
           <section className="studies" aria-labelledby="professional-title">
             <h2 id="professional-title">Professional work</h2>
-            <p>Proprietary work, described without code or confidential detail.</p>
+            <p>Work at Kwalee, described without code or confidential detail.</p>
             <WorkIndex projects={professional} labelledBy="professional-title" />
           </section>
           <section className="studies" aria-labelledby="also-title">

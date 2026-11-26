@@ -2,130 +2,167 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { LiveLink, liveDomain } from "@/components/live-link";
 import { Media } from "@/components/media";
 import { ResumeDownload } from "@/components/resume-download";
 import { ThreadField } from "@/components/thread-field";
-import { threadChapters } from "@/lib/thread-chapters";
-import type { Shot } from "@/lib/projects";
+import { threadDrawings } from "@/lib/thread-art";
+import { getProject, type Shot } from "@/lib/projects";
 import { person } from "@/lib/site";
 
-const chapters = threadChapters();
+type Beat = {
+  id: string;
+  shape: string;
+  anchor?: string;
+  hero?: boolean;
+  close?: boolean;
+  slug?: string;
+  line?: string;
+};
 
-const returnShots = ["/work/launchpad/dashboard.webp", "/work/launchpad/billing.webp"];
+const beats: Beat[] = [
+  { id: "tap", shape: "phone", hero: true },
+  { id: "lyra", shape: "headphones", slug: "kinetic", anchor: "work" },
+  { id: "chalisa", shape: "book", slug: "online-chalisa" },
+  { id: "sutra", shape: "nib", slug: "sutra-ui" },
+  { id: "tandem", shape: "bubbles", slug: "tandem" },
+  { id: "buzzroom", shape: "buzzer", slug: "buzzroom" },
+  { id: "mymirro", shape: "shirt", slug: "mymirro" },
+  { id: "docmind", shape: "document", slug: "docmind" },
+  { id: "quorum", shape: "microphone", slug: "meeting-actions" },
+  { id: "pulse", shape: "chart", slug: "pulse" },
+  { id: "cadence", shape: "stopwatch", slug: "cadence" },
+  { id: "kwalee", shape: "globe", slug: "marketing-site", anchor: "professional", line: "Kwalee's public site, moved to Next.js. I led the migration." },
+  { id: "launchpad", shape: "car", slug: "launchpad" },
+  { id: "knot", shape: "knot", close: true },
+];
 
-function framesFor(chapter: (typeof chapters)[number]): { projectTitle: string; slug: string; live?: string; liveLabel?: string; shot: Shot }[] {
-  if (chapter.id === "return") {
-    const project = chapter.projects[0];
-    return returnShots.flatMap((src, shotIndex) => {
-      const shot = project?.shots.find((item) => item.src === src);
-      if (!shot || !project) return [];
-      return [
-        {
-          projectTitle: shot.caption || project.title,
-          slug: project.slug,
-          live: shotIndex === 0 ? project.live : undefined,
-          liveLabel: shotIndex === 0 ? project.liveLabel : undefined,
-          shot,
-        },
-      ];
-    });
-  }
-  if (chapter.projects.length === 1) {
-    const project = chapter.projects[0];
-    return project.shots.slice(0, 2).map((shot, shotIndex) => ({
-      projectTitle: shot.caption || project.title,
-      slug: project.slug,
-      live: shotIndex === 0 ? project.live : undefined,
-      liveLabel: shotIndex === 0 ? project.liveLabel : undefined,
-      shot,
-    }));
-  }
-  return chapter.projects.slice(0, 3).flatMap((project) => {
-    const shot = project.shots[0];
-    if (!shot) return [];
-    return [{ projectTitle: project.title, slug: project.slug, live: project.live, liveLabel: project.liveLabel, shot }];
-  });
+function sentence(text: string) {
+  const cut = text.split(/(?<=\.)\s/)[0];
+  return cut || text;
+}
+
+function BeatMark({ shape }: { shape: string }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const phone = window.matchMedia("(max-width: 959px)").matches;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!phone && !reduce) return;
+    const strokes = threadDrawings[shape];
+    if (!strokes) return;
+    const draw = () => {
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      canvas.width = Math.max(1, Math.floor(width * dpr));
+      canvas.height = Math.max(1, Math.floor(height * dpr));
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = "rgba(243, 236, 223, 0.92)";
+      ctx.lineWidth = 1.2;
+      const scale = Math.min(width, height) * 0.42;
+      const samples: { x: number; y: number }[] = [];
+      for (const stroke of strokes) {
+        let length = 0;
+        for (let index = 1; index < stroke.length; index += 1) {
+          length += Math.hypot(stroke[index].x - stroke[index - 1].x, stroke[index].y - stroke[index - 1].y);
+        }
+        if (length < 0.05) continue;
+        ctx.beginPath();
+        stroke.forEach((point, index) => {
+          const x = width / 2 + point.x * scale;
+          const y = height / 2 + point.y * scale;
+          if (index === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+          if (index % 8 === 0) samples.push({ x, y });
+        });
+        ctx.stroke();
+      }
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width < 20 || rect.bottom < 0 || rect.top > window.innerHeight) return;
+      const score = Math.abs(rect.left + rect.width / 2 - window.innerWidth / 2) + Math.abs(rect.top + rect.height / 2 - window.innerHeight / 2);
+      const current = window.__threadMarkScore;
+      if (current !== undefined && score > current) return;
+      window.__threadMarkScore = score;
+      window.__threadSamples = samples.map((point) => ({ x: rect.left + point.x, y: rect.top + point.y }));
+      window.__threadShape = shape;
+      window.setTimeout(() => {
+        delete window.__threadMarkScore;
+      }, 0);
+    };
+    draw();
+    window.addEventListener("resize", draw);
+    window.addEventListener("scroll", draw, { passive: true });
+    return () => {
+      window.removeEventListener("resize", draw);
+      window.removeEventListener("scroll", draw);
+    };
+  }, [shape]);
+
+  return <canvas ref={ref} className="beat-mark" width={320} height={180} aria-hidden="true" />;
 }
 
 export function ThreadHome() {
   const rootRef = useRef<HTMLElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const [light, setLight] = useState<{ shot: Shot; title: string } | null>(null);
 
   useEffect(() => {
     const root = rootRef.current;
-    if (!root) return;
+    const track = trackRef.current;
+    if (!root || !track) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     const desktop = window.matchMedia("(min-width: 960px)");
-    const chaptersEls = [...root.querySelectorAll<HTMLElement>("[data-chapter]")];
+    const cards = [...track.querySelectorAll<HTMLElement>(".thread-beat")];
     let dead = false;
     let revert: (() => void) | undefined;
 
-    const publish = (progress: number, activeIndex?: number) => {
+    const place = (progress: number) => {
       const clamped = Math.min(1, Math.max(0, progress));
+      const cursor = clamped * (beats.length - 1);
+      cards.forEach((card, index) => {
+        const delta = Math.max(-1, Math.min(1, index - cursor));
+        const distance = Math.abs(index - cursor);
+        card.style.transform = `translate3d(${delta * 24}%, 0, 0)`;
+        card.style.opacity = distance > 1 ? "0" : String(Math.max(0, 1 - distance));
+        card.style.pointerEvents = distance < 0.5 ? "auto" : "none";
+        card.style.zIndex = distance < 0.5 ? "2" : "1";
+        card.classList.toggle("is-active", distance < 0.5);
+        const shot = card.querySelector<HTMLElement>(".thread-shot");
+        if (shot) shot.style.transform = `scale(${Math.max(0.92, 1 - distance * 0.1)})`;
+      });
       document.documentElement.dataset.threadProgress = clamped.toFixed(4);
-      const scaled = clamped * Math.max(1, chaptersEls.length - 1);
-      const index = activeIndex ?? Math.min(chaptersEls.length - 1, Math.round(scaled));
-      document.documentElement.dataset.threadLocal = (scaled - Math.floor(scaled)).toFixed(4);
-      chaptersEls.forEach((chapter, chapterIndex) => chapter.classList.toggle("is-active", chapterIndex === index));
     };
 
     if (reduce.matches || !desktop.matches) {
-      const onScroll = () => {
-        const rect = root.getBoundingClientRect();
-        const total = root.offsetHeight - window.innerHeight;
-        publish(total > 0 ? -rect.top / total : 0);
-      };
-      onScroll();
-      window.addEventListener("scroll", onScroll, { passive: true });
       return () => {
-        window.removeEventListener("scroll", onScroll);
         delete document.documentElement.dataset.threadProgress;
       };
     }
 
     document.documentElement.classList.add("enhance");
-    publish(0);
+    place(0);
 
     const run = async () => {
-      const [{ gsap }, { ScrollTrigger }] = await Promise.all([import("gsap"), import("gsap/ScrollTrigger")]);
+      const { ScrollTrigger } = await import("gsap/ScrollTrigger");
+      const { gsap } = await import("gsap");
       if (dead) return;
       gsap.registerPlugin(ScrollTrigger);
-      const ctx = gsap.context(() => {
-        gsap.set(chaptersEls, { autoAlpha: 0 });
-        gsap.set(chaptersEls[0], { autoAlpha: 1 });
-        const timeline = gsap.timeline({
-          defaults: { ease: "none" },
-          scrollTrigger: {
-            trigger: root,
-            start: "top top",
-            end: () => `+=${window.innerHeight * chaptersEls.length * 0.85}`,
-            pin: true,
-            scrub: 0.65,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-            onUpdate: (self) => {
-              const time = self.progress * timeline.duration();
-              const index = Math.min(chaptersEls.length - 1, Math.floor(time + 0.04));
-              document.documentElement.dataset.threadLocal = (time - Math.floor(time)).toFixed(4);
-              publish(self.progress, index);
-            },
-          },
-        });
-        chaptersEls.forEach((chapter, index) => {
-          const frames = chapter.querySelectorAll(".thread-shot");
-          if (index > 0) {
-            timeline.fromTo(chapter, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.16 }, index);
-            timeline.to(chaptersEls[index - 1], { autoAlpha: 0, duration: 0.16 }, index);
-            if (frames.length) {
-              timeline.fromTo(frames, { clipPath: "inset(8% 6% 8% 6%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 0.22 }, index);
-            }
-          } else if (frames.length) {
-            gsap.set(frames, { clipPath: "inset(0% 0% 0% 0%)" });
-          }
-        });
-      }, root);
-      revert = () => ctx.revert();
+      const trigger = ScrollTrigger.create({
+        trigger: root,
+        start: "top top",
+        end: () => `+=${window.innerHeight * (beats.length - 1)}`,
+        pin: true,
+        invalidateOnRefresh: true,
+        onUpdate: (self) => place(self.progress),
+      });
+      revert = () => trigger.kill();
       ScrollTrigger.refresh();
     };
     void run();
@@ -133,6 +170,7 @@ export function ThreadHome() {
     return () => {
       dead = true;
       revert?.();
+      document.documentElement.classList.remove("enhance");
       delete document.documentElement.dataset.threadProgress;
     };
   }, []);
@@ -152,70 +190,86 @@ export function ThreadHome() {
   }, [light]);
 
   return (
-      <div className="thread-shell">
+    <div className="thread-shell">
       <ThreadField />
       <section className="thread-home" id="thread" ref={rootRef} aria-label="The thread">
-        {chapters.map((chapter, index) => {
-          const frames = framesFor(chapter);
-          return (
-            <article
-              className={`thread-chapter${index === 0 ? " is-active" : ""}`}
-              data-chapter={chapter.id}
-              id={chapter.id === "surface" ? "work" : chapter.id === "scale" ? "professional" : undefined}
-              key={chapter.id}
-            >
-              <div className="thread-copy" data-obstacle>
-                <p className="thread-kicker">
-                  <span>{String(index).padStart(2, "0")}</span>
-                  <span aria-hidden="true">—</span>
-                  <span>{chapter.label}</span>
-                </p>
-                {index === 0 ? (
-                  <>
-                    <h1>{person.name}</h1>
-                    <p className="thread-role">Full-stack engineer · frontend to backend, AI</p>
-                    <p className="thread-intro">
-                      I build the interface and the system behind it: screens, APIs, and the models that answer.
-                    </p>
-                    <p className="thread-status">{person.availability}</p>
-                    <div className="thread-actions">
-                      <Link className="btn btn-solid" href="/#work">
-                        View work
-                      </Link>
-                      <ResumeDownload className="btn btn-ghost">Resume</ResumeDownload>
-                    </div>
-                    <p className="thread-tagline">
-                      One tap, carried <em>end to end</em>.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <h2>
-                      {chapter.title} <em>{chapter.accent}</em>.
-                    </h2>
-                    <p className="thread-intro">{chapter.intro}</p>
-                  </>
-                )}
-              </div>
-              <div className="thread-gap" data-thread-gap aria-hidden="true" />
-              {frames.length ? (
-                <ul className="thread-screens" data-obstacle>
-                  {frames.map((frame) => (
-                    <li key={`${frame.slug}-${frame.shot.src}`} data-obstacle>
-                      <button type="button" className="thread-shot" onClick={() => setLight({ shot: frame.shot, title: frame.projectTitle })}>
-                        <Media src={frame.shot.src} alt={frame.shot.alt} width={frame.shot.width} height={frame.shot.height} sizes="(min-width: 960px) 30vw, 100vw" priority={index === 1} />
-                      </button>
-                      <div className="thread-meta">
-                        <Link href={`/work/${frame.slug}`}>{frame.projectTitle}</Link>
-                        {frame.live ? <LiveLink href={frame.live} domain={liveDomain(frame.liveLabel)} /> : null}
+        <div className="thread-stage" data-obstacle>
+          <div className="thread-track" ref={trackRef}>
+            {beats.map((beat, index) => {
+              const project = beat.slug ? getProject(beat.slug) : undefined;
+              const shot = project?.shots.find((item) => item.src.includes("dashboard")) ?? project?.shots[0];
+              return (
+                <article
+                  className={`thread-beat thread-chapter${index === 0 ? " is-active" : ""}`}
+                  data-chapter={beat.id}
+                  id={beat.anchor}
+                  key={beat.id}
+                >
+                  <BeatMark shape={beat.shape} />
+                  {beat.hero ? (
+                    <div className="thread-copy">
+                      <p className="thread-kicker">
+                        <span>00</span>
+                        <span aria-hidden="true">—</span>
+                        <span>Tap</span>
+                      </p>
+                      <h1>{person.name}</h1>
+                      <p className="thread-role">Full-stack engineer · frontend to backend, AI</p>
+                      <p className="thread-intro">
+                        I build the interface and the system behind it: screens, APIs, and the models that answer.
+                      </p>
+                      <p className="thread-status">{person.availability}</p>
+                      <div className="thread-actions">
+                        <Link className="btn btn-solid" href="/#work">
+                          View work
+                        </Link>
+                        <ResumeDownload className="btn btn-ghost">Resume</ResumeDownload>
                       </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </article>
-          );
-        })}
+                      <p className="thread-tagline">
+                        One tap, carried <em>end to end</em>.
+                      </p>
+                    </div>
+                  ) : beat.close ? (
+                    <div className="thread-copy">
+                      <p className="thread-kicker">
+                        <span>{String(index).padStart(2, "0")}</span>
+                        <span aria-hidden="true">—</span>
+                        <span>Return</span>
+                      </p>
+                      <h2>
+                        The thread ties <em>off</em>.
+                      </h2>
+                      <p className="thread-intro">One line, from the first tap to the signature.</p>
+                      <p className="thread-sign">
+                        <span>{person.name}</span>
+                      </p>
+                    </div>
+                  ) : project && shot ? (
+                    <>
+                      <div className="thread-screens">
+                        <button type="button" className="thread-shot" onClick={() => setLight({ shot, title: project.title })}>
+                          <Media src={shot.src} alt={shot.alt} width={shot.width} height={shot.height} sizes="(min-width: 960px) 36vw, 80vw" priority={index < 2} />
+                        </button>
+                      </div>
+                      <div className="thread-copy">
+                        <p className="thread-kicker">
+                          <span>{String(index).padStart(2, "0")}</span>
+                          <span aria-hidden="true">—</span>
+                          <span>{project.kicker}</span>
+                        </p>
+                        <h2>{project.title}</h2>
+                        <p className="thread-intro">{beat.line ?? sentence(project.summary)}</p>
+                        <p className="thread-meta">
+                          <Link href={`/work/${project.slug}`}>Case study</Link>
+                        </p>
+                      </div>
+                    </>
+                  ) : null}
+                </article>
+              );
+            })}
+          </div>
+        </div>
       </section>
       {light ? (
         <div className="thread-lightbox" role="dialog" aria-modal="true" aria-label={light.title}>

@@ -161,28 +161,19 @@ const threadWave = Array.from({ length: 64 }, (_, index) => {
 }).join(" ");
 
 export const threadOrder = [
-  "hand",
   "phone",
   "headphones",
-  "record",
   "book",
-  "diya",
   "nib",
-  "grid",
   "bubbles",
-  "dish",
   "buzzer",
-  "trophy",
   "shirt",
-  "camera",
   "document",
   "microphone",
   "chart",
   "stopwatch",
-  "skyline",
   "globe",
   "car",
-  "rocket",
   "knot",
 ] as const;
 

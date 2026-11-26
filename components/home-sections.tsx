@@ -211,9 +211,9 @@ export function ProfessionalWork() {
           Professional work · 2024–2026
         </p>
         <h2 id="professional-title" data-reveal>
-          Anonymised studies from a games and media company.
+          Studies from Kwalee.
         </h2>
-        <p data-reveal>No codenames, and no internal detail. Three of the studies, then the rest of the index.</p>
+        <p data-reveal>Work at Kwalee. No internal detail. Three of the studies, then the rest of the index.</p>
       </header>
       <div className="pro-window">
         <div className="pro-track" data-track>

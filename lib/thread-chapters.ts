@@ -48,7 +48,7 @@ const chapters: { id: string; label: string; title: string; accent: string; intr
     label: "Scale",
     title: "Then it",
     accent: "multiplies",
-    intro: "Anonymised studies from a games and media company. Composition, locales, and a faster first view.",
+    intro: "Studies from Kwalee. Composition, locales, and a faster first view.",
     slugs: ["media-composition", "localisation-pipeline", "marketing-site"],
   },
   {

@@ -10,6 +10,7 @@ declare global {
   interface Window {
     __threadSamples?: { x: number; y: number }[];
     __threadShape?: string;
+    __threadMarkScore?: number;
   }
 }
 
@@ -34,7 +35,7 @@ function shown(element: Element) {
 }
 
 function obstacles(): Rect[] {
-  const nodes = document.querySelectorAll("[data-obstacle], header.site-nav");
+  const nodes = document.querySelectorAll("[data-obstacle], header.site-nav, .thread-beat.is-active .thread-shot, .thread-beat.is-active .thread-copy, .thread-beat.is-active .thread-screens");
   return [...nodes].filter(shown).map((element) => {
     const rect = element.getBoundingClientRect();
     const pad = 18;
@@ -180,6 +181,7 @@ export function ThreadField() {
     if (!canvas) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const phone = window.matchMedia("(max-width: 959px)").matches;
+    if (reduce || phone) return;
     const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
     const webgl = !reduce && !phone && !saveData;
 
