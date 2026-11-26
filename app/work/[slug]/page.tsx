@@ -6,7 +6,6 @@ import { DeviceFrame } from "@/components/device-frame";
 import { SutraShowcase } from "@/components/sutra-showcase";
 import { PageShell } from "@/components/page-shell";
 import { TagList } from "@/components/tag";
-import { LiveLink, liveDomain } from "@/components/live-link";
 import { pageMeta } from "@/lib/meta";
 import { getProject, neighbors, projects } from "@/lib/projects";
 
@@ -47,26 +46,24 @@ export default async function CaseStudyPage({ params }: { params: Promise<Params
             </p>
             <h1>{project.title}</h1>
             <p className="lede">{project.summary}</p>
+            {project.live || project.repo ? (
+              <p className="case-links">
+                {project.live ? (
+                  <a href={project.live} target="_blank" rel="noreferrer">
+                    Live site <span aria-hidden="true">↗</span>
+                  </a>
+                ) : null}
+                {project.repo ? (
+                  <a href={project.repo} target="_blank" rel="noreferrer">
+                    Code <span aria-hidden="true">↗</span>
+                  </a>
+                ) : null}
+              </p>
+            ) : null}
           </div>
         </header>
 
         <div className="case-body">
-          {project.repo || project.live ? (
-          <dl className="case-meta">
-            <div>
-              <dt>Links</dt>
-              <dd className="case-links">
-                {project.repo ? (
-                <a href={project.repo} target="_blank" rel="noreferrer">
-                  Repository
-                </a>
-                ) : null}
-                {project.live ? <LiveLink href={project.live} domain={liveDomain(project.liveLabel)} /> : null}
-              </dd>
-            </div>
-          </dl>
-          ) : null}
-
           <section aria-labelledby="problem-title">
             <h2 id="problem-title">Problem</h2>
             <p>{project.problem}</p>

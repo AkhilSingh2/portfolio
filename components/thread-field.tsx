@@ -3,9 +3,6 @@
 import { useEffect, useRef } from "react";
 import { threadDrawing, unwindDrawing, type Point, type ThreadDot } from "@/lib/thread-shapes";
 
-type Rect = { left: number; top: number; right: number; bottom: number; width: number; height: number };
-type Slot = { x: number; y: number; w: number; h: number };
-
 declare global {
   interface Window {
     __threadSamples?: { x: number; y: number }[];
@@ -45,85 +42,12 @@ function storyMotion(): { shift: number } | null {
   return { shift: Math.min(0, rect.top) };
 }
 
-function shown(element: Element) {
-  const chapter = element.closest(".thread-chapter");
-  if (chapter) {
-    const style = getComputedStyle(chapter);
-    if (style.visibility === "hidden" || Number(style.opacity) < 0.35) return false;
-  }
-  const rect = element.getBoundingClientRect();
-  return rect.width > 2 && rect.height > 2 && rect.bottom > 0 && rect.top < window.innerHeight;
-}
-
-function obstacles(): Rect[] {
-  const nodes = document.querySelectorAll("[data-obstacle], header.site-nav, .thread-beat.is-active .thread-shot, .thread-beat.is-active .thread-copy, .thread-beat.is-active .thread-screens");
-  return [...nodes].filter((element) => !element.closest(".ground") && shown(element)).map((element) => {
-    const rect = element.getBoundingClientRect();
-    const pad = 18;
-    return {
-      left: rect.left - pad,
-      top: rect.top - pad,
-      right: rect.right + pad,
-      bottom: rect.bottom + pad,
-      width: rect.width + pad * 2,
-      height: rect.height + pad * 2,
-    };
-  });
-}
-
-function hits(points: { x: number; y: number }[], blocks: Rect[]) {
-  return points.some((point) =>
-    blocks.some((block) => point.x >= block.left && point.x <= block.right && point.y >= block.top && point.y <= block.bottom),
-  );
-}
-
-function bands(blocks: Rect[]): Slot[] {
-  const margin = 12;
-  const top = 88;
-  const bottom = window.innerHeight - margin;
-  const wide = blocks.filter((block) => block.left < window.innerWidth * 0.75 && block.right > window.innerWidth * 0.25);
-  const intervals = wide
-    .map((block) => [Math.max(top, block.top), Math.min(bottom, block.bottom)] as [number, number])
-    .filter(([start, end]) => end > start)
-    .sort((a, b) => a[0] - b[0]);
-  const slots: Slot[] = [];
-  let cursor = top;
-  for (const [start, end] of intervals) {
-    if (start - cursor > 56) slots.push({ x: margin, y: cursor + 4, w: window.innerWidth - margin * 2, h: start - cursor - 8 });
-    cursor = Math.max(cursor, end);
-  }
-  if (bottom - cursor > 56) slots.push({ x: margin, y: cursor + 4, w: window.innerWidth - margin * 2, h: bottom - cursor - 8 });
-  return slots;
-}
-
 function anchorY() {
   const copy = document.querySelector(".thread-chapter.is-active .thread-copy");
   if (!copy) return null;
   const rect = copy.getBoundingClientRect();
   if (rect.height > 20 && rect.bottom > 48 && rect.top < window.innerHeight - 24) return rect.top + rect.height / 2;
   return null;
-}
-
-function slotsFor(blocks: Rect[]): Slot[] {
-  const slots: Slot[] = [];
-  const gap = document.querySelector(".thread-chapter.is-active .thread-gap");
-  if (gap && shown(gap)) {
-    const rect = gap.getBoundingClientRect();
-    if (rect.width > 80 && rect.height > 72) slots.push({ x: rect.left + 10, y: rect.top + 8, w: rect.width - 20, h: rect.height - 16 });
-  }
-  const margin = 20;
-  const content = blocks.filter((block) => block.right - block.left < window.innerWidth * 0.85);
-  let contentRight = margin;
-  for (const block of content) contentRight = Math.max(contentRight, block.right);
-  const right: Slot = {
-    x: contentRight + 16,
-    y: 28,
-    w: window.innerWidth - contentRight - margin - 16,
-    h: window.innerHeight - 56,
-  };
-  if (right.w > 140 && right.h > 160) slots.push(right);
-  slots.push(...bands(blocks));
-  return slots.sort((a, b) => b.w * b.h - a.w * a.h);
 }
 
 function bounds(strokes: Point[][]) {
@@ -142,26 +66,16 @@ function bounds(strokes: Point[][]) {
   return { minX, maxX, minY, maxY, w: Math.max(0.001, maxX - minX), h: Math.max(0.001, maxY - minY) };
 }
 
-function place(drawing: Point[][], slot: Slot, blocks: Rect[], focusY: number) {
+/** A large drawing centred behind the story. It may pass under the shot and the type. */
+function placeLarge(drawing: Point[][]) {
   const box = bounds(drawing);
-  const phone = window.innerWidth < 960;
-  const target = window.innerHeight * (phone ? 0.3 : 0.5);
-  let scale = Math.min(target / box.h, (slot.w * 0.94) / box.w, (slot.h * 0.92) / box.h);
-  const midX = (box.minX + box.maxX) / 2;
-  const midY = (box.minY + box.maxY) / 2;
-  const slotCx = slot.x + slot.w / 2;
-  for (let attempt = 0; attempt < 10; attempt += 1) {
-    let originY = focusY - midY * scale;
-    const top = originY + box.minY * scale;
-    const bottom = originY + box.maxY * scale;
-    if (top < slot.y) originY += slot.y - top;
-    if (bottom > slot.y + slot.h) originY -= bottom - (slot.y + slot.h);
-    const originX = slotCx - midX * scale;
-    const strokes = drawing.map((stroke) => stroke.map((point) => ({ x: originX + point.x * scale, y: originY + point.y * scale })));
-    if (!hits(strokes.flat(), blocks)) return strokes;
-    scale *= 0.84;
-  }
-  return null;
+  const heightTarget = window.innerHeight * 0.68;
+  let scale = heightTarget / box.h;
+  const widest = window.innerWidth * 0.96;
+  if (box.w * scale > widest && (box.h * (widest / box.w)) / window.innerHeight >= 0.6) scale = widest / box.w;
+  const originX = window.innerWidth / 2 - ((box.minX + box.maxX) / 2) * scale;
+  const originY = window.innerHeight / 2 - ((box.minY + box.maxY) / 2) * scale;
+  return drawing.map((stroke) => stroke.map((point) => ({ x: originX + point.x * scale, y: originY + point.y * scale })));
 }
 
 function paintDot(ctx: CanvasRenderingContext2D, dot: ThreadDot) {
@@ -196,7 +110,7 @@ function paint2d(ctx: CanvasRenderingContext2D, strokes: { x: number; y: number 
     let length = 0;
     for (let index = 1; index < points.length; index += 1) length += Math.hypot(points[index].x - points[index - 1].x, points[index].y - points[index - 1].y);
     if (length < 8) continue;
-    ctx.strokeStyle = "rgba(212, 196, 168, 0.28)";
+    ctx.strokeStyle = "rgba(212, 196, 168, 0.18)";
     ctx.lineWidth = phone ? 5 : 8;
     ctx.shadowColor = "rgba(212, 196, 168, 0.8)";
     ctx.shadowBlur = 14;
@@ -204,7 +118,7 @@ function paint2d(ctx: CanvasRenderingContext2D, strokes: { x: number; y: number 
     points.forEach((point, index) => (index === 0 ? ctx.moveTo(point.x, point.y) : ctx.lineTo(point.x, point.y)));
     ctx.stroke();
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = "rgba(243, 236, 223, 0.95)";
+    ctx.strokeStyle = "rgba(243, 236, 223, 0.62)";
     ctx.lineWidth = phone ? 1.15 : 1.45;
     ctx.stroke();
   }
@@ -249,26 +163,19 @@ export function ThreadField() {
         return [];
       }
       const drawing = threadDrawing(readProgress(), { reduced: reduce });
-      const blocks = obstacles();
-      for (const slot of slotsFor(blocks)) {
-        const placed = place(drawing.strokes, slot, blocks, focus);
-        if (!placed) continue;
-        const unwound = unwindDrawing(placed, readExit());
-        if (!unwound) {
-          window.__threadSamples = [];
-          window.__threadShape = "dot";
-          return [];
-        }
-        frameDot = unwound.dot;
-        window.__threadSamples = unwound.dot
-          ? [...unwound.strokes.flat(), { x: unwound.dot.x, y: unwound.dot.y }]
-          : unwound.strokes.flat();
-        window.__threadShape = unwound.dot ? "dot" : drawing.name;
-        return unwound.strokes;
+      const placed = placeLarge(drawing.strokes);
+      const unwound = unwindDrawing(placed, readExit());
+      if (!unwound) {
+        window.__threadSamples = [];
+        window.__threadShape = "dot";
+        return [];
       }
-      window.__threadSamples = [];
-      window.__threadShape = drawing.name;
-      return [];
+      frameDot = unwound.dot;
+      window.__threadSamples = unwound.dot
+        ? [...unwound.strokes.flat(), { x: unwound.dot.x, y: unwound.dot.y }]
+        : unwound.strokes.flat();
+      window.__threadShape = unwound.dot ? "dot" : drawing.name;
+      return unwound.strokes;
     };
 
     const resize2d = (ctx: CanvasRenderingContext2D) => {
@@ -392,8 +299,8 @@ export function ThreadField() {
         if (!document.hidden) {
           const strokes = layout();
           const ink = frameDot?.a ?? 1;
-          glowMaterial.opacity = 0.35 * ink;
-          coreMaterial.opacity = 0.96 * ink;
+          glowMaterial.opacity = 0.2 * ink;
+          coreMaterial.opacity = 0.62 * ink;
           glow.geometry.dispose();
           core.geometry.dispose();
           glow.geometry = ribbon(strokes, 6);

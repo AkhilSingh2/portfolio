@@ -1199,6 +1199,8 @@ export const projects: Project[] = [
       "Bundle reduced to the route that needs it.",
     ],
     stack: ["Next.js", "React", "TypeScript", "Strapi"],
+    live: "https://www.kwalee.com/",
+    liveLabel: "Live site",
     reel: false,
     group: "professional",
     shots: plate("marketing-site", "The pages that can stay static"),
