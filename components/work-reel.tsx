@@ -6,7 +6,6 @@ import { Media } from "@/components/media";
 import { useEffect, useRef } from "react";
 import type { Project } from "@/lib/projects";
 
-const closedMask = "inset(16% 14% 16% 14%)";
 const openMask = "inset(0% 0% 0% 0%)";
 
 export function WorkReel({ projects }: { projects: Project[] }) {
@@ -53,43 +52,16 @@ export function WorkReel({ projects }: { projects: Project[] }) {
 
         if (!film) {
           slides.forEach((slide) => {
-            const mask = slide.querySelector("[data-mask]");
-            const image = slide.querySelector("img");
             const type = slide.querySelector("[data-type]");
-            if (mask) {
-              gsap.fromTo(
-                mask,
-                { clipPath: "inset(16% 8% 16% 8%)" },
-                {
-                  clipPath: openMask,
-                  ease: "none",
-                  scrollTrigger: { trigger: slide, start: "top 85%", end: "top 35%", scrub: 0.45 },
-                },
-              );
-            }
-            if (image) {
-              gsap.fromTo(
-                image,
-                { scale: 1.12 },
-                {
-                  scale: 1,
-                  ease: "none",
-                  scrollTrigger: { trigger: slide, start: "top 90%", end: "top 40%", scrub: true },
-                },
-              );
-            }
+            gsap.set(slide.querySelector("[data-mask]"), { clipPath: openMask });
+            gsap.set(slide.querySelector("img"), { scale: 1 });
             if (type) {
-              gsap.fromTo(
-                type,
-                { opacity: 0, y: 36, scale: 1.08 },
-                {
-                  opacity: 1,
-                  y: 0,
-                  scale: 1,
-                  ease: "none",
-                  scrollTrigger: { trigger: slide, start: "top 78%", end: "top 42%", scrub: 0.45 },
-                },
-              );
+              gsap.from(type, {
+                y: 16,
+                duration: 0.55,
+                ease: "power3.out",
+                scrollTrigger: { trigger: slide, start: "top 88%", toggleActions: "play none none none" },
+              });
             }
           });
           return;
@@ -133,27 +105,9 @@ export function WorkReel({ projects }: { projects: Project[] }) {
             timeline.fromTo(slide, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.22 }, start);
             timeline.to(slides[index - 1], { autoAlpha: 0, duration: 0.22 }, start);
           }
-          if (mask) {
-            timeline.fromTo(mask, { clipPath: closedMask }, { clipPath: openMask, duration: 0.46 }, start);
-          }
-          if (image) {
-            timeline.fromTo(image, { scale: 1.28 }, { scale: 1, duration: 0.55 }, start);
-          }
-          if (type) {
-            if (index === 0) {
-              gsap.set(type, { opacity: 1, y: 0, scale: 1 });
-            } else {
-              timeline.fromTo(
-                type,
-                { opacity: 0, y: 54, scale: 1.18 },
-                { opacity: 1, y: 0, scale: 1, duration: 0.26 },
-                start + 0.06,
-              );
-            }
-            if (index < slides.length - 1) {
-              timeline.to(type, { opacity: 0, y: -42, scale: 0.94, duration: 0.18 }, start + 0.8);
-            }
-          }
+          if (type) gsap.set(type, { opacity: 1, y: 0, scale: 1 });
+          if (mask) gsap.set(mask, { clipPath: openMask });
+          if (image) gsap.set(image, { scale: 1 });
         });
       }, root);
 

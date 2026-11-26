@@ -1,9 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750">
-  <rect width="1200" height="750" fill="#100e0c"/>
-  <rect x="48" y="48" width="1104" height="654" fill="none" stroke="#d4c4a8" stroke-opacity="0.45"/>
-  <path d="M80 180 H520 M80 260 H420 M80 340 H360" stroke="#d4c4a8" stroke-opacity="0.55" stroke-width="2"/>
-  <circle cx="980" cy="180" r="72" fill="none" stroke="#d4c4a8" stroke-width="2"/>
-  <text x="980" y="190" text-anchor="middle" fill="#d4c4a8" font-family="Georgia, serif" font-size="42">MED</text>
-  <text x="80" y="470" fill="#c9bfb2" font-family="Inter, sans-serif" font-size="22" letter-spacing="4">JOB</text>
-  <text x="80" y="560" fill="#f3ecdf" font-family="Georgia, serif" font-size="54">FFmpeg · Helm</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000">
+  <rect width="1600" height="1000" fill="#100e0c"/>
+  <rect x="72" y="72" width="1456" height="856" rx="28" fill="#171512"/>
+  <text x="120" y="150" fill="#e6d7bc" font-family="Inter, sans-serif" font-size="22" letter-spacing="5">COMPOSITION</text>
+  <text x="120" y="214" fill="#f3ecdf" font-family="Georgia, serif" font-size="54">One FFmpeg path</text>
+  <g>
+    <rect x="120" y="300" width="400" height="430" rx="22" fill="#221e1a"/>
+    <text x="152" y="352" fill="#d4c4a8" font-family="Inter, sans-serif" font-size="20" letter-spacing="3">SOURCE</text>
+    <rect x="152" y="384" width="150" height="96" rx="10" fill="#3a3128"/>
+    <rect x="318" y="384" width="150" height="96" rx="10" fill="#2c2621"/>
+    <rect x="152" y="498" width="316" height="64" rx="12" fill="#2a241f"/>
+    <text x="176" y="538" fill="#f3ecdf" font-family="Inter, sans-serif" font-size="22">Video · GIF · plates</text>
+    <rect x="152" y="582" width="316" height="64" rx="12" fill="#2a241f"/>
+    <text x="176" y="622" fill="#c9bfb2" font-family="Inter, sans-serif" font-size="22">Audio override</text>
+  </g>
+  <path d="M540 515 H620" stroke="#d4c4a8" stroke-width="3"/>
+  <path d="M608 504 l16 11 -16 11" fill="#d4c4a8"/>
+  <g>
+    <rect x="640" y="300" width="360" height="430" rx="22" fill="#d4c4a8"/>
+    <text x="672" y="360" fill="#100e0c" font-family="Inter, sans-serif" font-size="20" letter-spacing="3">COMPOSE</text>
+    <text x="672" y="430" fill="#100e0c" font-family="Georgia, serif" font-size="48">FFmpeg</text>
+    <text x="672" y="490" fill="#3a3128" font-family="Inter, sans-serif" font-size="22">Sample rate</text>
+    <text x="672" y="530" fill="#3a3128" font-family="Inter, sans-serif" font-size="22">Track alignment</text>
+    <text x="672" y="570" fill="#3a3128" font-family="Inter, sans-serif" font-size="22">Chroma key</text>
+    <rect x="672" y="620" width="260" height="58" rx="29" fill="#100e0c"/>
+    <text x="802" y="657" text-anchor="middle" fill="#f3ecdf" font-family="Inter, sans-serif" font-size="20">Helm · KEDA</text>
+  </g>
+  <path d="M1020 515 H1100" stroke="#d4c4a8" stroke-width="3"/>
+  <path d="M1088 504 l16 11 -16 11" fill="#d4c4a8"/>
+  <g>
+    <rect x="1120" y="300" width="360" height="430" rx="22" fill="#221e1a"/>
+    <text x="1152" y="352" fill="#d4c4a8" font-family="Inter, sans-serif" font-size="20" letter-spacing="3">OUTPUT</text>
+    <rect x="1152" y="390" width="296" height="168" rx="14" fill="#0c0b0a"/>
+    <polygon points="1276,446 1318,472 1276,498" fill="#f3ecdf"/>
+    <text x="1152" y="610" fill="#f3ecdf" font-family="Georgia, serif" font-size="42">VP9</text>
+    <text x="1152" y="662" fill="#c9bfb2" font-family="Inter, sans-serif" font-size="22">Up to 20,000 tasks a day</text>
+  </g>
 </svg>

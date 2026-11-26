@@ -75,9 +75,9 @@ export const projects: Project[] = [
     shots: [
       {
         src: "/work/reel/kinetic.webp",
-        alt: "A tight view of the Lyra headphone, the milled cups and the arc.",
-        width: 1400,
-        height: 988,
+        alt: "Lyra hero. The whole headphone above the line The room disappears.",
+        width: 1600,
+        height: 1000,
         caption: "The headphone, held in the frame.",
       },
       {
@@ -141,7 +141,7 @@ export const projects: Project[] = [
         src: "/work/reel/docmind.webp",
         alt: "DocMind answer with a retrieved passage and numbered citations.",
         width: 1600,
-        height: 1189,
+        height: 1000,
         caption: "The answer, with the citation still attached.",
       },
       {
@@ -189,9 +189,9 @@ export const projects: Project[] = [
     shots: [
       {
         src: "/work/reel/launchpad.webp",
-        alt: "LaunchPad card for the Northstar public beta, with the checklist and the plan.",
-        width: 968,
-        height: 632,
+        alt: "LaunchPad hero. Ship the launch beside the Northstar public beta card.",
+        width: 1600,
+        height: 1000,
         caption: "The launch card.",
       },
       {
@@ -253,9 +253,9 @@ export const projects: Project[] = [
     shots: [
       {
         src: "/work/reel/tandem.webp",
-        alt: "Tandem board for a spring search, with cards in Wishlist and Interview.",
-        width: 912,
-        height: 366,
+        alt: "Tandem demo with Akhil's board and Maya's board, each with its own cursor.",
+        width: 1600,
+        height: 1000,
         caption: "The shared board.",
       },
       {
@@ -310,9 +310,9 @@ export const projects: Project[] = [
     shots: [
       {
         src: "/work/reel/pulse.webp",
-        alt: "Pulse event-volume chart, two lines across a month of synthetic traffic.",
+        alt: "Pulse overview with the event volume chart and the top events list.",
         width: 1600,
-        height: 472,
+        height: 1000,
         caption: "The chart, not the whole dashboard.",
       },
       {
@@ -478,9 +478,9 @@ export const projects: Project[] = [
     shots: [
       {
         src: "/work/reel/chalisa.webp",
-        alt: "Hanuman Chalisa opening dohas in Devanagari with the English line beneath.",
-        width: 1020,
-        height: 482,
+        alt: "Hanuman Chalisa reader with language controls, the opening verses, and the recitation player.",
+        width: 1600,
+        height: 1000,
         caption: "The verse, in its own card.",
       },
       {
