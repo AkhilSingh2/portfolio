@@ -6,6 +6,7 @@ import { Media } from "@/components/media";
 import { ResumeDownload } from "@/components/resume-download";
 import { ThreadField } from "@/components/thread-field";
 import { threadDrawings } from "@/lib/thread-art";
+import { unwindDrawing } from "@/lib/thread-shapes";
 import { getProject, type Shot } from "@/lib/projects";
 import { person } from "@/lib/site";
 
@@ -67,8 +68,21 @@ function BeatMark({ shape }: { shape: string }) {
       ctx.strokeStyle = "rgba(243, 236, 223, 0.92)";
       ctx.lineWidth = 1.2;
       const scale = Math.min(width, height) * 0.42;
+      let drawn = strokes;
+      let dot: { x: number; y: number; r: number; a: number } | null = null;
+      if (shape === "knot") {
+        const heading = document.querySelector(".ground h2");
+        const headingTop = heading?.getBoundingClientRect().top ?? window.innerHeight * 2;
+        const start = window.innerHeight * 1.02;
+        const done = window.innerHeight * 0.7;
+        const exit = headingTop >= start ? 0 : Math.min(1, (start - headingTop) / (start - done));
+        const unwound = unwindDrawing(strokes, exit);
+        if (!unwound) return;
+        drawn = unwound.strokes;
+        dot = unwound.dot;
+      }
       const samples: { x: number; y: number }[] = [];
-      for (const stroke of strokes) {
+      for (const stroke of drawn) {
         let length = 0;
         for (let index = 1; index < stroke.length; index += 1) {
           length += Math.hypot(stroke[index].x - stroke[index - 1].x, stroke[index].y - stroke[index - 1].y);
@@ -83,6 +97,17 @@ function BeatMark({ shape }: { shape: string }) {
           if (index % 8 === 0) samples.push({ x, y });
         });
         ctx.stroke();
+      }
+      if (dot && dot.a > 0.02) {
+        ctx.save();
+        ctx.globalAlpha = dot.a;
+        ctx.fillStyle = "rgba(212, 196, 168, 0.9)";
+        ctx.shadowColor = "rgba(212, 196, 168, 0.95)";
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.arc(width / 2 + dot.x * scale, height / 2 + dot.y * scale, Math.min(6.5, Math.max(1.6, dot.r * scale)), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
       }
       const rect = canvas.getBoundingClientRect();
       if (rect.width < 20 || rect.bottom < 0 || rect.top > window.innerHeight) return;
@@ -160,13 +185,20 @@ export function ThreadHome() {
       const { gsap } = await import("gsap");
       if (dead) return;
       gsap.registerPlugin(ScrollTrigger);
+      const exitShare = 0.7 / (beats.length - 1 + 0.7);
       const trigger = ScrollTrigger.create({
         trigger: root,
         start: "top top",
-        end: () => `+=${window.innerHeight * (beats.length - 1)}`,
+        end: () => `+=${window.innerHeight * (beats.length - 1 + 0.7)}`,
         pin: true,
         invalidateOnRefresh: true,
-        onUpdate: (self) => place(self.progress),
+        onUpdate: (self) => {
+          const storySpan = 1 - exitShare;
+          const story = Math.min(1, self.progress / storySpan);
+          const exit = Math.max(0, (self.progress - storySpan) / exitShare);
+          place(story);
+          document.documentElement.dataset.threadExit = exit.toFixed(4);
+        },
       });
       revert = () => trigger.kill();
       ScrollTrigger.refresh();
@@ -178,6 +210,7 @@ export function ThreadHome() {
       revert?.();
       document.documentElement.classList.remove("enhance");
       delete document.documentElement.dataset.threadProgress;
+      delete document.documentElement.dataset.threadExit;
     };
   }, []);
 

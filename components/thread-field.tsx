@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { threadDrawing, type Point } from "@/lib/thread-shapes";
+import { threadDrawing, unwindDrawing, type Point, type ThreadDot } from "@/lib/thread-shapes";
 
 type Rect = { left: number; top: number; right: number; bottom: number; width: number; height: number };
 type Slot = { x: number; y: number; w: number; h: number };
@@ -15,6 +15,8 @@ declare global {
 }
 
 function readProgress() {
+  const published = Number.parseFloat(document.documentElement.dataset.threadProgress || "");
+  if (Number.isFinite(published)) return Math.min(1, Math.max(0, published));
   const home = document.querySelector(".thread-home");
   if (!(home instanceof HTMLElement)) return 0;
   const spacer = home.closest(".pin-spacer");
@@ -22,6 +24,11 @@ function readProgress() {
   const top = host.getBoundingClientRect().top + window.scrollY;
   const span = Math.max(1, host.offsetHeight - window.innerHeight);
   return Math.min(1, Math.max(0, (window.scrollY - top) / span));
+}
+
+function readExit() {
+  const value = Number.parseFloat(document.documentElement.dataset.threadExit || "0");
+  return Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0;
 }
 
 /** While the story is pinned the knot stays put. Once it unpins, the drawing leaves with that block and does not draw over Now. */
@@ -157,7 +164,25 @@ function place(drawing: Point[][], slot: Slot, blocks: Rect[], focusY: number) {
   return null;
 }
 
-function paint2d(ctx: CanvasRenderingContext2D, strokes: { x: number; y: number }[][]) {
+function paintDot(ctx: CanvasRenderingContext2D, dot: ThreadDot) {
+  if (dot.a <= 0.02) return;
+  ctx.save();
+  ctx.globalAlpha = dot.a;
+  ctx.fillStyle = "rgba(212, 196, 168, 0.45)";
+  ctx.shadowColor = "rgba(212, 196, 168, 0.95)";
+  ctx.shadowBlur = 18;
+  ctx.beginPath();
+  ctx.arc(dot.x, dot.y, dot.r * 2.1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "rgba(243, 236, 223, 0.98)";
+  ctx.beginPath();
+  ctx.arc(dot.x, dot.y, dot.r * 0.55, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function paint2d(ctx: CanvasRenderingContext2D, strokes: { x: number; y: number }[][], dot: ThreadDot | null) {
   const width = window.innerWidth;
   const height = window.innerHeight;
   ctx.clearRect(0, 0, width, height);
@@ -183,6 +208,7 @@ function paint2d(ctx: CanvasRenderingContext2D, strokes: { x: number; y: number 
     ctx.lineWidth = phone ? 1.15 : 1.45;
     ctx.stroke();
   }
+  if (dot) paintDot(ctx, dot);
   ctx.restore();
 }
 
@@ -208,7 +234,10 @@ export function ThreadField() {
     });
     if (host) watch.observe(host);
 
+    let frameDot: ThreadDot | null = null;
+
     const layout = () => {
+      frameDot = null;
       const motion = storyMotion();
       if (!running || !motion) {
         window.__threadSamples = [];
@@ -222,12 +251,20 @@ export function ThreadField() {
       const drawing = threadDrawing(readProgress(), { reduced: reduce });
       const blocks = obstacles();
       for (const slot of slotsFor(blocks)) {
-        const strokes = place(drawing.strokes, slot, blocks, focus);
-        if (strokes) {
-          window.__threadSamples = strokes.flat();
-          window.__threadShape = drawing.name;
-          return strokes;
+        const placed = place(drawing.strokes, slot, blocks, focus);
+        if (!placed) continue;
+        const unwound = unwindDrawing(placed, readExit());
+        if (!unwound) {
+          window.__threadSamples = [];
+          window.__threadShape = "dot";
+          return [];
         }
+        frameDot = unwound.dot;
+        window.__threadSamples = unwound.dot
+          ? [...unwound.strokes.flat(), { x: unwound.dot.x, y: unwound.dot.y }]
+          : unwound.strokes.flat();
+        window.__threadShape = unwound.dot ? "dot" : drawing.name;
+        return unwound.strokes;
       }
       window.__threadSamples = [];
       window.__threadShape = drawing.name;
@@ -250,7 +287,8 @@ export function ThreadField() {
       if (!ctx) return;
       const draw = () => {
         resize2d(ctx);
-        paint2d(ctx, layout());
+        const strokes = layout();
+        paint2d(ctx, strokes, frameDot);
       };
       if (reduce) {
         draw();
@@ -321,7 +359,28 @@ export function ThreadField() {
       const coreMaterial = new THREE.MeshBasicMaterial({ color: 0xf3ecdf, transparent: true, opacity: 0.96, depthWrite: false, side: THREE.DoubleSide });
       const glow = new THREE.Mesh(new THREE.BufferGeometry(), glowMaterial);
       const core = new THREE.Mesh(new THREE.BufferGeometry(), coreMaterial);
-      scene.add(glow, core);
+      const dotGlowMaterial = new THREE.MeshBasicMaterial({ color: 0xd4c4a8, transparent: true, opacity: 0.5, depthWrite: false, side: THREE.DoubleSide });
+      const dotCoreMaterial = new THREE.MeshBasicMaterial({ color: 0xf3ecdf, transparent: true, opacity: 1, depthWrite: false, side: THREE.DoubleSide });
+      const dotGlow = new THREE.Mesh(new THREE.BufferGeometry(), dotGlowMaterial);
+      const dotCore = new THREE.Mesh(new THREE.BufferGeometry(), dotCoreMaterial);
+      scene.add(glow, core, dotGlow, dotCore);
+      const disc = (x: number, y: number, radius: number) => {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        const toNdc = (px: number, py: number) => [(px / width) * 2 - 1, 1 - (py / height) * 2, 0];
+        const positions = [...toNdc(x, y)];
+        const indices: number[] = [];
+        const steps = 28;
+        for (let index = 0; index <= steps; index += 1) {
+          const angle = (index / steps) * Math.PI * 2;
+          positions.push(...toNdc(x + Math.cos(angle) * radius, y + Math.sin(angle) * radius));
+        }
+        for (let index = 1; index <= steps; index += 1) indices.push(0, index, index + 1);
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+        geometry.setIndex(indices);
+        return geometry;
+      };
       const resize = () => {
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
         renderer.setSize(window.innerWidth, window.innerHeight, false);
@@ -332,10 +391,26 @@ export function ThreadField() {
         if (dead) return;
         if (!document.hidden) {
           const strokes = layout();
+          const ink = frameDot?.a ?? 1;
+          glowMaterial.opacity = 0.35 * ink;
+          coreMaterial.opacity = 0.96 * ink;
           glow.geometry.dispose();
           core.geometry.dispose();
           glow.geometry = ribbon(strokes, 6);
           core.geometry = ribbon(strokes, 1.2);
+          if (frameDot && frameDot.a > 0.02) {
+            dotGlow.geometry.dispose();
+            dotCore.geometry.dispose();
+            dotGlow.geometry = disc(frameDot.x, frameDot.y, frameDot.r * 2.6);
+            dotCore.geometry = disc(frameDot.x, frameDot.y, Math.max(2.4, frameDot.r * 0.7));
+            dotGlowMaterial.opacity = 0.55 * frameDot.a;
+            dotCoreMaterial.opacity = frameDot.a;
+            dotGlow.visible = true;
+            dotCore.visible = true;
+          } else {
+            dotGlow.visible = false;
+            dotCore.visible = false;
+          }
           renderer.render(scene, camera);
         }
         frame = window.requestAnimationFrame(tick);
@@ -348,6 +423,10 @@ export function ThreadField() {
         core.geometry.dispose();
         glowMaterial.dispose();
         coreMaterial.dispose();
+        dotGlow.geometry.dispose();
+        dotCore.geometry.dispose();
+        dotGlowMaterial.dispose();
+        dotCoreMaterial.dispose();
         renderer.dispose();
       };
     };
