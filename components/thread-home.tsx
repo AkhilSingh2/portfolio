@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { LiveLink, liveDomain } from "@/components/live-link";
 import { Media } from "@/components/media";
 import { ResumeDownload } from "@/components/resume-download";
-import { ThreadMotif } from "@/components/thread-field";
+import { ThreadField } from "@/components/thread-field";
 import { threadChapters } from "@/lib/thread-chapters";
 import type { Shot } from "@/lib/projects";
 import { person } from "@/lib/site";
@@ -64,7 +64,9 @@ export function ThreadHome() {
     const publish = (progress: number, activeIndex?: number) => {
       const clamped = Math.min(1, Math.max(0, progress));
       document.documentElement.dataset.threadProgress = clamped.toFixed(4);
-      const index = activeIndex ?? Math.min(chaptersEls.length - 1, Math.round(clamped * (chaptersEls.length - 1)));
+      const scaled = clamped * Math.max(1, chaptersEls.length - 1);
+      const index = activeIndex ?? Math.min(chaptersEls.length - 1, Math.round(scaled));
+      document.documentElement.dataset.threadLocal = (scaled - Math.floor(scaled)).toFixed(4);
       chaptersEls.forEach((chapter, chapterIndex) => chapter.classList.toggle("is-active", chapterIndex === index));
     };
 
@@ -102,7 +104,12 @@ export function ThreadHome() {
             scrub: 0.65,
             anticipatePin: 1,
             invalidateOnRefresh: true,
-            onUpdate: (self) => publish(self.progress, Math.min(chaptersEls.length - 1, Math.floor(self.progress * timeline.duration() + 0.04))),
+            onUpdate: (self) => {
+              const time = self.progress * timeline.duration();
+              const index = Math.min(chaptersEls.length - 1, Math.floor(time + 0.04));
+              document.documentElement.dataset.threadLocal = (time - Math.floor(time)).toFixed(4);
+              publish(self.progress, index);
+            },
           },
         });
         chaptersEls.forEach((chapter, index) => {
@@ -146,10 +153,10 @@ export function ThreadHome() {
 
   return (
       <div className="thread-shell">
+      <ThreadField />
       <section className="thread-home" id="thread" ref={rootRef} aria-label="The thread">
         {chapters.map((chapter, index) => {
           const frames = framesFor(chapter);
-          const motif = chapter.id as "tap" | "surface" | "signal" | "engine" | "scale" | "return";
           return (
             <article
               className={`thread-chapter${index === 0 ? " is-active" : ""}`}
@@ -157,7 +164,7 @@ export function ThreadHome() {
               id={chapter.id === "surface" ? "work" : chapter.id === "scale" ? "professional" : undefined}
               key={chapter.id}
             >
-              <div className="thread-copy">
+              <div className="thread-copy" data-obstacle>
                 <p className="thread-kicker">
                   <span>{String(index).padStart(2, "0")}</span>
                   <span aria-hidden="true">—</span>
@@ -190,11 +197,11 @@ export function ThreadHome() {
                   </>
                 )}
               </div>
-              <ThreadMotif motif={motif} />
+              <div className="thread-gap" data-thread-gap aria-hidden="true" />
               {frames.length ? (
-                <ul className="thread-screens">
+                <ul className="thread-screens" data-obstacle>
                   {frames.map((frame) => (
-                    <li key={`${frame.slug}-${frame.shot.src}`}>
+                    <li key={`${frame.slug}-${frame.shot.src}`} data-obstacle>
                       <button type="button" className="thread-shot" onClick={() => setLight({ shot: frame.shot, title: frame.projectTitle })}>
                         <Media src={frame.shot.src} alt={frame.shot.alt} width={frame.shot.width} height={frame.shot.height} sizes="(min-width: 960px) 30vw, 100vw" priority={index === 1} />
                       </button>

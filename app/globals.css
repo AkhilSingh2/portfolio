@@ -5287,9 +5287,22 @@ html.footer-reveal .site-footer {
   position: relative;
 }
 
+.thread-field {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
 .thread-home {
   position: relative;
   z-index: 2;
+}
+
+.thread-gap {
+  display: none;
 }
 
 .thread-chapter {
@@ -5300,31 +5313,6 @@ html.footer-reveal .site-footer {
   min-height: 100svh;
   padding: calc(var(--header-h) + 0.7rem) var(--pad) 1.4rem;
   color: var(--bone-50);
-}
-
-.thread-art {
-  position: relative;
-  z-index: 0;
-  height: 13.5rem;
-  overflow: hidden;
-  border-radius: 18px;
-  background:
-    radial-gradient(ellipse at 50% 42%, rgba(212, 196, 168, 0.2), transparent 64%),
-    #171512;
-  border: 1px solid rgba(246, 241, 232, 0.12);
-}
-
-.thread-art canvas,
-.thread-art .thread-static {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.thread-static {
-  display: none;
 }
 
 .thread-copy {
@@ -5555,45 +5543,20 @@ html.footer-reveal .site-footer {
     font-size: clamp(2.2rem, 10vw, 3.1rem);
   }
 
-  .thread-art {
-    order: -1;
-  }
-
-  .thread-chapter[data-chapter="tap"] .thread-art {
-    height: 15rem;
+  .thread-gap {
+    display: block;
+    height: 9.5rem;
   }
 }
 
 @media (min-width: 960px) {
-  .thread-chapter {
-    display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(240px, 0.78fr);
-    column-gap: 1.6rem;
-    row-gap: 0.85rem;
-    align-content: safe center;
-  }
-
-  .thread-copy {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .thread-art {
-    grid-column: 2;
-    grid-row: 1 / span 2;
-    height: auto;
-    min-height: 18rem;
-    align-self: stretch;
-  }
-
-  .thread-chapter[data-chapter="tap"] .thread-art {
-    grid-row: 1;
-    min-height: 26rem;
-  }
-
+  .thread-copy,
   .thread-screens {
-    grid-column: 1;
-    grid-row: 2;
+    max-width: min(46rem, 58%);
+  }
+
+  .thread-chapter {
+    align-content: safe center;
   }
 
   .thread-shot {
@@ -5618,14 +5581,6 @@ html.footer-reveal .site-footer {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .thread-art canvas {
-    display: none;
-  }
-
-  .thread-static {
-    display: block;
-  }
-
   html.enhance .thread-chapter {
     position: relative;
     opacity: 1;
