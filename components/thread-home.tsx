@@ -65,9 +65,21 @@ function BeatMark({ shape }: { shape: string }) {
       ctx.clearRect(0, 0, width, height);
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
-      ctx.strokeStyle = "rgba(243, 236, 223, 0.92)";
-      ctx.lineWidth = 1.2;
-      const scale = Math.min(width, height) * 0.42;
+      ctx.strokeStyle = "rgba(243, 236, 223, 0.55)";
+      ctx.lineWidth = 1.35;
+      let minX = Infinity;
+      let maxX = -Infinity;
+      let minY = Infinity;
+      let maxY = -Infinity;
+      for (const stroke of strokes) {
+        for (const point of stroke) {
+          minX = Math.min(minX, point.x);
+          maxX = Math.max(maxX, point.x);
+          minY = Math.min(minY, point.y);
+          maxY = Math.max(maxY, point.y);
+        }
+      }
+      const scale = Math.min(width * 0.92 / Math.max(1, maxX - minX), height * 0.9 / Math.max(1, maxY - minY));
       let drawn = strokes;
       let dot: { x: number; y: number; r: number; a: number } | null = null;
       if (shape === "knot") {
@@ -287,7 +299,7 @@ export function ThreadHome() {
                     <>
                       <div className="thread-screens">
                         <button type="button" className="thread-shot" onClick={() => setLight({ shot, title: project.title })}>
-                          <Media src={shot.src} alt={shot.alt} width={shot.width} height={shot.height} sizes="(min-width: 960px) 36vw, 80vw" priority={index < 2} />
+                          <Media src={shot.src} alt={shot.alt} width={shot.width} height={shot.height} sizes="(min-width: 960px) 50vw, 100vw" priority={index < 2} />
                         </button>
                       </div>
                       <div className="thread-copy">
@@ -300,6 +312,16 @@ export function ThreadHome() {
                         <p className="thread-intro">{beat.line ?? sentence(project.summary)}</p>
                         <p className="thread-meta">
                           <Link href={`/work/${project.slug}`}>Case study</Link>
+                          {project.live ? (
+                            <a href={project.live} target="_blank" rel="noreferrer">
+                              Live site <span aria-hidden="true">↗</span>
+                            </a>
+                          ) : null}
+                          {project.repo ? (
+                            <a href={project.repo} target="_blank" rel="noreferrer">
+                              Code <span aria-hidden="true">↗</span>
+                            </a>
+                          ) : null}
                         </p>
                       </div>
                     </>

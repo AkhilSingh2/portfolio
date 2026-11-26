@@ -1,4 +1,4 @@
-import { writeSync } from "node:fs";
+import { readFileSync, writeSync } from "node:fs";
 import { chromium } from "playwright";
 
 const origin = process.env.ORIGIN || "http://127.0.0.1:4177";
@@ -244,9 +244,80 @@ while (batch.length) {
   batch = pages.flatMap((html) => (typeof html === "string" && html.includes("<") ? discover(html, seen) : []));
 }
 
+const projectSource = readFileSync(new URL("../lib/projects.ts", import.meta.url), "utf8");
+const expected = [];
+for (const block of projectSource.split(/\n  \{/) ) {
+  const slug = block.match(/slug: "([^"]+)"/)?.[1];
+  if (!slug) continue;
+  const live = block.match(/live: "([^"]+)"/)?.[1] || "";
+  const repoPath = block.match(/repo: `\$\{gh\}([^`]+)`/)?.[1] || "";
+  expected.push({ slug, live, repo: repoPath ? `https://github.com/AkhilSingh2${repoPath}` : "" });
+}
+
+function anchors(html) {
+  const found = [];
+  const pattern = /<a\b([^>]*)>([\s\S]*?)<\/a>/gi;
+  let match = pattern.exec(html);
+  while (match) {
+    const href = match[1].match(/href="([^"]+)"/)?.[1] || "";
+    const text = match[2].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    found.push({ href, text });
+    match = pattern.exec(html);
+  }
+  return found;
+}
+
+const outbound = new Map();
+for (const project of expected) {
+  const pageHref = `/work/${project.slug}`;
+  let html = "";
+  try {
+    const response = await fetch(absolute(pageHref), { redirect: "follow" });
+    html = response.ok ? await response.text() : "";
+    if (!response.ok) failures.push({ where: pageHref, message: `${response.status}` });
+  } catch (error) {
+    failures.push({ where: pageHref, message: String(error).slice(0, 200) });
+  }
+  const links = anchors(html);
+  const liveLink = links.find((item) => item.text.startsWith("Live site"));
+  const codeLink = links.find((item) => item.text.startsWith("Code"));
+  if (project.live) {
+    if (!liveLink || liveLink.href !== project.live) failures.push({ where: pageHref, message: `missing Live site ${project.live}` });
+    outbound.set(project.live, project.slug);
+  } else if (liveLink) {
+    failures.push({ where: pageHref, message: "Live site link without a public URL" });
+  }
+  if (project.repo) {
+    if (!codeLink || codeLink.href !== project.repo) failures.push({ where: pageHref, message: `missing Code ${project.repo}` });
+    outbound.set(project.repo, project.slug);
+  } else if (codeLink) {
+    failures.push({ where: pageHref, message: "Code link without a public repository" });
+  }
+}
+
+const story = ["kinetic", "online-chalisa", "sutra-ui", "tandem", "buzzroom", "mymirro", "docmind", "meeting-actions", "pulse", "cadence", "marketing-site", "launchpad"];
+const homeHtml = await (await fetch(absolute("/"), { redirect: "follow" })).text();
+for (const slug of story) {
+  const project = expected.find((item) => item.slug === slug);
+  if (!project) continue;
+  if (project.live && !homeHtml.includes(project.live)) failures.push({ where: "home story", message: `missing ${project.live}` });
+  if (project.repo && !homeHtml.includes(project.repo)) failures.push({ where: "home story", message: `missing ${project.repo}` });
+}
+
+log(`checking ${outbound.size} live and code links`);
+await mapLimit([...outbound.keys()], 6, async (href) => {
+  try {
+    const response = await fetch(href, { redirect: "follow" });
+    if (response.status !== 200) failures.push({ where: href, message: `${response.status}` });
+    else log(`200 ${href}`);
+  } catch (error) {
+    failures.push({ where: href, message: String(error).slice(0, 200) });
+  }
+});
+
 if (failures.length) {
   log(JSON.stringify(failures.slice(0, 20), null, 2));
   log(`nav smoke failed: ${failures.length}`);
   process.exit(1);
 }
-log(`nav smoke passed for ${checked} internal links`);
+log(`nav smoke passed for ${checked} internal links and ${outbound.size} live and code links`);
