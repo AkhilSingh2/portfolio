@@ -20,13 +20,13 @@ Bangalore, India. Open to senior frontend and full-stack roles.
 
 | | |
 | --- | --- |
-| [**Lyra**](https://github.com/AkhilSingh2/kinetic) | Scroll-driven launch film. GSAP, Lenis, a React Three Fiber headphone. |
-| [**DocMind**](https://github.com/AkhilSingh2/docmind) | Research agent. Citations jump back to the passage. Keyless demo. |
+| [**Lyra**](https://github.com/AkhilSingh2/kinetic) | Scroll-driven launch film. GSAP, Lenis, a React Three Fiber headphone. [Live](https://akhilsingh2.github.io/kinetic/) |
+| [**DocMind**](https://github.com/AkhilSingh2/docmind) | Research agent. Citations jump back to the passage. Keyless demo. [Live demo](https://akhilsingh2.github.io/docmind/) |
 | [**LaunchPad**](https://github.com/AkhilSingh2/launchpad-saas) | Multi-tenant SaaS starter: sessions, roles, billing, audit log. |
-| [**Tandem**](https://github.com/AkhilSingh2/tandem) | Real-time job-hunt studio. Yjs, live cursors, offline merge. |
-| [**Pulse**](https://github.com/AkhilSingh2/pulse-analytics) | Product analytics: ingest, funnels, retention, rollups. |
-| [**SpendSense**](https://github.com/AkhilSingh2/spendsense-mobile) | Local-first Expo ledger. Type an expense in a sentence. |
-| [**Quorum**](https://github.com/AkhilSingh2/meeting-actions-agent) | Meeting transcripts into decisions, owners, and a follow-up. Every item cites its line. |
+| [**Tandem**](https://github.com/AkhilSingh2/tandem) | Real-time job-hunt studio. Yjs, live cursors, offline merge. [Live demo](https://akhilsingh2.github.io/tandem/) |
+| [**Pulse**](https://github.com/AkhilSingh2/pulse-analytics) | Product analytics: ingest, funnels, retention, rollups. [Live demo](https://akhilsingh2.github.io/pulse-analytics/) |
+| [**SpendSense**](https://github.com/AkhilSingh2/spendsense-mobile) | Local-first Expo ledger. Type an expense in a sentence. [Live demo](https://akhilsingh2.github.io/spendsense-mobile/) |
+| [**Quorum**](https://github.com/AkhilSingh2/meeting-actions-agent) | Meeting transcripts into decisions, owners, and a follow-up. Every item cites its line. [Live demo](https://akhilsingh2.github.io/meeting-actions-agent/) |
 | [**Aayam**](https://github.com/AkhilSingh2/india-salary-tax) | Salary and income-tax calculators for India. [Live](https://akhilsingh2.github.io/india-salary-tax/) |
 | [**Hundredmark**](https://github.com/AkhilSingh2/cgpa-upi-tools) | CGPA to percentage, and a UPI QR that never leaves the device. [Live](https://akhilsingh2.github.io/cgpa-upi-tools/) |
 | [**DevKit**](https://github.com/AkhilSingh2/devkit) | JSON, YAML, JWT, cron, and the rest of the toolbox, in the browser. [Live](https://akhilsingh2.github.io/devkit/) |
@@ -37,6 +37,6 @@ Bangalore, India. Open to senior frontend and full-stack roles.
 | [**MyMirro**](https://github.com/AkhilSingh2/mymirrowebsite) | Styling app. Quiz, outfits, lookbooks. [Live](https://www.mymirro.in) |
 | [**MyMirro Recommendation API**](https://github.com/AkhilSingh2/mymirro-backend) | Flask-RESTX service: outfit generation, FAISS similar outfits and products, skin-tone colour. Supabase and Railway. |
 | [**Colour Analysis API**](https://github.com/AkhilSingh2/color-analysis) | Flask service for undertone, contrast, and a palette. OpenCV, dlib, k-means. Docker and Railway. |
-| [**momoGPT**](https://github.com/AkhilSingh2/momoGPT) | Learns a texting style from a WhatsApp export and replies in it. |
+| [**momoGPT**](https://github.com/AkhilSingh2/momoGPT) | Learns a texting style from a WhatsApp export and replies in it. [Live demo](https://akhilsingh2.github.io/momoGPT/) |
 
 Case studies and screenshots are on the [portfolio](https://akhilsingh2.github.io/portfolio/).
