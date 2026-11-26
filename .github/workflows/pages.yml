@@ -2,7 +2,7 @@ name: Deploy GitHub Pages
 
 on:
   push:
-    branches: [main, cursor/portfolio-v2-76b8]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -24,13 +24,27 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('app/**', 'components/**', 'lib/**', 'public/**', 'next.config.*') }}
+          restore-keys: |
+            next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
       - run: npm ci
       - run: npm run build
         env:
           NEXT_PUBLIC_BASE_PATH: /portfolio
           NEXT_PUBLIC_SITE_URL: https://akhilsingh2.github.io/portfolio
-      - run: npx playwright install --with-deps chromium
-      - name: Click every nav and footer link
+      - uses: actions/cache@v4
+        if: github.event_name == 'pull_request'
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install Playwright
+        if: github.event_name == 'pull_request'
+        run: npx playwright install --with-deps chromium
+      - name: Check internal links
+        if: github.event_name == 'pull_request'
         run: |
           mkdir -p /tmp/site/portfolio
           cp -a out/. /tmp/site/portfolio
