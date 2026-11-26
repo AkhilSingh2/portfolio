@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { Magnetic } from "@/components/magnetic";
 import { MegaMenu } from "@/components/mega-menu";
+import { MobileMenu } from "@/components/mobile-menu";
 import { ResumeDownload } from "@/components/resume-download";
 import { SocialLinks } from "@/components/social-links";
 import { useSmooth } from "@/components/smooth-scroll";
@@ -24,6 +25,7 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [openPath, setOpenPath] = useState(pathname);
   const [compact, setCompact] = useState(false);
+  const [narrow, setNarrow] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLButtonElement | null>(null);
   const titleId = useId();
@@ -41,6 +43,14 @@ export function SiteHeader() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 767px)");
+    const apply = () => setNarrow(query.matches);
+    apply();
+    query.addEventListener("change", apply);
+    return () => query.removeEventListener("change", apply);
   }, []);
 
   useEffect(() => {
@@ -161,10 +171,26 @@ export function SiteHeader() {
         </nav>
         <SocialLinks />
         <ResumeDownload className="nav-pdf">Resume</ResumeDownload>
+        <button
+          type="button"
+          className="nav-burger"
+          aria-expanded={open}
+          aria-controls="site-menu"
+          aria-haspopup="dialog"
+          aria-label={open ? "Close menu" : "Open menu"}
+          onClick={(event) => openFrom(event.currentTarget)}
+        >
+          <span className="burger-lines" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+        </button>
         <span className="nav-progress" aria-hidden="true" />
       </div>
       <AnimatePresence>
-        {open ? <MegaMenu ref={panelRef} onClose={() => setOpen(false)} titleId={titleId} /> : null}
+        {open && narrow ? <MobileMenu key="mobile" ref={panelRef} onClose={() => setOpen(false)} titleId={titleId} /> : null}
+        {open && !narrow ? <MegaMenu key="desk" ref={panelRef} onClose={() => setOpen(false)} titleId={titleId} /> : null}
       </AnimatePresence>
     </header>
   );

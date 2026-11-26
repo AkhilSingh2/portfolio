@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { KineticName } from "@/components/kinetic-name";
 import { Magnetic } from "@/components/magnetic";
-import { ResumeDownload } from "@/components/resume-download";
 import { ShaderField } from "@/components/shader-field";
 
 export function Hero() {
@@ -28,9 +27,6 @@ export function Hero() {
             <Link className="btn btn-ghost" href="/contact">
               Contact
             </Link>
-          </Magnetic>
-          <Magnetic>
-            <ResumeDownload className="btn btn-line">Download resume</ResumeDownload>
           </Magnetic>
         </div>
       </div>
