@@ -9,7 +9,7 @@ import { TagList } from "@/components/tag";
 import { WorkReel } from "@/components/work-reel";
 import { Reveal } from "@/components/reveal";
 import { reelProjects } from "@/lib/projects";
-import { resumeEducation, resumePlace, resumeRoles, resumeSummary } from "@/lib/resume";
+import { resumeEducation, resumeRoles } from "@/lib/resume";
 import { person } from "@/lib/site";
 import { skillGroups } from "@/lib/tokens";
 
@@ -46,13 +46,9 @@ export default function HomePage() {
             <p className="eyebrow">02 — About</p>
             <h2 id="about-title">I start at the interface and I do not leave at the mock.</h2>
             <p>
-              I am a full-stack engineer in {person.location.split(",")[0]}. The screen is where I begin, because that
-              is where the product is judged. I stay for the API, the data, and the deploy. Lately the work has a model
-              in it, and I keep one rule: the model does not get to invent the facts.
-            </p>
-            <p>{resumeSummary}</p>
-            <p>
-              {person.availability}. {resumePlace}.
+              I am a full-stack engineer in Bangalore. I start at the screen, because that is where the product is
+              judged, and I stay for the API, the data, and the deploy. When the work includes a model, it does not get
+              to invent the facts. I am open to senior frontend and full-stack roles.
             </p>
             <Button href="/about" variant="solid" transitionTypes={["nav-forward"]}>
               About the practice

@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { CalibreCharts } from "@/components/calibre-charts";
 import { CalibreNav } from "@/components/calibre-nav";
@@ -8,13 +7,14 @@ import { MotionDemo } from "@/components/motion-demo";
 import { PageShell } from "@/components/page-shell";
 import { TagList } from "@/components/tag";
 import { calibreMetrics } from "@/lib/calibre-metrics";
+import { pageMeta } from "@/lib/meta";
 import { easings, motions, philosophy } from "@/lib/tokens";
 
-export const metadata: Metadata = {
-  title: "Calibre",
-  description:
-    "Calibre is Akhilendra Singh's design system: principles, color, type, space, motion, and the components this site uses.",
-};
+export const metadata = pageMeta(
+  "Calibre",
+  "Calibre is Akhilendra Singh's design system: principles, color, type, space, motion, and the components this site uses.",
+  "/design-system",
+);
 
 export default function DesignSystemPage() {
   const home = calibreMetrics.lighthouse.find((item) => item.route === "/portfolio/");

@@ -116,8 +116,16 @@ export function WorkReel({ projects }: { projects: Project[] }) {
         });
       }, root);
 
-      revert = () => ctx.revert();
-      ScrollTrigger.refresh();
+      const refresh = () => {
+        if (!dead && mine === token) ScrollTrigger.refresh();
+      };
+      window.addEventListener("load", refresh);
+      void document.fonts.ready.then(refresh);
+      revert = () => {
+        window.removeEventListener("load", refresh);
+        ctx.revert();
+      };
+      refresh();
     };
 
     const start = () => {

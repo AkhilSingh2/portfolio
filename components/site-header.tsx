@@ -114,37 +114,27 @@ export function SiteHeader() {
           <span className="wordmark-mark" aria-hidden="true" />
           Akhilendra
         </Link>
+        <button
+          type="button"
+          className="nav-link nav-work"
+          aria-expanded={open}
+          aria-controls="site-menu"
+          aria-haspopup="dialog"
+          aria-current={workCurrent ? "page" : undefined}
+          onClick={(event) => openFrom(event.currentTarget)}
+        >
+          {workCurrent && (
+            <motion.span
+              layoutId="nav-current"
+              className="nav-current"
+              transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 34 }}
+            />
+          )}
+          <Magnetic>
+            <span>Work</span>
+          </Magnetic>
+        </button>
         <nav className="nav-links" aria-label="Primary">
-          <Link
-            href="/work"
-            className="nav-link"
-            aria-current={workCurrent ? "page" : undefined}
-            transitionTypes={["nav-forward"]}
-            onClick={() => setOpen(false)}
-          >
-            {workCurrent && (
-              <motion.span
-                layoutId="nav-current"
-                className="nav-current"
-                transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 34 }}
-              />
-            )}
-            <Magnetic>
-              <span>Work</span>
-            </Magnetic>
-          </Link>
-          <button
-            type="button"
-            className="nav-link nav-index"
-            aria-expanded={open}
-            aria-controls="site-menu"
-            aria-haspopup="dialog"
-            onClick={(event) => openFrom(event.currentTarget)}
-          >
-            <Magnetic>
-              <span>Index</span>
-            </Magnetic>
-          </button>
           {links.map((link) => {
             const current = isCurrent(pathname, link.href);
             return (
@@ -172,16 +162,6 @@ export function SiteHeader() {
         </nav>
         <SocialLinks />
         <ResumeDownload className="nav-pdf">Resume</ResumeDownload>
-        <button
-          type="button"
-          className="nav-burger"
-          aria-expanded={open}
-          aria-controls="site-menu"
-          aria-haspopup="dialog"
-          onClick={(event) => openFrom(event.currentTarget)}
-        >
-          {open ? "Close" : "Menu"}
-        </button>
         <span className="nav-progress" aria-hidden="true" />
       </div>
       <AnimatePresence>

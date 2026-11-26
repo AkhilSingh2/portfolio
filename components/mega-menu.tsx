@@ -59,10 +59,10 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
       >
         <div className="mega-bar">
           <p id={titleId} className="mega-kicker">
-            Index
+            Work
           </p>
           <Link href="/work" className="mega-work-link" data-menuitem onClick={onClose}>
-            Work
+            See all work
           </Link>
           <SocialLinks className="nav-social mega-social" />
           <button type="button" className="mega-close" data-menuitem onClick={onClose}>

@@ -1,13 +1,14 @@
-import type { Metadata } from "next";
 import { ContactForm } from "@/components/contact-form";
 import { PageShell } from "@/components/page-shell";
 import { ResumeDownload } from "@/components/resume-download";
+import { pageMeta } from "@/lib/meta";
 import { person } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: "Contact",
-  description: "Email Akhilendra Singh. Open to senior frontend and full-stack roles, in Bengaluru or remote.",
-};
+export const metadata = pageMeta(
+  "Contact",
+  "Email Akhilendra Singh. Open to senior frontend and full-stack roles, in Bengaluru or remote.",
+  "/contact",
+);
 
 export default function ContactPage() {
   return (

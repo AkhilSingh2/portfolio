@@ -1,13 +1,13 @@
-import type { Metadata } from "next";
 import { PageShell } from "@/components/page-shell";
 import { WorkBoard } from "@/components/work-board";
+import { pageMeta } from "@/lib/meta";
 import { decorate, projects } from "@/lib/projects";
 
-export const metadata: Metadata = {
-  title: "Work",
-  description:
-    "Case studies by Akhilendra Singh: research agents, SaaS, realtime collaboration, analytics, motion, and live products.",
-};
+export const metadata = pageMeta(
+  "Work",
+  "Case studies by Akhilendra Singh: research agents, SaaS, realtime collaboration, analytics, motion, and live products.",
+  "/work",
+);
 
 export default function WorkPage() {
   return (

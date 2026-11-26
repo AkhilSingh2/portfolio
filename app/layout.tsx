@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     siteName: person.name,
     title: `${person.name} — Full-stack engineer`,
     description: person.description,
-    images: [{ url: absUrl("/og.png"), width: 1200, height: 630, alt: `${person.name}, full-stack engineer` }],
+    images: [{ url: absUrl("/og.png"), width: 1200, height: 630, alt: `${person.name}, full-stack engineer in Bangalore` }],
   },
   twitter: {
     card: "summary_large_image",
@@ -57,8 +57,14 @@ export const metadata: Metadata = {
     images: [absUrl("/og.png")],
   },
   icons: {
-    apple: absUrl("/apple-touch-icon.png"),
+    icon: [
+      { url: absUrl("/favicon.svg"), type: "image/svg+xml" },
+      { url: absUrl("/favicon-32.png"), sizes: "32x32", type: "image/png" },
+      { url: absUrl("/favicon-16.png"), sizes: "16x16", type: "image/png" },
+    ],
+    apple: [{ url: absUrl("/apple-touch-icon.png"), sizes: "180x180", type: "image/png" }],
   },
+  manifest: absUrl("/site.webmanifest"),
   robots: { index: true, follow: true },
 };
 
@@ -82,7 +88,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${outfit.variable} ${fraunces.variable}`}>
       <body>
         <Script id="calibre-enhance" strategy="beforeInteractive">
-          {`(function(){try{if(matchMedia("(min-width:960px) and (prefers-reduced-motion:no-preference)").matches){document.documentElement.classList.add("enhance")}}catch(e){}})();`}
+          {`(function(){try{history.scrollRestoration="manual";if(matchMedia("(min-width:960px) and (prefers-reduced-motion:no-preference)").matches){document.documentElement.classList.add("enhance")}}catch(e){}})();`}
         </Script>
         <a className="skip-link" href="#main">
           Skip to content

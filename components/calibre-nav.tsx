@@ -28,6 +28,7 @@ export function CalibreNav() {
       frameId = requestAnimationFrame(measure);
     };
     measure();
+    void document.fonts.ready.then(measure);
     const observer = new ResizeObserver(schedule);
     if (nav) observer.observe(nav);
     window.addEventListener("resize", schedule);
@@ -65,7 +66,7 @@ export function CalibreNav() {
     const current = bar.querySelector<HTMLElement>(`[href="${active}"]`);
     if (!current) return;
     const left = current.offsetLeft - (bar.clientWidth - current.clientWidth) / 2;
-    bar.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+    bar.scrollTo({ left: Math.max(0, left), behavior: "auto" });
   }, [active]);
 
   useEffect(() => {
