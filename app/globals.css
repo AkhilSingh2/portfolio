@@ -5309,6 +5309,12 @@ html.footer-reveal .site-footer {
   position: relative;
 }
 
+@media (max-width: 959px) {
+  .thread-shell {
+    margin-bottom: -14vh;
+  }
+}
+
 .thread-field {
   position: fixed;
   inset: 0;
@@ -5723,8 +5729,7 @@ html.enhance .thread-shot {
 }
 
 .now-list p,
-.now-grid p,
-.tool-grid span {
+.now-grid p {
   max-width: 40rem;
   margin: 0.2rem 0 0;
   color: var(--bone-200);
@@ -5733,16 +5738,35 @@ html.enhance .thread-shot {
 }
 
 .tool-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   margin-top: 0.8rem;
 }
 
-.tool-grid li {
+.tool-grid > li {
   display: grid;
   align-content: start;
-  gap: 0.35rem;
+  gap: 0.55rem;
   padding-top: 0.85rem;
   border-top: 1px solid rgba(246, 241, 232, 0.16);
+}
+
+.tool-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tool-chips li {
+  padding: 0.28rem 0.7rem;
+  border: 1px solid rgba(246, 241, 232, 0.22);
+  border-radius: 999px;
+  color: var(--bone-50);
+  font-size: 0.84rem;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
 }
 
 .ground > * {
@@ -5774,8 +5798,7 @@ html.enhance .thread-shot {
 }
 
 @media (max-width: 800px) {
-  .now-grid,
-  .tool-grid {
+  .now-grid {
     grid-template-columns: 1fr 1fr;
   }
 }
@@ -5785,8 +5808,7 @@ html.enhance .thread-shot {
     padding-top: 3.5rem;
   }
 
-  .now-grid,
-  .tool-grid {
+  .now-grid {
     grid-template-columns: 1fr;
   }
 }

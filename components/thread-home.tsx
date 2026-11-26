@@ -138,6 +138,12 @@ export function ThreadHome() {
         if (shot) shot.style.transform = `scale(${Math.max(0.92, 1 - distance * 0.1)})`;
       });
       document.documentElement.dataset.threadProgress = clamped.toFixed(4);
+      const shell = root.closest(".thread-shell");
+      const copy = root.querySelector(".thread-beat.is-active .thread-copy");
+      if (shell instanceof HTMLElement && copy instanceof HTMLElement) {
+        const spare = (root.offsetHeight - copy.offsetHeight) / 2 - 96;
+        shell.style.marginBottom = spare > 48 ? `-${Math.round(spare)}px` : "";
+      }
     };
 
     if (reduce.matches || !desktop.matches) {
