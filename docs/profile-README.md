@@ -22,7 +22,7 @@ Bangalore, India. Open to senior frontend and full-stack roles.
 | --- | --- |
 | [**Lyra**](https://github.com/AkhilSingh2/kinetic) | Scroll-driven launch film. GSAP, Lenis, a React Three Fiber headphone. [Live](https://akhilsingh2.github.io/kinetic/) |
 | [**DocMind**](https://github.com/AkhilSingh2/docmind) | Research agent. Citations jump back to the passage. Keyless demo. [Live demo](https://akhilsingh2.github.io/docmind/) |
-| [**LaunchPad**](https://github.com/AkhilSingh2/launchpad-saas) | Multi-tenant SaaS starter: sessions, roles, billing, audit log. |
+| [**LaunchPad**](https://github.com/AkhilSingh2/launchpad-saas) | Multi-tenant SaaS starter: sessions, roles, billing, audit log. [Live demo](https://akhil-launchpad.vercel.app) |
 | [**Tandem**](https://github.com/AkhilSingh2/tandem) | Real-time job-hunt studio. Yjs, live cursors, offline merge. [Live demo](https://akhilsingh2.github.io/tandem/) |
 | [**Pulse**](https://github.com/AkhilSingh2/pulse-analytics) | Product analytics: ingest, funnels, retention, rollups. [Live demo](https://akhilsingh2.github.io/pulse-analytics/) |
 | [**SpendSense**](https://github.com/AkhilSingh2/spendsense-mobile) | Local-first Expo ledger. Type an expense in a sentence. [Live demo](https://akhilsingh2.github.io/spendsense-mobile/) |
