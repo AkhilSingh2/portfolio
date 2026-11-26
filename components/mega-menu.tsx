@@ -6,7 +6,6 @@ import { forwardRef, useState } from "react";
 import { Media } from "@/components/media";
 import { ResumeDownload } from "@/components/resume-download";
 import { SocialLinks } from "@/components/social-links";
-import { TagList } from "@/components/tag";
 import { featuredProject, liveTools, workGroups } from "@/lib/menu";
 import type { Project, Shot } from "@/lib/projects";
 import { LiveLink, liveDomain } from "@/components/live-link";
@@ -94,25 +93,17 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
                   <>
                     <Thumb shot={active.shots[0]} sizes="320px" className="spotlight-blank" />
                     <span className="spotlight-copy">
-                      <span className="eyebrow">Featured</span>
                       <strong>{active.title}</strong>
-                      <em>{active.kicker}</em>
-                      <TagList items={active.stack.slice(0, 4)} />
                       <span className="spotlight-links">
                           <Link href={`/work/${active.slug}`} data-menuitem onClick={onClose}>
                           Case study
                         </Link>
-                        {active.live ? (
-                          <a href={active.live} data-menuitem target="_blank" rel="noreferrer">
-                            Live site
-                          </a>
-                        ) : null}
+                        {active.live ? <LiveLink href={active.live} domain={liveDomain(active.liveLabel)} /> : null}
                       </span>
                     </span>
                   </>
                 ) : spot.kind === "page" ? (
                   <span className="spotlight-copy spotlight-page">
-                    <span className="eyebrow">On this site</span>
                     <strong>{spot.title}</strong>
                     <em>{spot.body}</em>
                     <Link href={spot.href} data-menuitem onClick={onClose}>
@@ -150,7 +141,6 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
                           <Thumb shot={thumb} sizes="80px" />
                           <span>
                             <strong>{project.title}</strong>
-                            <em>{project.kicker}</em>
                           </span>
                         </Link>
                         {project.live ? <LiveLink href={project.live} domain={liveDomain(project.liveLabel)} /> : null}
@@ -182,7 +172,6 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
                     onFocus={() => focusProject(project.slug)}
                   >
                     <strong>{project.title}</strong>
-                    <em>{project.liveLabel || project.kicker}</em>
                   </a>
                 </li>
               ))}
@@ -270,11 +259,6 @@ export const MegaMenu = forwardRef<HTMLDivElement, { onClose: () => void; titleI
                   Resume
                 </Link>
               </li>
-            </ul>
-            <ul className="mega-chips" aria-label="Skills">
-              {["React", "Next.js", "TypeScript", "Vue", "Python", "FastAPI"].map((skill) => (
-                <li key={skill}>{skill}</li>
-              ))}
             </ul>
           </motion.section>
 

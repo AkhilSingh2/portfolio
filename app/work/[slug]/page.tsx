@@ -61,11 +61,6 @@ export default async function CaseStudyPage({ params }: { params: Promise<Params
                   Repository
                 </a>
                 ) : null}
-                {project.pr ? (
-                  <a href={project.pr} target="_blank" rel="noreferrer">
-                    Pull request
-                  </a>
-                ) : null}
                 {project.live ? <LiveLink href={project.live} domain={liveDomain(project.liveLabel)} /> : null}
               </dd>
             </div>

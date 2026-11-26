@@ -46,7 +46,13 @@
   --t-7: clamp(2.1rem, 4vw, 3rem);
   --t-8: clamp(2.6rem, 6vw, 4rem);
   --header-h: 5.4rem;
-  --pad: clamp(1.15rem, 4vw, 3.25rem);
+  --s-8: 8px;
+  --s-16: 16px;
+  --s-24: 24px;
+  --s-48: 48px;
+  --s-96: 96px;
+  --s-160: 160px;
+  --pad: var(--s-24);
   --max: 76rem;
   --font-sans: var(--font-outfit), "Segoe UI", sans-serif;
   --font-display: var(--font-fraunces), "Iowan Old Style", Palatino, "Palatino Linotype", serif;
@@ -2244,18 +2250,23 @@ code {
 
   html.enhance .reel-kicker {
     position: absolute;
-    z-index: 3;
+    z-index: 4;
     top: calc(var(--header-h) + 0.8rem);
-    left: 0;
-    right: 0;
+    left: var(--pad);
+    right: auto;
+    width: min(28rem, 38vw);
   }
 
   html.enhance .reel-slide {
     position: absolute;
     inset: 0;
-    display: block;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--s-24);
+    align-items: center;
     border: 0;
-    padding: 0;
+    padding: 6.2rem var(--pad) 2.4rem;
+    background: var(--ink-950);
   }
 
   html.enhance .reel-slide:not(:first-child) {
@@ -2264,65 +2275,84 @@ code {
   }
 
   html.enhance .reel-frame {
-    position: absolute;
-    inset: 0;
-    width: auto;
+    position: relative;
+    inset: auto;
+    grid-column: 6 / 13;
+    align-self: center;
+    justify-self: end;
+    width: min(100%, calc(58vh * 1.6));
     height: auto;
-    aspect-ratio: auto;
+    aspect-ratio: 16 / 10;
     overflow: hidden;
-    background: #100e0c;
-    box-shadow: none;
+    border-radius: 18px;
+    border: 1px solid rgba(246, 241, 232, 0.16);
+    background: #171512;
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.35);
   }
 
   html.enhance .reel-mask {
     position: absolute;
     inset: 0;
     overflow: hidden;
+    background: #141210;
   }
 
   html.enhance .reel-frame img {
     width: 100%;
-    height: 118%;
+    height: 100%;
     max-width: none;
-    object-fit: cover;
+    object-fit: contain;
     object-position: center;
     transform-origin: center center;
+    background: #141210;
   }
 
   html.enhance .reel-copy {
-    position: absolute;
+    position: relative;
     z-index: 2;
-    left: var(--pad);
-    bottom: clamp(1.6rem, 7vh, 3.8rem);
-    width: min(40rem, 52vw);
-    pointer-events: none;
+    grid-column: 1 / 6;
+    left: auto;
+    bottom: auto;
+    width: auto;
+    pointer-events: auto;
   }
 
   html.enhance .reel-type {
-    pointer-events: auto;
     transform-origin: 0% 100%;
   }
 
   html.enhance .reel-copy h2 {
-    font-size: clamp(4.4rem, 10vw, 8.2rem);
-    line-height: 0.9;
-    letter-spacing: -0.05em;
-    max-width: 10ch;
+    font-size: clamp(3.2rem, 5.2vw, 5.2rem);
+    line-height: 0.96;
+    letter-spacing: -0.045em;
+    max-width: 12ch;
   }
 }
 
-@media (max-width: 959px) and (prefers-reduced-motion: no-preference) {
+.reel-frame {
+  border-radius: 16px;
+  border: 1px solid var(--line);
+}
+
+.reel-frame img {
+  object-fit: contain;
+  background: #141210;
+}
+
+@media (max-width: 959px) {
   .reel-slide {
-    min-height: 100svh;
-    align-content: end;
+    min-height: 0;
+    align-content: start;
+    padding: var(--s-48) var(--pad) var(--s-96);
+    gap: var(--s-24);
   }
 
   .reel-frame {
-    aspect-ratio: 4 / 5;
+    aspect-ratio: 16 / 10;
   }
 
   .reel-copy h2 {
-    font-size: clamp(3rem, 14vw, 4.8rem);
+    font-size: clamp(2.4rem, 10vw, 3.4rem);
   }
 }
 
@@ -5003,5 +5033,194 @@ html.footer-reveal .site-footer {
 @media (prefers-reduced-motion: reduce) {
   .burger-lines i {
     transition: none;
+  }
+}
+
+@media (min-width: 900px) {
+  :root {
+    --pad: var(--s-48);
+  }
+}
+
+.home-block {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--s-24);
+  row-gap: var(--s-48);
+  padding: var(--s-96) var(--pad);
+}
+
+.home-block > * {
+  grid-column: 1 / -1;
+}
+
+.home-block .section-head {
+  max-width: 34rem;
+  margin-bottom: 0;
+  gap: var(--s-16);
+}
+
+.home-block .section-head h2 {
+  font-size: clamp(2.5rem, 4vw, 3.5rem);
+}
+
+.home-block .section-head p,
+.home-block .gallery-body p,
+.home-block .gallery-body h3 {
+  font-size: 1.0625rem;
+  line-height: 1.55;
+}
+
+.home-block .gallery-body {
+  gap: var(--s-16);
+  padding: var(--s-24);
+}
+
+.home-block .gallery-body h3 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.api-grid,
+.system-pair {
+  gap: var(--s-24);
+}
+
+.shot {
+  aspect-ratio: 16 / 10;
+}
+
+.case {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--s-24);
+}
+
+.case > * {
+  grid-column: 1 / -1;
+}
+
+.case-hero {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--s-24);
+  align-items: end;
+  padding: calc(var(--header-h) + var(--s-48)) var(--pad) var(--s-48);
+}
+
+.case-media {
+  grid-column: 1 / -1;
+  order: 2;
+  max-width: none;
+  padding: 0;
+}
+
+.case-title {
+  grid-column: 1 / -1;
+  order: 1;
+  max-width: none;
+  padding: 0 0 var(--s-24);
+}
+
+@media (min-width: 900px) {
+  .case-media {
+    grid-column: 1 / 8;
+    order: 1;
+  }
+
+  .case-title {
+    grid-column: 8 / 13;
+    order: 2;
+    padding: 0;
+  }
+}
+
+.case-title {
+  padding: var(--s-48) var(--pad) 0;
+}
+
+.case-title h1 {
+  font-size: clamp(3rem, 7vw, 5.5rem);
+  margin-bottom: var(--s-16);
+}
+
+.case-body {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--s-24);
+  row-gap: var(--s-96);
+  padding: var(--s-96) var(--pad) var(--s-160);
+}
+
+.case-body > * {
+  grid-column: 1 / -1;
+  max-width: none;
+}
+
+.case-body h2 {
+  font-size: 1.75rem;
+  margin-bottom: var(--s-16);
+}
+
+.case-body p,
+.plain-list {
+  max-width: 40rem;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+.case-links,
+.study-links,
+.spotlight-links,
+.reel-links {
+  gap: var(--s-24);
+}
+
+.case-links a,
+.text-link,
+.spotlight-links a,
+.mega-links a,
+.reel-links a {
+  text-decoration: none;
+  border-bottom: 0;
+}
+
+.case-gallery {
+  gap: var(--s-48);
+}
+
+.case-gallery .device:not(.device-phone) img,
+.case-media .device:not(.device-phone) img {
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  height: 100%;
+}
+
+.mega-panel {
+  padding: var(--s-24) var(--pad) var(--s-48);
+}
+
+.mega-layout {
+  gap: var(--s-48) var(--s-24);
+}
+
+.mega-item {
+  align-items: center;
+}
+
+.mega-links {
+  display: grid;
+  gap: var(--s-16);
+}
+
+@media (min-width: 900px) {
+  .case-body > section,
+  .case-body > .case-meta,
+  .case-body > .case-next {
+    grid-column: 1 / 8;
+  }
+
+  .case-body > .case-gallery {
+    grid-column: 1 / -1;
   }
 }

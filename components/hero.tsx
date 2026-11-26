@@ -59,11 +59,6 @@ export function Hero() {
               Selected work
             </Link>
           </Magnetic>
-          <Magnetic>
-            <Link className="btn btn-ghost" href="/contact">
-              Contact
-            </Link>
-          </Magnetic>
         </div>
       </div>
     </section>
