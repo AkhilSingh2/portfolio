@@ -5608,12 +5608,58 @@ html.footer-reveal .site-footer {
     width: 100%;
   }
 
+  .thread-chapter,
+  .thread-beat {
+    justify-content: flex-start;
+    gap: 0;
+    height: 100svh;
+    min-height: 100svh;
+    padding: 0;
+  }
+
+  .thread-panel {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .thread-screens {
+    position: absolute;
+    z-index: 2;
+    top: 42%;
+    left: 50%;
+    width: 90%;
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+  }
+
+  .thread-copy {
+    position: absolute;
+    z-index: 3;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    max-width: none;
+    padding: 3.4rem var(--pad) 1.15rem;
+    pointer-events: auto;
+  }
+
+  .thread-copy::before,
+  .thread-copy.is-veiled::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(to top, rgba(16, 14, 12, 0.94) 0%, rgba(16, 14, 12, 0.78) 48%, rgba(16, 14, 12, 0.22) 78%, rgba(16, 14, 12, 0) 100%);
+  }
+
   .thread-chapter h1 {
-    font-size: clamp(2.5rem, 11vw, 3.3rem);
+    font-size: clamp(2.15rem, 9vw, 2.8rem);
   }
 
   .thread-chapter h2 {
-    font-size: clamp(2.2rem, 10vw, 3.1rem);
+    font-size: clamp(1.85rem, 8vw, 2.5rem);
   }
 
   .thread-gap {
@@ -5660,10 +5706,10 @@ html.footer-reveal .site-footer {
   z-index: 0;
   left: 0;
   right: 0;
-  top: 2%;
+  top: 4%;
   display: block;
   width: 100%;
-  height: 42%;
+  height: 70%;
   pointer-events: none;
 }
 

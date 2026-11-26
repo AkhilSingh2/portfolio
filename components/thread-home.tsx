@@ -81,8 +81,8 @@ function BeatMark({ shape }: { shape: string }) {
           maxY = Math.max(maxY, point.y);
         }
       }
-      const scale = Math.min(width * 0.78 / Math.max(1, maxX - minX), height * 0.72 / Math.max(1, maxY - minY));
-      const yShift = -height * 0.06;
+      const scale = Math.min(width * 0.9 / Math.max(1, maxX - minX), height * 0.86 / Math.max(1, maxY - minY));
+      const yShift = -height * 0.02;
       let drawn = strokes;
       let dot: { x: number; y: number; r: number; a: number } | null = null;
       if (shape === "knot") {

@@ -142,19 +142,29 @@ for (const viewport of viewports) {
             const overlapY = copy && mark ? Math.min(copy.bottom - 8, Math.max(copy.top + 8, mark.top + 8)) : 0;
             const overlaps = Boolean(copy && mark && overlapY >= mark.top && overlapY <= mark.bottom && overlapY >= copy.top && overlapY <= copy.bottom);
             const veil = overlaps && window.__threadVeil ? window.__threadVeil(copy.left + copy.width / 2, overlapY) : 0;
+            const scrim = getComputedStyle(card.querySelector(".thread-copy"), "::before").backgroundImage;
             resolve({
               card: card.getBoundingClientRect().width / window.innerWidth,
               mark: mark ? mark.height / window.innerHeight : 0,
+              shotWidth: shot ? shot.width / window.innerWidth : 0,
+              shotMid: shot ? Math.abs(shot.left + shot.width / 2 - window.innerWidth / 2) : 0,
+              copyBottom: copy ? window.innerHeight - copy.bottom : 99,
               imageAbove,
+              taller: Boolean(shot && mark && mark.height > shot.height),
               veil,
-              scrim: getComputedStyle(card.querySelector(".thread-copy"), "::before").backgroundImage.includes("radial-gradient"),
+              scrim: scrim.includes("gradient"),
             });
           }, 180);
         });
       }, chapter);
       log(`${viewport.width} ${chapter} card ${result.card.toFixed(2)} mark ${result.mark.toFixed(2)} veil ${result.veil.toFixed(2)}`);
       if (result.card < 0.95) failures.push({ viewport, chapter, message: `card is ${result.card.toFixed(2)} of the viewport` });
-      if (result.mark > 0.55 || result.mark < 0.28) failures.push({ viewport, chapter, message: `phone object is ${result.mark.toFixed(2)} of the viewport` });
+      if (result.mark < 0.55 || result.mark > 0.85) failures.push({ viewport, chapter, message: `phone object is ${result.mark.toFixed(2)} of the viewport` });
+      if (result.shotWidth && (result.shotWidth < 0.86 || result.shotWidth > 0.94)) failures.push({ viewport, chapter, message: `screenshot is ${result.shotWidth.toFixed(2)} of the width` });
+      if (result.shotWidth && result.shotMid > 12) failures.push({ viewport, chapter, message: "screenshot is not centred" });
+      if (result.shotWidth && !result.taller) failures.push({ viewport, chapter, message: "thread is not larger than the screenshot" });
+      if (result.copyBottom > 20) failures.push({ viewport, chapter, message: "text is not anchored to the bottom" });
+      if (!result.scrim) failures.push({ viewport, chapter, message: "bottom scrim missing" });
       if (!result.imageAbove) failures.push({ viewport, chapter, message: "screenshot is not above the thread" });
       if (result.veil > 0.28) failures.push({ viewport, chapter, message: `thread veil ${result.veil.toFixed(2)} inside the text` });
     }
