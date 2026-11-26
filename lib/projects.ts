@@ -33,6 +33,18 @@ export type Project = {
 
 const gh = "https://github.com/AkhilSingh2";
 
+function plate(slug: string, caption: string): Shot[] {
+  return [
+    {
+      src: `/covers/${slug}.svg`,
+      alt: "Abstract cover in ink and champagne",
+      width: 1200,
+      height: 750,
+      caption,
+    },
+  ];
+}
+
 export const projects: Project[] = [
   {
     slug: "kinetic",
@@ -878,7 +890,7 @@ export const projects: Project[] = [
     repo: `${gh}/mymirro-backend`,
     reel: false,
     group: "backend",
-    shots: [],
+    shots: plate("mymirro-recommendation-api", "POST /api/v1/outfits/generate"),
   },
   {
     slug: "colour-analysis-api",
@@ -903,7 +915,7 @@ export const projects: Project[] = [
     repo: `${gh}/color-analysis`,
     reel: false,
     group: "backend",
-    shots: [],
+    shots: plate("colour-analysis-api", "POST /analyze"),
   },
   {
     slug: "ai-asset-platform",
@@ -926,7 +938,7 @@ export const projects: Project[] = [
     stack: ["React", "TypeScript", "Python", "FastAPI", "Celery", "SQS"],
     reel: false,
     group: "professional",
-    shots: [],
+    shots: plate("ai-asset-platform", "A queue in front of the workers"),
   },
   {
     slug: "media-composition",
@@ -948,7 +960,7 @@ export const projects: Project[] = [
     stack: ["FFmpeg", "Python", "Kubernetes", "Helm", "KEDA"],
     reel: false,
     group: "professional",
-    shots: [],
+    shots: plate("media-composition", "Workers scaled with Helm"),
   },
   {
     slug: "localisation-pipeline",
@@ -971,7 +983,7 @@ export const projects: Project[] = [
     stack: ["React", "TypeScript", "Python", "Gemini"],
     reel: false,
     group: "professional",
-    shots: [],
+    shots: plate("localisation-pipeline", "A review screen in front of the scores"),
   },
   {
     slug: "finance-platform",
@@ -995,7 +1007,7 @@ export const projects: Project[] = [
     stack: ["React", "TypeScript", "Python", "FastAPI", "NetSuite"],
     reel: false,
     group: "professional",
-    shots: [],
+    shots: plate("finance-platform", "One module, two callers"),
   },
   {
     slug: "cloud-infrastructure",
@@ -1019,7 +1031,7 @@ export const projects: Project[] = [
     stack: ["Terraform", "AWS", "Helm", "KEDA", "Kubernetes", "Amplify"],
     reel: false,
     group: "professional",
-    shots: [],
+    shots: plate("cloud-infrastructure", "Accounts, images, and the worker fleet"),
   },
   {
     slug: "marketing-site",
@@ -1042,7 +1054,7 @@ export const projects: Project[] = [
     stack: ["Next.js", "React", "TypeScript", "Strapi"],
     reel: false,
     group: "professional",
-    shots: [],
+    shots: plate("marketing-site", "The pages that can stay static"),
   },
 ];
 

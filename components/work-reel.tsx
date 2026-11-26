@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LiveLink, liveDomain } from "@/components/live-link";
 import { Media } from "@/components/media";
 import { useEffect, useRef } from "react";
 import { TagList } from "@/components/tag";
@@ -181,9 +182,12 @@ export function WorkReel({ projects }: { projects: Project[] }) {
                 <h2>{project.title}</h2>
                 <p>{project.summary}</p>
                 <TagList items={project.stack.slice(0, 5)} />
-                <Link href={`/work/${project.slug}`} transitionTypes={["nav-forward"]} className="text-link">
-                  Case study
-                </Link>
+                <span className="reel-links">
+                  <Link href={`/work/${project.slug}`} transitionTypes={["nav-forward"]} className="text-link">
+                    Case study
+                  </Link>
+                  {project.live ? <LiveLink href={project.live} domain={liveDomain(project.liveLabel)} /> : null}
+                </span>
               </div>
             </article>
           );
