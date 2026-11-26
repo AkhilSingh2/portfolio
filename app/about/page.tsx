@@ -1,14 +1,14 @@
-import type { Metadata } from "next";
 import { Button } from "@/components/button";
 import { PageShell } from "@/components/page-shell";
 import { Portrait } from "@/components/portrait";
+import { pageMeta } from "@/lib/meta";
 import { person } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: "About",
-  description:
-    "Akhilendra Singh is a full-stack engineer in Bangalore. He starts at the interface and stays through the API and the release.",
-};
+export const metadata = pageMeta(
+  "About",
+  "Akhilendra Singh is a full-stack engineer in Bangalore. He starts at the interface and stays through the API and the release.",
+  "/about",
+);
 
 const years = [
   {

@@ -1,0 +1,24 @@
+{
+  "name": "Akhilendra Singh",
+  "short_name": "Akhilendra",
+  "description": "Full-stack engineer, frontend-first, in Bangalore.",
+  "start_url": "/portfolio/",
+  "scope": "/portfolio/",
+  "display": "standalone",
+  "background_color": "#100e0c",
+  "theme_color": "#100e0c",
+  "icons": [
+    {
+      "src": "/portfolio/android-chrome-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/portfolio/android-chrome-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

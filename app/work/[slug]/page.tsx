@@ -6,6 +6,7 @@ import { DeviceFrame } from "@/components/device-frame";
 import { SutraShowcase } from "@/components/sutra-showcase";
 import { PageShell } from "@/components/page-shell";
 import { TagList } from "@/components/tag";
+import { pageMeta } from "@/lib/meta";
 import { getProject, neighbors, projects } from "@/lib/projects";
 
 type Params = { slug: string };
@@ -17,8 +18,8 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
   const project = getProject(slug);
-  if (!project) return { title: "Work" };
-  return { title: project.title, description: project.summary };
+  if (!project) return pageMeta("Work", "Case studies by Akhilendra Singh.", "/work");
+  return pageMeta(project.title, project.summary, `/work/${project.slug}`);
 }
 
 export default async function CaseStudyPage({ params }: { params: Promise<Params> }) {
@@ -113,26 +114,31 @@ export default async function CaseStudyPage({ params }: { params: Promise<Params
           <nav className="case-next" aria-label="More work">
             <div className="case-prev">
               {prev ? (
-                <Link href={`/work/${prev.slug}`}>
-                  <span className="eyebrow">Previous</span>
-                  <span className="case-next-title">
+                <Link href={`/work/${prev.slug}`} title={prev.title}>
+                  <span className="case-next-label">
                     <span aria-hidden="true">← </span>
-                    {prev.title}
+                    <span className="case-next-full">Previous</span>
+                    <span className="case-next-short">Prev</span>
                   </span>
+                  <span className="case-next-title">{prev.title}</span>
                 </Link>
               ) : null}
             </div>
             <div className="case-all">
-              <Link href="/work">All work</Link>
+              <Link href="/work">
+                <span className="case-next-full">All work</span>
+                <span className="case-next-short">All</span>
+              </Link>
             </div>
             <div className="case-forward">
               {next ? (
-                <Link href={`/work/${next.slug}`}>
-                  <span className="eyebrow">Next</span>
-                  <span className="case-next-title">
-                    {next.title}
+                <Link href={`/work/${next.slug}`} title={next.title}>
+                  <span className="case-next-label">
+                    <span className="case-next-full">Next</span>
+                    <span className="case-next-short">Next</span>
                     <span aria-hidden="true"> →</span>
                   </span>
+                  <span className="case-next-title">{next.title}</span>
                 </Link>
               ) : null}
             </div>

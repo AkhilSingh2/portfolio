@@ -65,10 +65,62 @@ function bad(found) {
   return found.pageerrors.length || found.console.length || found.http.length;
 }
 
-async function openMenu(page, mobile) {
-  const name = mobile ? "Menu" : "Index";
-  await page.getByRole("button", { name, exact: true }).click();
+async function openMenu(page) {
+  await page.getByRole("button", { name: "Work", exact: true }).click();
   await page.locator("#site-menu").waitFor({ state: "visible", timeout: 8000 });
+  const seeAll = page.locator("#site-menu a[href$='/work/'], #site-menu a[href$='/work']");
+  if ((await seeAll.count()) === 0) throw new Error("megamenu is missing the link to /work/");
+}
+
+async function checkMeta(page, path) {
+  await page.goto(url(path), { waitUntil: "domcontentloaded" });
+  const meta = await page.evaluate(() => {
+    const content = (selector) => document.querySelector(selector)?.getAttribute("content") || "";
+    const href = (selector) => document.querySelector(selector)?.getAttribute("href") || "";
+    return {
+      title: document.title,
+      ogTitle: content('meta[property="og:title"]'),
+      ogDescription: content('meta[property="og:description"]'),
+      ogImage: content('meta[property="og:image"]'),
+      ogUrl: content('meta[property="og:url"]'),
+      twitter: content('meta[name="twitter:card"]'),
+      icon: href('link[rel="icon"]'),
+      apple: href('link[rel="apple-touch-icon"]'),
+      manifest: href('link[rel="manifest"]'),
+    };
+  });
+  const problems = [];
+  if (!meta.ogTitle) problems.push("missing og:title");
+  if (!meta.ogDescription) problems.push("missing og:description");
+  if (!meta.ogImage.includes(`${base}/og.png`)) problems.push(`og:image ${meta.ogImage}`);
+  if (!/^https?:\/\//.test(meta.ogUrl) || !meta.ogUrl.includes(`${base}/`)) problems.push(`og:url ${meta.ogUrl}`);
+  if (meta.twitter !== "summary_large_image") problems.push(`twitter:card ${meta.twitter}`);
+  if (!meta.icon.includes("favicon")) problems.push(`icon ${meta.icon}`);
+  if (!meta.apple.includes("apple-touch-icon")) problems.push(`apple ${meta.apple}`);
+  if (!meta.manifest.includes("site.webmanifest")) problems.push(`manifest ${meta.manifest}`);
+  for (const href of [meta.icon, meta.apple, meta.manifest, meta.ogImage]) {
+    if (!href) continue;
+    const absolute = new URL(href, page.url());
+    const local = absolute.href.startsWith(origin) ? absolute.href : `${origin}${absolute.pathname}`;
+    const response = await page.request.get(local);
+    if (response.status() >= 400) problems.push(`${response.status()} ${local}`);
+  }
+  if (path.includes("/work/") && path !== "/work/" && !/DocMind/i.test(`${meta.title} ${meta.ogTitle}`)) {
+    problems.push(`case title ${meta.title} / ${meta.ogTitle}`);
+  }
+  if (problems.length) failures.push({ where: `meta ${path}`, message: problems.join("; ") });
+}
+
+{
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  const bag = freshBag();
+  watch(page, bag);
+  for (const path of ["/", "/work/", "/contact/", "/about/", "/resume/", "/work/docmind/", "/design-system/"]) {
+    await checkMeta(page, path);
+  }
+  if (bad(bag)) failures.push({ where: "meta load", ...bag });
+  await context.close();
 }
 
 for (const width of widths) {
@@ -85,7 +137,7 @@ for (const width of widths) {
 
     const mark = { pageerrors: bag.pageerrors.length, console: bag.console.length, http: bag.http.length };
     try {
-      await openMenu(page, viewport.mobile);
+      await openMenu(page);
     } catch (error) {
       failures.push({ where: `${viewport.width} open menu ${start}`, message: String(error), ...since(bag, mark) });
     }
@@ -135,7 +187,7 @@ for (const width of widths) {
         };
         let link = await find();
         if (!link) {
-          await openMenu(visit, viewport.mobile);
+          await openMenu(visit);
           link = await find();
         }
         if (!link) throw new Error(`no visible link for ${href}`);

@@ -1,122 +1,66 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-
-const lines = ["Design the interface.", "Build the system behind it.", "Ship it."];
+import Link from "next/link";
 
 const stages = [
-  { index: "01", title: "Design", note: "The interface" },
-  { index: "02", title: "Build", note: "The system" },
-  { index: "03", title: "Ship", note: "The release" },
-];
+  {
+    index: "01",
+    title: "Design",
+    note: "The interface",
+    body: "I name the person and the job, then draw the flows, the type, and the states that usually get skipped: empty, error, loading, a small screen. The systems I can show are Sutra UI and Calibre, drawn in Figma.",
+    tools: ["Figma", "Sutra UI", "Calibre"],
+    href: "/work/sutra-ui",
+    link: "Sutra UI",
+  },
+  {
+    index: "02",
+    title: "Build",
+    note: "The system",
+    body: "The screen is React, Next.js, and TypeScript. The services behind it are Python, with Flask or FastAPI, and the data lives in Postgres or Supabase.",
+    tools: ["React", "Next.js", "TypeScript", "Python", "Flask", "FastAPI", "Postgres", "Supabase"],
+    href: "/work/mymirro-recommendation-api",
+    link: "Recommendation API",
+  },
+  {
+    index: "03",
+    title: "Ship",
+    note: "The release",
+    body: "I put the web apps on AWS Amplify, pack services in Docker, and run them through CI. The worker fleets sit on Kubernetes and scale with Helm.",
+    tools: ["AWS Amplify", "Docker", "CI", "Kubernetes", "Helm"],
+    href: "/work/cloud-infrastructure",
+    link: "Cloud infrastructure",
+  },
+] as const;
 
 export function Manifesto() {
-  const rootRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) return;
-    const mq = window.matchMedia("(min-width: 960px) and (prefers-reduced-motion: no-preference)");
-    let revert: (() => void) | undefined;
-    let dead = false;
-    let token = 0;
-
-    const setup = async () => {
-      const mine = ++token;
-      revert?.();
-      revert = undefined;
-      document.documentElement.classList.toggle("enhance", mq.matches);
-      if (!mq.matches) return;
-      const [{ gsap }, { ScrollTrigger }] = await Promise.all([
-        import("gsap"),
-        import("gsap/ScrollTrigger"),
-      ]);
-      if (dead || mine !== token || !mq.matches) return;
-      gsap.registerPlugin(ScrollTrigger);
-      const ctx = gsap.context(() => {
-        const items = gsap.utils.toArray<HTMLElement>("[data-line]", root);
-        const figure = root.querySelector<HTMLElement>(".practice-figure");
-        const mark = (index: number) => {
-          if (figure) figure.dataset.stage = String(index);
-        };
-        gsap.set(items, { autoAlpha: 0, y: 24 });
-        gsap.set(items[0], { autoAlpha: 1, y: 0 });
-        mark(0);
-        const timeline = gsap.timeline({
-          defaults: { ease: "none" },
-          scrollTrigger: {
-            trigger: root,
-            start: "top top",
-            end: () => `+=${window.innerHeight * 1.35}`,
-            pin: true,
-            scrub: 0.5,
-            anticipatePin: 1,
-          },
-        });
-        items.forEach((item, index) => {
-          if (index === 0) return;
-          timeline.to(items[index - 1], { autoAlpha: 0, y: -20, duration: 0.35 }, index - 0.15);
-          timeline.to(item, { autoAlpha: 1, y: 0, duration: 0.45 }, index - 0.05);
-          timeline.call(mark, [index], index - 0.02);
-        });
-      }, root);
-      revert = () => ctx.revert();
-    };
-
-    const onChange = () => {
-      void setup();
-    };
-    let armed = false;
-    const arm = () => {
-      if (armed) return;
-      armed = true;
-      void setup();
-      mq.addEventListener("change", onChange);
-    };
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) arm();
-      },
-      { rootMargin: "120px" },
-    );
-    observer.observe(root);
-    return () => {
-      dead = true;
-      observer.disconnect();
-      mq.removeEventListener("change", onChange);
-      revert?.();
-    };
-  }, []);
-
   return (
-    <section className="manifesto theme-ink" id="practice" ref={rootRef} aria-labelledby="practice-title">
-      <div className="manifesto-stage">
+    <section className="practice theme-ink" id="practice" aria-labelledby="practice-title">
+      <div className="practice-head">
         <p className="eyebrow">01 — Practice</p>
-        <h2 id="practice-title" className="sr-only">
-          Design the interface. Build the system behind it. Ship it.
-        </h2>
-        <div className="manifesto-lines" aria-hidden="true">
-          {lines.map((line) => (
-            <p key={line} data-line>
-              {line}
-            </p>
-          ))}
-        </div>
-        <figure className="practice-figure" data-stage="0" aria-hidden="true">
-          <ol>
-            {stages.map((stage) => (
-              <li className="practice-card" key={stage.index}>
-                <span className="practice-dot" />
-                <span className="practice-meta">
-                  <span>{stage.index}</span>
-                  <em>{stage.note}</em>
-                </span>
-                <strong>{stage.title}</strong>
-              </li>
-            ))}
-          </ol>
-        </figure>
+        <h2 id="practice-title">Design the interface. Then build it, and ship it.</h2>
       </div>
+      <ol className="practice-grid">
+        {stages.map((stage) => (
+          <li key={stage.index} className="practice-step">
+            <div className="practice-mark" aria-hidden="true">
+              <span>{stage.index}</span>
+              <i />
+            </div>
+            <div className="practice-copy">
+              <p className="practice-note">{stage.note}</p>
+              <h3>{stage.title}</h3>
+              <p>{stage.body}</p>
+            </div>
+            <ul className="practice-tools">
+              {stage.tools.map((tool) => (
+                <li key={tool}>{tool}</li>
+              ))}
+            </ul>
+            <Link href={stage.href} className="practice-link">
+              {stage.link}
+              <span aria-hidden="true"> →</span>
+            </Link>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }
