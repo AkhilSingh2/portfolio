@@ -34,7 +34,7 @@ function shown(element: Element) {
 }
 
 function obstacles(): Rect[] {
-  const nodes = document.querySelectorAll("[data-obstacle], header.site-nav, .site-footer");
+  const nodes = document.querySelectorAll("[data-obstacle], header.site-nav");
   return [...nodes].filter(shown).map((element) => {
     const rect = element.getBoundingClientRect();
     const pad = 18;
@@ -74,6 +74,15 @@ function bands(blocks: Rect[]): Slot[] {
   return slots;
 }
 
+function anchorY() {
+  const copy = document.querySelector(".thread-chapter.is-active .thread-copy");
+  if (copy) {
+    const rect = copy.getBoundingClientRect();
+    if (rect.height > 20 && rect.bottom > 40 && rect.top < window.innerHeight - 40) return rect.top + rect.height / 2;
+  }
+  return window.innerHeight / 2;
+}
+
 function slotsFor(blocks: Rect[]): Slot[] {
   const slots: Slot[] = [];
   const gap = document.querySelector(".thread-chapter.is-active .thread-gap");
@@ -85,52 +94,81 @@ function slotsFor(blocks: Rect[]): Slot[] {
   const content = blocks.filter((block) => block.right - block.left < window.innerWidth * 0.85);
   let contentRight = margin;
   for (const block of content) contentRight = Math.max(contentRight, block.right);
-  const footerTop = document.querySelector(".site-footer")?.getBoundingClientRect().top ?? window.innerHeight;
-  const limit = Math.min(window.innerHeight - margin, footerTop - 12);
   const right: Slot = {
     x: contentRight + 16,
-    y: 96,
+    y: 28,
     w: window.innerWidth - contentRight - margin - 16,
-    h: limit - 96,
+    h: window.innerHeight - 56,
   };
-  if (right.w > 150 && right.h > 160) slots.push(right);
+  if (right.w > 140 && right.h > 160) slots.push(right);
   slots.push(...bands(blocks));
   return slots.sort((a, b) => b.w * b.h - a.w * a.h);
 }
 
-function place(drawing: Point[], slot: Slot, blocks: Rect[]) {
+function bounds(strokes: Point[][]) {
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const stroke of strokes) {
+    for (const point of stroke) {
+      minX = Math.min(minX, point.x);
+      maxX = Math.max(maxX, point.x);
+      minY = Math.min(minY, point.y);
+      maxY = Math.max(maxY, point.y);
+    }
+  }
+  return { minX, maxX, minY, maxY, w: Math.max(0.001, maxX - minX), h: Math.max(0.001, maxY - minY) };
+}
+
+function place(drawing: Point[][], slot: Slot, blocks: Rect[], focusY: number) {
+  const box = bounds(drawing);
   const phone = window.innerWidth < 960;
-  let scale = Math.min(slot.w, slot.h) * (phone ? 0.32 : 0.48);
-  const cx = slot.x + slot.w / 2;
-  const cy = slot.y + slot.h / 2;
-  for (let attempt = 0; attempt < 12; attempt += 1) {
-    const points = drawing.map((point) => ({ x: cx + point.x * scale, y: cy + point.y * scale }));
-    if (!hits(points, blocks)) return points;
-    scale *= 0.78;
+  const target = window.innerHeight * (phone ? 0.3 : 0.5);
+  let scale = Math.min(target / box.h, (slot.w * 0.94) / box.w, (slot.h * 0.92) / box.h);
+  const midX = (box.minX + box.maxX) / 2;
+  const midY = (box.minY + box.maxY) / 2;
+  const slotCx = slot.x + slot.w / 2;
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    let originY = focusY - midY * scale;
+    const top = originY + box.minY * scale;
+    const bottom = originY + box.maxY * scale;
+    if (top < slot.y) originY += slot.y - top;
+    if (bottom > slot.y + slot.h) originY -= bottom - (slot.y + slot.h);
+    const originX = slotCx - midX * scale;
+    const strokes = drawing.map((stroke) => stroke.map((point) => ({ x: originX + point.x * scale, y: originY + point.y * scale })));
+    if (!hits(strokes.flat(), blocks)) return strokes;
+    scale *= 0.84;
   }
   return null;
 }
 
-function paint2d(ctx: CanvasRenderingContext2D, points: { x: number; y: number }[]) {
+function paint2d(ctx: CanvasRenderingContext2D, strokes: { x: number; y: number }[][]) {
   const width = window.innerWidth;
   const height = window.innerHeight;
   ctx.clearRect(0, 0, width, height);
-  if (points.length < 2) return;
+  if (!strokes.length) return;
+  const phone = window.innerWidth < 960;
   ctx.save();
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  const phone = window.innerWidth < 960;
-  ctx.strokeStyle = "rgba(212, 196, 168, 0.28)";
-  ctx.lineWidth = phone ? 6 : 10;
-  ctx.shadowColor = "rgba(212, 196, 168, 0.85)";
-  ctx.shadowBlur = 16;
-  ctx.beginPath();
-  points.forEach((point, index) => (index === 0 ? ctx.moveTo(point.x, point.y) : ctx.lineTo(point.x, point.y)));
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-  ctx.strokeStyle = "rgba(243, 236, 223, 0.95)";
-  ctx.lineWidth = phone ? 1.3 : 1.7;
-  ctx.stroke();
+  for (const points of strokes) {
+    if (points.length < 2) continue;
+    let length = 0;
+    for (let index = 1; index < points.length; index += 1) length += Math.hypot(points[index].x - points[index - 1].x, points[index].y - points[index - 1].y);
+    if (length < 8) continue;
+    ctx.strokeStyle = "rgba(212, 196, 168, 0.28)";
+    ctx.lineWidth = phone ? 5 : 8;
+    ctx.shadowColor = "rgba(212, 196, 168, 0.8)";
+    ctx.shadowBlur = 14;
+    ctx.beginPath();
+    points.forEach((point, index) => (index === 0 ? ctx.moveTo(point.x, point.y) : ctx.lineTo(point.x, point.y)));
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = "rgba(243, 236, 223, 0.95)";
+    ctx.lineWidth = phone ? 1.15 : 1.45;
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -156,14 +194,18 @@ export function ThreadField() {
     if (host) watch.observe(host);
 
     const layout = () => {
+      if (!running) {
+        window.__threadSamples = [];
+        return [];
+      }
       const drawing = threadDrawing(readProgress(), { reduced: reduce });
       const blocks = obstacles();
       for (const slot of slotsFor(blocks)) {
-        const points = place(drawing.points, slot, blocks);
-        if (points) {
-          window.__threadSamples = points;
+        const strokes = place(drawing.strokes, slot, blocks, anchorY());
+        if (strokes) {
+          window.__threadSamples = strokes.flat();
           window.__threadShape = drawing.name;
-          return points;
+          return strokes;
         }
       }
       window.__threadSamples = [];
@@ -201,7 +243,7 @@ export function ThreadField() {
       }
       const tick = () => {
         if (dead) return;
-        if (running && !document.hidden) draw();
+        if (!document.hidden) draw();
         frame = window.requestAnimationFrame(tick);
       };
       tick();
@@ -222,26 +264,32 @@ export function ThreadField() {
       const scene = new THREE.Scene();
       const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -10, 10);
       camera.position.z = 5;
-      const ribbon = (points: { x: number; y: number }[], halfWidth: number) => {
+      const ribbon = (strokes: { x: number; y: number }[][], halfWidth: number) => {
         const width = window.innerWidth;
         const height = window.innerHeight;
         const positions: number[] = [];
         const indices: number[] = [];
         const toNdc = (x: number, y: number) => [(x / width) * 2 - 1, 1 - (y / height) * 2, 0];
-        for (let index = 0; index < points.length; index += 1) {
-          const previous = points[Math.max(0, index - 1)];
-          const next = points[Math.min(points.length - 1, index + 1)];
-          let dx = next.x - previous.x;
-          let dy = next.y - previous.y;
-          const length = Math.hypot(dx, dy) || 1;
-          dx /= length;
-          dy /= length;
-          positions.push(...toNdc(points[index].x + -dy * halfWidth, points[index].y + dx * halfWidth));
-          positions.push(...toNdc(points[index].x - -dy * halfWidth, points[index].y - dx * halfWidth));
-        }
-        for (let index = 0; index < points.length - 1; index += 1) {
-          const start = index * 2;
-          indices.push(start, start + 1, start + 2, start + 1, start + 3, start + 2);
+        for (const points of strokes) {
+          let length = 0;
+          for (let index = 1; index < points.length; index += 1) length += Math.hypot(points[index].x - points[index - 1].x, points[index].y - points[index - 1].y);
+          if (length < 8) continue;
+          const base = positions.length / 3;
+          for (let index = 0; index < points.length; index += 1) {
+            const previous = points[Math.max(0, index - 1)];
+            const next = points[Math.min(points.length - 1, index + 1)];
+            let dx = next.x - previous.x;
+            let dy = next.y - previous.y;
+            const span = Math.hypot(dx, dy) || 1;
+            dx /= span;
+            dy /= span;
+            positions.push(...toNdc(points[index].x + -dy * halfWidth, points[index].y + dx * halfWidth));
+            positions.push(...toNdc(points[index].x - -dy * halfWidth, points[index].y - dx * halfWidth));
+          }
+          for (let index = 0; index < points.length - 1; index += 1) {
+            const start = base + index * 2;
+            indices.push(start, start + 1, start + 2, start + 1, start + 3, start + 2);
+          }
         }
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
@@ -261,12 +309,12 @@ export function ThreadField() {
       window.addEventListener("resize", resize);
       const tick = () => {
         if (dead) return;
-        if (running && !document.hidden) {
-          const points = layout();
+        if (!document.hidden) {
+          const strokes = layout();
           glow.geometry.dispose();
           core.geometry.dispose();
-          glow.geometry = ribbon(points, 7);
-          core.geometry = ribbon(points, 1.35);
+          glow.geometry = ribbon(strokes, 6);
+          core.geometry = ribbon(strokes, 1.2);
           renderer.render(scene, camera);
         }
         frame = window.requestAnimationFrame(tick);

@@ -5567,7 +5567,7 @@ html.footer-reveal .site-footer {
 
   .thread-gap {
     display: block;
-    height: 9.5rem;
+    height: 16rem;
   }
 }
 
@@ -5602,7 +5602,142 @@ html.footer-reveal .site-footer {
   }
 }
 
+.ground {
+  position: relative;
+  z-index: 2;
+  background: var(--ink-950);
+  display: grid;
+  gap: 2.2rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 5.5rem var(--pad) 4.5rem;
+  color: var(--bone-50);
+}
+
+.ground h2 {
+  max-width: 16ch;
+  margin: 0.35rem 0 0;
+  font-size: clamp(2.4rem, 4.4vw, 4rem);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+
+.ground-roles,
+.ground-caps {
+  display: grid;
+  gap: 1.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ground-roles li {
+  display: grid;
+  gap: 0.25rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(246, 241, 232, 0.16);
+}
+
+.ground-roles span,
+.ground-caps span {
+  color: var(--ember-500);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ground-roles strong,
+.ground-caps strong {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 520;
+  letter-spacing: -0.03em;
+}
+
+.ground-roles p,
+.ground-caps span {
+  max-width: 42rem;
+  margin: 0;
+  color: var(--bone-200);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  letter-spacing: 0;
+  line-height: 1.45;
+  text-transform: none;
+}
+
+.ground-caps {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.2rem;
+}
+
+.ground-caps li {
+  display: grid;
+  gap: 0.35rem;
+  align-content: start;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(246, 241, 232, 0.16);
+}
+
+.ground-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.ground > * {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.ground.is-in > * {
+  animation: ground-in 0.7s var(--ease-out) forwards;
+}
+
+.ground.is-in > *:nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+.ground.is-in > *:nth-child(3) {
+  animation-delay: 0.16s;
+}
+
+.ground.is-in > *:nth-child(4) {
+  animation-delay: 0.24s;
+}
+
+@keyframes ground-in {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 800px) {
+  .ground-caps {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .ground {
+    padding-top: 3.5rem;
+  }
+
+  .ground-caps {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .ground > *,
+  .ground.is-in > * {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
   html.enhance .thread-chapter {
     position: relative;
     opacity: 1;
