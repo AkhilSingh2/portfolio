@@ -6,6 +6,7 @@ import { DeviceFrame } from "@/components/device-frame";
 import { SutraShowcase } from "@/components/sutra-showcase";
 import { PageShell } from "@/components/page-shell";
 import { TagList } from "@/components/tag";
+import { LiveLink, liveDomain } from "@/components/live-link";
 import { pageMeta } from "@/lib/meta";
 import { getProject, neighbors, projects } from "@/lib/projects";
 
@@ -65,11 +66,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<Params
                     Pull request
                   </a>
                 ) : null}
-                {project.live ? (
-                  <a href={project.live} target="_blank" rel="noreferrer">
-                    Live site
-                  </a>
-                ) : null}
+                {project.live ? <LiveLink href={project.live} domain={liveDomain(project.liveLabel)} /> : null}
               </dd>
             </div>
           </dl>

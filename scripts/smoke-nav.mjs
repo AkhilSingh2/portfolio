@@ -191,13 +191,20 @@ for (const width of widths) {
           const links = visit.locator(`a[href=${JSON.stringify(href)}]`);
           const count = await links.count();
           let moving = null;
+          let content = null;
           for (let index = 0; index < count; index += 1) {
             const link = links.nth(index);
             if (!(await link.isVisible())) continue;
-            const animated = await link.evaluate((node) => Boolean(node.closest(".reel-stage, .practice-stage")));
-            if (!animated) return { link, force: false };
-            moving = link;
+            const place = await link.evaluate((node) => {
+              if (node.closest(".reel-stage, .practice-stage")) return "moving";
+              if (node.closest("header, footer, #site-menu")) return "chrome";
+              return "content";
+            });
+            if (place === "chrome") return { link, force: false };
+            if (place === "moving") moving = link;
+            else content = link;
           }
+          if (content) return { link: content, force: true };
           return moving ? { link: moving, force: true } : null;
         };
         let link = await find();
