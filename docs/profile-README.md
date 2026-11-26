@@ -25,6 +25,8 @@ Bangalore, India. Open to senior frontend and full-stack roles.
 | [**LaunchPad**](https://github.com/AkhilSingh2/launchpad-saas) | Multi-tenant SaaS starter: sessions, roles, billing, audit log. [Live demo](https://akhil-launchpad.vercel.app) |
 | [**Tandem**](https://github.com/AkhilSingh2/tandem) | Real-time job-hunt studio. Yjs, live cursors, offline merge. [Live demo](https://akhilsingh2.github.io/tandem/) |
 | [**Pulse**](https://github.com/AkhilSingh2/pulse-analytics) | Product analytics: ingest, funnels, retention, rollups. [Live demo](https://akhilsingh2.github.io/pulse-analytics/) |
+| [**Buzzroom**](https://github.com/AkhilSingh2/buzzroom) | Party trivia game show: one big screen, a room of phones. Socket.IO, reconnect-safe state, a three.js stage. [Live demo](https://akhilsingh2.github.io/buzzroom/) |
+| [**Trainer**](https://github.com/AkhilSingh2/trainer) | Voice-first coach that reshapes the day from recovery and mood. FastAPI, pgvector memory, SwiftUI. [Live demo](https://akhilsingh2.github.io/trainer/) |
 | [**SpendSense**](https://github.com/AkhilSingh2/spendsense-mobile) | Local-first Expo ledger. Type an expense in a sentence. [Live demo](https://akhilsingh2.github.io/spendsense-mobile/) |
 | [**Quorum**](https://github.com/AkhilSingh2/meeting-actions-agent) | Meeting transcripts into decisions, owners, and a follow-up. Every item cites its line. [Live demo](https://akhilsingh2.github.io/meeting-actions-agent/) |
 | [**Aayam**](https://github.com/AkhilSingh2/india-salary-tax) | Salary and income-tax calculators for India. [Live](https://akhilsingh2.github.io/india-salary-tax/) |

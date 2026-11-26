@@ -311,6 +311,111 @@ export const projects: Project[] = [
     ],
   },
   {
+    slug: "buzzroom",
+    title: "Buzzroom",
+    kicker: "Party trivia game show",
+    year: "2026",
+    summary:
+      "A trivia night for one big screen and a room full of phones. Teams join from a QR code, answer against a shared clock, and watch the scores land on a three.js stage.",
+    problem:
+      "Phones sleep, Wi-Fi drops, and the host's laptop restarts. A quiz that keeps state in the socket loses a team's answers the moment a screen locks.",
+    built:
+      "One Node process owns the game. Express serves the screens and Socket.IO carries every action. A phone reconnects on a new socket with its saved player id and is re-bound to its team, and the whole game is snapshotted to disk so a restart resumes mid-round. The display is a three.js stage with CC0 models.",
+    outcome:
+      "A host console, a big-screen display, a phone controller, and an audience view, with buzzer battles, lifelines, and a chance bowl. Smoke and reconnect tests run in CI. The live link runs in demo mode with sample data: the real server is bundled for the browser and plays a show with four simulated teams, and you can join from the panel beside it.",
+    highlights: [
+      "Twelve categories and 180 original questions, including flags drawn as SVG.",
+      "Reconnect-safe teams: the player id survives a locked phone, and a 75-second grace keeps the seat.",
+      "An atomic state file, written to a temp file and renamed, restored on boot.",
+      "A printable deck and lifeline cards for a night without the network.",
+    ],
+    stack: ["Node.js", "Express 5", "Socket.IO", "Three.js", "esbuild", "Docker", "Fly.io"],
+    repo: `${gh}/buzzroom`,
+    live: "https://akhilsingh2.github.io/buzzroom/",
+    liveLabel: "Live demo",
+    reel: false,
+    group: "selected",
+    shots: [
+      {
+        src: "/work/buzzroom/lobby.webp",
+        alt: "Buzzroom lobby on the big screen with a join QR code and the teams who have joined.",
+        width: 1280,
+        height: 720,
+        caption: "Lobby. Teams join from the QR code.",
+      },
+      {
+        src: "/work/buzzroom/answering.webp",
+        alt: "Buzzroom question on the three.js stage with a countdown and four answer options.",
+        width: 1280,
+        height: 720,
+        caption: "A question on the stage, against the clock.",
+      },
+      {
+        src: "/work/buzzroom/chance-draw.webp",
+        alt: "Buzzroom chance bowl drawing a card for a team.",
+        width: 1280,
+        height: 720,
+        caption: "The chance bowl. Cards can steal, shield, or share points.",
+      },
+      {
+        src: "/work/buzzroom/demo-play-along.webp",
+        alt: "Buzzroom demo with the big screen and a phone controller side by side.",
+        width: 1280,
+        height: 720,
+        caption: "Demo mode. Join the simulated show from the phone panel.",
+      },
+    ],
+  },
+  {
+    slug: "trainer",
+    title: "Trainer",
+    kicker: "Adaptive performance companion",
+    year: "2026",
+    summary:
+      "A voice-first coach that reads last night's recovery and today's mood, decides what kind of day it is, and reshapes training, food, and study around it.",
+    problem:
+      "Most plans assume every day is a good day. After a bad night they still ask for the full session, and a missed day turns into guilt instead of a smaller win.",
+    built:
+      "A readiness engine scores sleep, HRV, and resting heart rate against my own baselines, adds a mood check-in, and classifies the day green, amber, red, or deload. An adapter turns that into a workout, a protein floor, a study block, and micro-tasks. Chat recalls preferences from pgvector memory, and a tutor mode gives hints only.",
+    outcome:
+      "FastAPI, Postgres with pgvector, a plain web UI, and a SwiftUI app with HealthKit and voice. Without an API key an offline coach answers from the day's plan. The live link runs in demo mode with sample data: the web UI in the browser, with ports of the readiness engine and the offline coach and nothing saved.",
+    highlights: [
+      "Tone is part of the plan: coaching, neutral, or empathetic with no guilt.",
+      "A guardrail regenerates any tutor reply that looks like a full solution.",
+      "Every log rebuilds and saves the day's plan.",
+      "Unit tests and an end-to-end smoke test against Postgres in CI.",
+    ],
+    stack: ["Python", "FastAPI", "Postgres", "pgvector", "asyncpg", "Gemini", "SwiftUI", "HealthKit"],
+    repo: `${gh}/trainer`,
+    live: "https://akhilsingh2.github.io/trainer/",
+    liveLabel: "Live demo",
+    reel: false,
+    group: "selected",
+    shots: [
+      {
+        src: "/work/trainer/red-day.webp",
+        alt: "Trainer web UI on a red day with a short plan, micro-tasks, and a mood log.",
+        width: 1280,
+        height: 800,
+        caption: "A red day. One kind sentence and fifteen honest minutes.",
+      },
+      {
+        src: "/work/trainer/green-day.webp",
+        alt: "Trainer web UI on a green day with a full session and a sixty-minute study block.",
+        width: 1280,
+        height: 800,
+        caption: "A green day. The full session comes back.",
+      },
+      {
+        src: "/work/trainer/mobile.webp",
+        alt: "Trainer web UI on a phone.",
+        width: 390,
+        height: 844,
+        caption: "The same plan on a phone.",
+      },
+    ],
+  },
+  {
     slug: "online-chalisa",
     title: "Online Chalisa",
     kicker: "Multilingual reader",
