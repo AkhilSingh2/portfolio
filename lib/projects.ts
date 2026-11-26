@@ -46,7 +46,7 @@ export const projects: Project[] = [
     built:
       "I modelled the headphone in the scene instead of downloading a file, lit it like a studio shot, and pinned the chapters so the driver turns as the line changes. Route changes run through a curtain. On a phone the pin, the custom cursor, and the heavy pixel ratio drop away.",
     outcome:
-      "Four routes — product, specs, gallery, story — build to a static folder. Requesting a pair opens a dialog and does not pretend there is a waitlist. The study is the site.",
+      "Four routes — product, specs, gallery, story — build to a static folder. Requesting a pair opens a dialog and does not pretend there is a waitlist. The study is the site. It is live on GitHub Pages.",
     highlights: [
       "Pinned, scrubbed chapters with GSAP ScrollTrigger and Lenis on the wheel.",
       "A React Three Fiber headphone, lazy-loaded, paused offscreen, with a fragment shader on the driver.",
@@ -55,6 +55,8 @@ export const projects: Project[] = [
     ],
     stack: ["Vite", "React", "TypeScript", "GSAP", "Lenis", "Three.js", "React Three Fiber"],
     repo: `${gh}/kinetic`,
+    live: "https://akhilsingh2.github.io/kinetic/",
+    liveLabel: "Live site",
     pr: `${gh}/kinetic/pull/1`,
     reel: true,
     group: "selected",
@@ -101,7 +103,7 @@ export const projects: Project[] = [
     built:
       "Chunking is heading-aware. Retrieval mixes a hashed vector with a lexical score. Answers stream through the Vercel AI SDK. In the default mock, the answer is extractive: a citation cannot point at a sentence the library does not contain.",
     outcome:
-      "A recruiter can clone the repo and search a seeded library of notes with zero keys. OpenAI, Anthropic, Ollama, and Postgres with pgvector are optional switches on the same tools.",
+      "A recruiter can clone the repo and search a seeded library of notes with zero keys. OpenAI, Anthropic, Ollama, and Postgres with pgvector are optional switches on the same tools. The live link is a static build in demo mode with the sample library, so retrieval and the answerer run in the browser.",
     highlights: [
       "Upload a file, paste a note, or ingest a public URL, with checks against fetching internal addresses.",
       "Visible tool steps: retrieve, calculate, search, summarise, compare.",
@@ -110,6 +112,8 @@ export const projects: Project[] = [
     ],
     stack: ["Next.js", "TypeScript", "Vercel AI SDK", "Tailwind CSS", "Drizzle", "pgvector", "Vitest", "Playwright"],
     repo: `${gh}/docmind`,
+    live: "https://akhilsingh2.github.io/docmind/",
+    liveLabel: "Live demo",
     pr: `${gh}/docmind/pull/1`,
     reel: true,
     group: "selected",
@@ -197,7 +201,7 @@ export const projects: Project[] = [
     built:
       "The document is a Y.Doc. Keystrokes land locally, then stream through a Hocuspocus websocket into SQLite, or Postgres when DATABASE_URL is set. Awareness carries cursors and in-progress strokes and is not persisted. Offline edits sit in IndexedDB.",
     outcome:
-      "No accounts and no paid APIs. /demo opens two real clients side by side. A Playwright test types in one browser and reads the result in the other.",
+      "No accounts and no paid APIs. /demo opens two real clients side by side. A Playwright test types in one browser and reads the result in the other. The live link runs in demo mode with sample data. GitHub Pages has no websocket server, so tabs in one browser sync over a BroadcastChannel.",
     highlights: [
       "Five columns — Wishlist, Applied, Screen, Interview, Offer — with drag and drop and a detail drawer.",
       "A shared brief two people can type in, and a whiteboard stored as normalised points.",
@@ -206,6 +210,8 @@ export const projects: Project[] = [
     ],
     stack: ["Next.js", "React", "TypeScript", "Yjs", "Hocuspocus", "Tailwind CSS", "SQLite", "Playwright"],
     repo: `${gh}/tandem`,
+    live: "https://akhilsingh2.github.io/tandem/",
+    liveLabel: "Live demo",
     pr: `${gh}/tandem/pull/1`,
     reel: true,
     group: "selected",
@@ -245,7 +251,7 @@ export const projects: Project[] = [
     built:
       "The SDK batches page, track, and identify. Ingest validates with Zod, dedupes on event id, and rate-limits. Raw events stay in Postgres. Hourly and daily rollups update on the write. The dashboard reads through tRPC, and the chart says whether it used a rollup or the raw table.",
     outcome:
-      "Nothing calls a paid API. A simulator posts through the real SDK so the overview does not sit still. Identity stays on the anonymous id. user_id is an attribute, not a second person.",
+      "Nothing calls a paid API. A simulator posts through the real SDK so the overview does not sit still. Identity stays on the anonymous id. user_id is an attribute, not a second person. The live link runs in demo mode with sample data: the same queries run against Postgres compiled to WebAssembly in the browser.",
     highlights: [
       "Funnels, retention cohorts, top pages, referrers, segment filters, CSV export, and saved views.",
       "Rollups for volume. Uniques, funnels, and retention stay on raw events.",
@@ -254,6 +260,8 @@ export const projects: Project[] = [
     ],
     stack: ["Next.js", "TypeScript", "tRPC", "Postgres", "Zod", "Recharts", "Turborepo", "Playwright"],
     repo: `${gh}/pulse-analytics`,
+    live: "https://akhilsingh2.github.io/pulse-analytics/",
+    liveLabel: "Live demo",
     pr: `${gh}/pulse-analytics/pull/1`,
     reel: true,
     group: "selected",
@@ -349,7 +357,7 @@ export const projects: Project[] = [
     built:
       "Money is stored as minor units. The parser tries a mock model that turns spoken amounts into digits, then the same grammar as the rules. If the model throws, 450 lunch yesterday still saves. SQLite is the store. The browser falls back to local storage. Sync is optional.",
     outcome:
-      "A sample Bengaluru month fills the charts so the first launch is not an empty state. Budgets raise one alert at 75, 90, or 100 percent, not three. A PIN locks the ledger. Biometrics are used when the device has them.",
+      "A sample Bengaluru month fills the charts so the first launch is not an empty state. Budgets raise one alert at 75, 90, or 100 percent, not three. A PIN locks the ledger. Biometrics are used when the device has them. The live link is the Expo web build in demo mode. The sample month and anything I add stay in that browser.",
     highlights: [
       "Categories, income, monthly caps, and repeats that post themselves when they are due.",
       "INR by default. A charge can keep its original currency, with bundled indicative rates.",
@@ -358,6 +366,8 @@ export const projects: Project[] = [
     ],
     stack: ["Expo", "React Native", "TypeScript", "SQLite", "Reanimated"],
     repo: `${gh}/spendsense-mobile`,
+    live: "https://akhilsingh2.github.io/spendsense-mobile/",
+    liveLabel: "Live demo",
     pr: `${gh}/spendsense-mobile/pull/1`,
     reel: false,
     group: "selected",
@@ -604,7 +614,7 @@ export const projects: Project[] = [
     built:
       "Demo mode is the default and needs no API key. A heuristic reads the transcript and keeps the source sentence as the citation. The review board lists the summary, decisions, action items, open questions, risks, and a follow-up email. I can edit an owner and the email draft rebuilds from the fields. History stays in the browser.",
     outcome:
-      "Markdown, CSV, and an .ics of deadlines download from the page. Ticket previews for Jira, Linear, GitHub, Notion, and Slack stop before the network unless I turn demo mode off and add credentials. The repository scores a checked-in eval set and says those figures describe that set only.",
+      "Markdown, CSV, and an .ics of deadlines download from the page. Ticket previews for Jira, Linear, GitHub, Notion, and Slack stop before the network unless I turn demo mode off and add credentials. The repository scores a checked-in eval set and says those figures describe that set only. The live link runs in demo mode with sample transcripts. The parser and heuristic run in the browser, and exports are dry runs.",
     highlights: [
       "WebVTT, SubRip, Zoom text, Meet's speaker export, dialogue, and Word.",
       "Each item links to a transcript line. Clicking the time scrolls to it.",
@@ -613,6 +623,8 @@ export const projects: Project[] = [
     ],
     stack: ["Next.js", "TypeScript", "Zod"],
     repo: `${gh}/meeting-actions-agent`,
+    live: "https://akhilsingh2.github.io/meeting-actions-agent/",
+    liveLabel: "Live demo",
     reel: false,
     group: "selected",
     shots: [
@@ -819,7 +831,7 @@ export const projects: Project[] = [
     built:
       "A parser for common export formats, an analyzer that writes a personality file and a system prompt, and backends for OpenAI, Anthropic, Ollama, Groq, or OpenRouter. Several exports can merge when the same person appears under different names.",
     outcome:
-      "The screenshot uses the bundled example persona. I only train on chats I have permission to use.",
+      "The screenshot uses the bundled example persona. I only train on chats I have permission to use. The live link is the web chat in demo mode: canned sample replies in the example persona's style, with no model behind it.",
     highlights: [
       "Multi-line messages and system lines, grouped by sender.",
       "Terminal chat and a Flask web UI.",
@@ -827,6 +839,8 @@ export const projects: Project[] = [
     ],
     stack: ["Python", "Flask", "OpenAI", "Anthropic", "Ollama", "Groq"],
     repo: `${gh}/momoGPT`,
+    live: "https://akhilsingh2.github.io/momoGPT/",
+    liveLabel: "Live demo",
     reel: false,
     group: "also",
     shots: [
