@@ -2426,10 +2426,13 @@ code {
   background: radial-gradient(
     circle at 46% 42%,
     rgba(243, 236, 223, 0.5) 0%,
-    rgba(230, 215, 188, 0.22) 34%,
-    rgba(212, 196, 168, 0.08) 56%,
-    transparent 72%
+    rgba(230, 215, 188, 0.22) 32%,
+    rgba(212, 196, 168, 0.1) 52%,
+    rgba(212, 196, 168, 0.04) 68%,
+    transparent 78%
   );
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 0%, #000 80%, transparent 94%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 0%, #000 80%, transparent 94%);
   will-change: transform;
 }
 
