@@ -144,6 +144,21 @@ for (const width of widths) {
     const opened = since(bag, mark);
     if (bad(opened)) failures.push({ where: `${viewport.width} menu ${start}`, ...opened });
 
+    const primary = await page.locator('header.site-nav nav[aria-label="Primary"] a').allTextContents();
+    if (primary.some((label) => label.trim() === "Calibre")) {
+      failures.push({ where: `${viewport.width} ${start} primary nav`, message: "Calibre is still in the top nav" });
+    }
+    if (start === "/") {
+      const inMenu = await page.locator('#site-menu a[href*="design-system"]').count();
+      const inFooter = await page.locator('footer a[href*="design-system"]').count();
+      if (!inMenu || !inFooter) {
+        failures.push({
+          where: `${viewport.width} design-system reach`,
+          message: `menu ${inMenu}, footer ${inFooter}`,
+        });
+      }
+    }
+
     const hoverMark = { pageerrors: bag.pageerrors.length, console: bag.console.length, http: bag.http.length };
     const menuLinks = page.locator("#site-menu a[href]");
     const menuCount = await menuLinks.count();

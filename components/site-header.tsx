@@ -11,7 +11,6 @@ import { SocialLinks } from "@/components/social-links";
 import { useSmooth } from "@/components/smooth-scroll";
 
 const links = [
-  { href: "/design-system", label: "Calibre" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
