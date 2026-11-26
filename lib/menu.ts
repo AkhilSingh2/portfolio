@@ -1,8 +1,8 @@
 import { getProject, projects, type Project } from "@/lib/projects";
 
 const groups = [
-  { id: "ai", label: "AI", slugs: ["docmind", "meeting-actions", "laa-pi", "momogpt", "mymirro"] },
-  { id: "saas", label: "SaaS", slugs: ["launchpad", "tandem", "pulse"] },
+  { id: "ai", label: "AI", slugs: ["docmind", "meeting-actions", "laa-pi", "momogpt", "trainer", "mymirro"] },
+  { id: "saas", label: "SaaS and realtime", slugs: ["launchpad", "tandem", "pulse", "buzzroom"] },
   { id: "mobile", label: "Mobile", slugs: ["spendsense"] },
   {
     id: "utility",
