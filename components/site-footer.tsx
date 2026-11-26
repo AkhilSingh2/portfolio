@@ -36,7 +36,14 @@ export function SiteFooter() {
       document.documentElement.style.setProperty("--footer-h", `${height}px`);
       const wide = window.matchMedia("(min-width: 960px)").matches;
       const fit = wide && height <= window.innerHeight - 8;
-      document.documentElement.classList.toggle("footer-reveal", fit);
+      const root = document.documentElement;
+      const changed = root.classList.contains("footer-reveal") !== fit;
+      root.classList.toggle("footer-reveal", fit);
+      if (changed) {
+        void import("gsap/ScrollTrigger").then(({ ScrollTrigger }) => {
+          if (ScrollTrigger.getAll().length) ScrollTrigger.refresh();
+        });
+      }
     };
     apply();
     const observer = new ResizeObserver(apply);
@@ -60,32 +67,38 @@ export function SiteFooter() {
       const [{ gsap }, { ScrollTrigger }] = await Promise.all([import("gsap"), import("gsap/ScrollTrigger")]);
       if (dead) return;
       gsap.registerPlugin(ScrollTrigger);
-      const title = root.querySelector("[data-close-title]");
+      const title = root.querySelector<HTMLElement>("[data-close-title]");
       const rule = root.querySelector("[data-close-rule]");
       const copy = root.querySelector("[data-close-copy]");
       const items = root.querySelectorAll(".close-list > li");
       const trigger = ".page-sheet";
       const start = "bottom bottom";
-      const end = "bottom 58%";
+      const end = "max";
+      const atBottom = () => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const there = max <= 2 || window.scrollY >= max - 2;
+        title?.classList.toggle("is-open", there);
+      };
+      atBottom();
+      window.addEventListener("scroll", atBottom, { passive: true });
+      window.addEventListener("resize", atBottom);
       const ctx = gsap.context(() => {
         if (title) {
           gsap.fromTo(
             title,
-            { clipPath: "inset(100% 0 0 0)", scale: 1.12 },
+            { clipPath: "inset(100% 0 0 0)" },
             {
-              clipPath: "inset(0% 0 0 0)",
-              scale: 1,
-              transformOrigin: "0% 100%",
+              clipPath: "inset(-18% -8% -14% -8%)",
               ease: "none",
-              scrollTrigger: { trigger, start, end, scrub: 0.4 },
+              scrollTrigger: { trigger, start, end, scrub: true, invalidateOnRefresh: true },
             },
           );
         }
         if (rule) {
-          gsap.fromTo(rule, { scaleX: 0 }, { scaleX: 1, ease: "none", scrollTrigger: { trigger, start, end, scrub: 0.4 } });
+          gsap.fromTo(rule, { scaleX: 0 }, { scaleX: 1, ease: "none", scrollTrigger: { trigger, start, end, scrub: true, invalidateOnRefresh: true } });
         }
         if (copy) {
-          gsap.from(copy, { y: 16, opacity: 0, ease: "power3.out", scrollTrigger: { trigger, start: end } });
+          gsap.from(copy, { y: 16, opacity: 0, ease: "power3.out", scrollTrigger: { trigger, start: "bottom bottom", end: "max" } });
         }
         if (items.length) {
           gsap.from(items, {
@@ -93,11 +106,16 @@ export function SiteFooter() {
             opacity: 0,
             stagger: 0.06,
             ease: "power3.out",
-            scrollTrigger: { trigger, start: end },
+            scrollTrigger: { trigger, start: "bottom bottom", end: "max" },
           });
         }
       }, root);
-      revert = () => ctx.revert();
+      revert = () => {
+        window.removeEventListener("scroll", atBottom);
+        window.removeEventListener("resize", atBottom);
+        title?.classList.remove("is-open");
+        ctx.revert();
+      };
     };
     void run();
     return () => {

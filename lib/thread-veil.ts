@@ -6,11 +6,18 @@ declare global {
   interface Window {
     __threadVeil?: (x: number, y: number) => number;
     __threadPlacement?: string;
+    __contentX?: number;
   }
 }
 
-/** White outside the words, 0.15 inside the text rect, feathered past its edge. */
-export function renderVeil(width: number, height: number, hole: VeilHole | null) {
+function outside(px: number, py: number, hole: VeilHole) {
+  const dx = px < hole.x ? hole.x - px : px > hole.x + hole.w ? px - (hole.x + hole.w) : 0;
+  const dy = py < hole.y ? hole.y - py : py > hole.y + hole.h ? py - (hole.y + hole.h) : 0;
+  return Math.hypot(dx, dy);
+}
+
+/** Full strength everywhere the line misses the words and the picture. Dim only inside rects it actually crosses. */
+export function renderVeil(width: number, height: number, holes: VeilHole[] | null) {
   const canvas = document.createElement("canvas");
   const step = 4;
   canvas.width = Math.max(1, Math.ceil(width / step));
@@ -19,17 +26,17 @@ export function renderVeil(width: number, height: number, hole: VeilHole | null)
   if (!ctx) return canvas;
   const image = ctx.createImageData(canvas.width, canvas.height);
   const data = image.data;
-  const feather = 40;
+  const feather = 28;
+  const active = (holes ?? []).filter((hole) => hole.w > 4 && hole.h > 4);
   for (let y = 0; y < canvas.height; y += 1) {
     for (let x = 0; x < canvas.width; x += 1) {
       const px = x * step + step / 2;
       const py = y * step + step / 2;
       let amount = 1;
-      if (hole && hole.w > 8 && hole.h > 8) {
-        const dx = px < hole.x ? hole.x - px : px > hole.x + hole.w ? px - (hole.x + hole.w) : 0;
-        const dy = py < hole.y ? hole.y - py : py > hole.y + hole.h ? py - (hole.y + hole.h) : 0;
-        const dist = Math.hypot(dx, dy);
-        amount = dist === 0 ? 0.15 : 0.15 + 0.85 * Math.min(1, dist / feather);
+      for (const hole of active) {
+        const dist = outside(px, py, hole);
+        const here = dist === 0 ? 0.15 : 0.15 + 0.85 * Math.min(1, dist / feather);
+        amount = Math.min(amount, here);
       }
       const index = (y * canvas.width + x) * 4;
       data[index] = 255;
@@ -40,6 +47,23 @@ export function renderVeil(width: number, height: number, hole: VeilHole | null)
   }
   ctx.putImageData(image, 0, 0);
   return canvas;
+}
+
+type Box = { left: number; top: number; right: number; bottom: number };
+
+export function holesForOverlap(samples: { x: number; y: number }[], rects: Box[], origin: { left: number; top: number }): VeilHole[] {
+  const pad = 8;
+  return rects
+    .filter((rect) => rect.right - rect.left > 2 && rect.bottom - rect.top > 2)
+    .filter((rect) =>
+      samples.some((point) => point.x >= rect.left - pad && point.x <= rect.right + pad && point.y >= rect.top - pad && point.y <= rect.bottom + pad),
+    )
+    .map((rect) => ({
+      x: rect.left - origin.left,
+      y: rect.top - origin.top,
+      w: rect.right - rect.left,
+      h: rect.bottom - rect.top,
+    }));
 }
 
 export function applyVeil(element: HTMLElement, mask: HTMLCanvasElement) {
