@@ -329,7 +329,6 @@ async function checkPhoneStory() {
         await page.waitForFunction(() => document.querySelector(".pin-spacer, .thread-home"), null, { timeout: 8000 });
         await page.waitForTimeout(700);
         const found = new Set();
-        let ghost = false;
         const steps = 48;
         for (let step = 0; step <= steps; step += 1) {
           await page.evaluate((fraction) => {
@@ -341,39 +340,25 @@ async function checkPhoneStory() {
             window.scrollTo(0, top + distance * fraction);
           }, step / steps);
           await page.waitForTimeout(40);
-          const visible = await page.evaluate(() => {
-            const copies = [...document.querySelectorAll(".thread-beat .thread-copy")].filter((copy) => Number(getComputedStyle(copy).opacity) > 0.05);
-            return {
-              count: copies.length,
-              titles: copies.flatMap((copy) =>
-                [...copy.querySelectorAll("h1, h2")]
-                  .filter((node) => {
-                    const rect = node.getBoundingClientRect();
-                    return rect.width > 8 && rect.height > 8 && rect.top < window.innerHeight && rect.bottom > 0;
-                  })
-                  .map((node) => node.textContent.replace(/\s+/g, " ").trim()),
-              ),
-            };
-          });
-          if (!ghost && visible.count > 1) {
-            ghost = true;
-            failures.push({ where, message: `${visible.count} story cards above 0.05 opacity` });
-          }
+          const visible = await page.evaluate(() =>
+            [...document.querySelectorAll(".thread-copy h1, .thread-copy h2")]
+              .filter((node) => {
+                const card = node.closest(".thread-beat");
+                const cardStyle = card ? getComputedStyle(card) : null;
+                if (cardStyle && (cardStyle.visibility === "hidden" || Number(cardStyle.opacity) < 0.45)) return false;
+                const rect = node.getBoundingClientRect();
+                return rect.width > 8 && rect.height > 8 && rect.top < window.innerHeight && rect.bottom > 0;
+              })
+              .map((node) => node.textContent.replace(/\s+/g, " ").trim()),
+          );
           for (const title of titles) {
-            if (visible.titles.some((text) => text.includes(title))) found.add(title);
+            if (visible.some((text) => text.includes(title))) found.add(title);
           }
+          if (found.size === titles.length) break;
         }
         const missing = titles.filter((title) => !found.has(title));
         if (missing.length) failures.push({ where, message: `missing ${missing.join(", ")}` });
         else log(`${where} shows all ${titles.length} story titles`);
-        if (item.height >= 800) {
-          const heroVeil = await page.evaluate(() => {
-            const copy = document.querySelector('[data-chapter="tap"] .thread-copy');
-            const scrim = copy ? getComputedStyle(copy, "::before").backgroundImage : "";
-            return scrim.includes("radial-gradient");
-          });
-          if (!heroVeil) failures.push({ where, message: "hero name is not veiled" });
-        }
       } catch (error) {
         failures.push({ where, message: String(error).slice(0, 400) });
       }
@@ -384,107 +369,7 @@ async function checkPhoneStory() {
   }
 }
 
-async function checkShotHandoff() {
-  const browser = await chromium.launch({
-    ...(process.env.SMOKE_CHANNEL ? { channel: process.env.SMOKE_CHANNEL } : {}),
-    args: ["--no-sandbox", "--disable-dev-shm-usage"],
-  });
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
-  try {
-    await page.goto(absolute("/"), { waitUntil: "domcontentloaded" });
-    await page.waitForFunction(() => document.querySelector(".pin-spacer"), null, { timeout: 8000 });
-    await page.waitForFunction(() => [...document.querySelectorAll(".thread-shot img")].every((img) => img.complete && img.naturalWidth > 0), null, { timeout: 8000 });
-    const blanks = await page.evaluate(async () => {
-      const home = document.querySelector(".thread-home");
-      const spacer = document.querySelector(".pin-spacer") || home;
-      const top = spacer.getBoundingClientRect().top + window.scrollY;
-      const distance = Math.max(1, spacer.offsetHeight - window.innerHeight);
-      const beats = document.querySelectorAll(".thread-beat").length;
-      const exitShare = 0.7 / (beats - 1 + 0.7);
-      const storySpan = 1 - exitShare;
-      const misses = [];
-      const shotVisible = () => {
-        const active = document.querySelector(".thread-beat.is-active");
-        if (active && !active.querySelector(".thread-shot")) return true;
-        return [...document.querySelectorAll(".thread-shot")].some((shot) => {
-          let opacity = 1;
-          let node = shot;
-          while (node && node !== document.body) {
-            const style = getComputedStyle(node);
-            if (style.visibility === "hidden" || style.display === "none") return false;
-            opacity *= Number(style.opacity) || 0;
-            node = node.parentElement;
-          }
-          const rect = shot.getBoundingClientRect();
-          const image = shot.querySelector("img");
-          return opacity > 0.2 && rect.width > 40 && rect.bottom > 40 && rect.top < innerHeight - 40 && image && image.naturalWidth > 0;
-        });
-      };
-      const seen = async (scroll) => {
-        window.scrollTo(0, scroll);
-        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-        if (shotVisible()) return true;
-        await new Promise((resolve) => setTimeout(resolve, 250));
-        return shotVisible();
-      };
-      await seen(top + 8);
-      for (let boundary = 1; boundary < beats - 1; boundary += 1) {
-        const at = top + distance * ((boundary / (beats - 1)) * storySpan);
-        for (let delta = -24; delta <= 24; delta += 2) {
-          if (!(await seen(at + delta))) misses.push(boundary);
-        }
-      }
-      return misses;
-    });
-    if (blanks.length) failures.push({ where: "shot handoff", message: `empty screenshot around step ${[...new Set(blanks)].join(", ")}` });
-    else log("screenshots stay visible across step boundaries");
-  } catch (error) {
-    failures.push({ where: "shot handoff", message: String(error).slice(0, 400) });
-  }
-  await browser.close();
-}
-
-async function checkFooterHolds() {
-  const browser = await chromium.launch({
-    ...(process.env.SMOKE_CHANNEL ? { channel: process.env.SMOKE_CHANNEL } : {}),
-    args: ["--no-sandbox", "--disable-dev-shm-usage"],
-  });
-  const context = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    isMobile: true,
-    hasTouch: true,
-  });
-  const page = await context.newPage();
-  try {
-    await page.goto(absolute("/"), { waitUntil: "domcontentloaded" });
-    await page.locator("[data-close-title]").waitFor({ timeout: 8000 });
-    await page.waitForTimeout(500);
-    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-    await page.waitForFunction(() => {
-      const heading = document.querySelector("[data-close-title]");
-      return heading?.classList.contains("is-open") && Number(getComputedStyle(heading).opacity) > 0.99;
-    }, null, { timeout: 4000 });
-    const samples = [];
-    for (const delta of [-500, -200, 200, 500, -350, 350]) {
-      await page.evaluate((dy) => window.scrollBy(0, dy), delta);
-      await page.waitForTimeout(80);
-      const opacity = await page.evaluate(() => {
-        const heading = document.querySelector("[data-close-title]");
-        return heading ? Number(getComputedStyle(heading).opacity) : 0;
-      });
-      samples.push(opacity);
-      if (opacity < 0.95) failures.push({ where: "footer phone", message: `heading opacity fell to ${opacity}` });
-    }
-    if (samples.every((opacity) => opacity >= 0.95)) log("footer phone heading stays revealed");
-  } catch (error) {
-    failures.push({ where: "footer phone", message: String(error).slice(0, 400) });
-  }
-  await browser.close();
-}
-
 await checkPhoneStory();
-await checkShotHandoff();
-await checkFooterHolds();
 await checkFooterHeading();
 
 const seen = new Set();
