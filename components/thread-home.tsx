@@ -44,15 +44,73 @@ function sentence(text: string) {
   return cut || text;
 }
 
+type Mark = { viewBox: string; paths: string[]; cx: number; cy: number; dot: number };
+
+const marks = new Map<string, Mark>();
+
+/** Static phone drawing. Points are thinned once; the scroll only fades the result. */
+function markFor(shape: string): Mark {
+  const cached = marks.get(shape);
+  if (cached) return cached;
+  const strokes = threadDrawings[shape] ?? [];
+  const paths: string[] = [];
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const stroke of strokes) {
+    const kept: { x: number; y: number }[] = [];
+    for (let index = 0; index < stroke.length; index += 8) kept.push(stroke[index]);
+    if (kept.length < 2) continue;
+    let length = 0;
+    for (let index = 1; index < kept.length; index += 1) {
+      length += Math.hypot(kept[index].x - kept[index - 1].x, kept[index].y - kept[index - 1].y);
+    }
+    if (length < 0.02) continue;
+    let d = "";
+    kept.forEach((point, index) => {
+      const x = point.x.toFixed(3);
+      const y = point.y.toFixed(3);
+      d += index === 0 ? `M${x} ${y}` : `L${x} ${y}`;
+    });
+    paths.push(d);
+    for (const point of kept) {
+      minX = Math.min(minX, point.x);
+      maxX = Math.max(maxX, point.x);
+      minY = Math.min(minY, point.y);
+      maxY = Math.max(maxY, point.y);
+    }
+  }
+  const w = Number.isFinite(minX) ? Math.max(0.001, maxX - minX) : 1;
+  const h = Number.isFinite(minY) ? Math.max(0.001, maxY - minY) : 1;
+  const padX = w * 0.055;
+  const padY = h * 0.08;
+  const viewW = w + padX * 2;
+  const viewH = h + padY * 2;
+  const shift = viewH * 0.02;
+  const mark: Mark = {
+    viewBox: Number.isFinite(minX)
+      ? `${(minX - padX).toFixed(3)} ${(minY - padY - shift).toFixed(3)} ${viewW.toFixed(3)} ${viewH.toFixed(3)}`
+      : "0 0 1 1",
+    paths,
+    cx: Number.isFinite(minX) ? (minX + maxX) / 2 : 0,
+    cy: Number.isFinite(minY) ? (minY + maxY) / 2 : 0,
+    dot: Math.min(w, h) * 0.045,
+  };
+  marks.set(shape, mark);
+  return mark;
+}
+
 function BeatMark({ shape }: { shape: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const mark = markFor(shape);
 
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
     const phone = window.matchMedia("(max-width: 959px)").matches;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!phone && !reduce) return;
+    if (phone || !reduce) return;
     const strokes = threadDrawings[shape];
     if (!strokes) return;
     const draw = () => {
@@ -169,7 +227,19 @@ function BeatMark({ shape }: { shape: string }) {
     };
   }, [shape]);
 
-  return <canvas ref={ref} className="beat-mark" width={320} height={180} aria-hidden="true" />;
+  return (
+    <>
+      <svg className="beat-mark beat-svg" viewBox={mark.viewBox} preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <g className={shape === "knot" ? "knot-ink" : undefined} fill="none" stroke="rgba(243, 236, 223, 0.55)" strokeWidth={1.35} strokeLinecap="round" strokeLinejoin="round">
+          {mark.paths.map((d, index) => (
+            <path key={index} d={d} vectorEffect="non-scaling-stroke" />
+          ))}
+        </g>
+        {shape === "knot" ? <circle className="knot-dot" cx={mark.cx} cy={mark.cy} r={mark.dot} fill="rgba(212, 196, 168, 0.9)" /> : null}
+      </svg>
+      <canvas ref={ref} className="beat-mark" width={320} height={180} aria-hidden="true" />
+    </>
+  );
 }
 
 export function ThreadHome() {
@@ -232,38 +302,128 @@ export function ThreadHome() {
 
     if (!desktop.matches) {
       document.documentElement.classList.add("thread-phone");
-      placePhone(0);
-      const runPhone = async () => {
-        const { ScrollTrigger } = await import("gsap/ScrollTrigger");
-        const { gsap } = await import("gsap");
-        if (dead) return;
-        gsap.registerPlugin(ScrollTrigger);
-        const exitShare = 0.7 / (beats.length - 1 + 0.7);
-        const trigger = ScrollTrigger.create({
-          trigger: root,
-          start: "top top",
-          end: () => `+=${window.innerHeight * (beats.length - 1 + 0.7)}`,
-          pin: true,
-          invalidateOnRefresh: true,
-          onUpdate: (self) => {
-            const storySpan = 1 - exitShare;
-            const story = Math.min(1, self.progress / storySpan);
-            const exit = Math.max(0, (self.progress - storySpan) / exitShare);
-            placePhone(story);
-            document.documentElement.dataset.threadExit = exit.toFixed(4);
-          },
-        });
-        revert = () => trigger.kill();
-        ScrollTrigger.refresh();
-      };
-      void runPhone();
-      return () => {
+      const finish = () => {
         dead = true;
         revert?.();
         document.documentElement.classList.remove("thread-phone");
         delete document.documentElement.dataset.threadProgress;
         delete document.documentElement.dataset.threadExit;
       };
+      if (reduce.matches) {
+        placePhone(0);
+        const runPhone = async () => {
+          const { ScrollTrigger } = await import("gsap/ScrollTrigger");
+          const { gsap } = await import("gsap");
+          if (dead) return;
+          gsap.registerPlugin(ScrollTrigger);
+          ScrollTrigger.config({ ignoreMobileResize: true });
+          const exitShare = 0.7 / (beats.length - 1 + 0.7);
+          const trigger = ScrollTrigger.create({
+            trigger: root,
+            start: "top top",
+            end: () => `+=${window.innerHeight * (beats.length - 1 + 0.7)}`,
+            pin: true,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              const storySpan = 1 - exitShare;
+              const story = Math.min(1, self.progress / storySpan);
+              placePhone(story);
+            },
+          });
+          revert = () => trigger.kill();
+          ScrollTrigger.refresh();
+        };
+        void runPhone();
+        return finish;
+      }
+
+      const show = (node: HTMLElement | null, value: number) => {
+        if (!node) return;
+        node.style.opacity = String(value);
+        node.style.visibility = value < 0.02 ? "hidden" : "visible";
+      };
+      cards.forEach((card, index) => {
+        const on = index === 0;
+        card.style.opacity = "1";
+        card.style.visibility = "visible";
+        card.style.pointerEvents = on ? "auto" : "none";
+        card.style.zIndex = on ? "2" : "1";
+        card.classList.toggle("is-active", on);
+        show(card.querySelector(".beat-svg"), on ? 1 : 0);
+        show(card.querySelector(".thread-shot"), on ? 1 : 0);
+        show(card.querySelector(".thread-copy"), on ? 1 : 0);
+        show(card.querySelector(".knot-dot"), 0);
+      });
+
+      const runPhone = async () => {
+        await Promise.all(
+          [...root.querySelectorAll(".thread-shot img")].map((img) => (img instanceof HTMLImageElement ? img.decode().catch(() => undefined) : undefined)),
+        );
+        if (dead) return;
+        const { ScrollTrigger } = await import("gsap/ScrollTrigger");
+        const { gsap } = await import("gsap");
+        if (dead) return;
+        gsap.registerPlugin(ScrollTrigger);
+        ScrollTrigger.config({ ignoreMobileResize: true });
+        const layers = cards.map((card) => ({
+          mark: card.querySelector<HTMLElement>(".beat-svg"),
+          shot: card.querySelector<HTMLElement>(".thread-shot"),
+          copy: card.querySelector<HTMLElement>(".thread-copy"),
+          ink: card.querySelector<HTMLElement>(".knot-ink"),
+          dot: card.querySelector<HTMLElement>(".knot-dot"),
+        }));
+        const storyUnits = beats.length - 1;
+        const exitUnits = 0.7;
+        let held = 0;
+        const tl = gsap.timeline({
+          defaults: { ease: "none" },
+          scrollTrigger: {
+            trigger: root,
+            start: "top top",
+            end: () => `+=${window.innerHeight * (storyUnits + exitUnits)}`,
+            pin: true,
+            scrub: true,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              const storySpan = storyUnits / (storyUnits + exitUnits);
+              const story = Math.min(1, self.progress / storySpan);
+              const next = Math.min(storyUnits, Math.max(0, Math.round(story * storyUnits)));
+              if (next === held) return;
+              held = next;
+              cards.forEach((card, index) => {
+                const on = index === held;
+                card.style.pointerEvents = on ? "auto" : "none";
+                card.style.zIndex = on ? "2" : "1";
+                card.classList.toggle("is-active", on);
+              });
+            },
+          },
+        });
+        for (let index = 0; index < storyUnits; index += 1) {
+          const current = layers[index];
+          const incoming = layers[index + 1];
+          if (current.mark) tl.to(current.mark, { autoAlpha: 0, duration: 1 }, index);
+          if (current.shot) tl.to(current.shot, { autoAlpha: 0, duration: 1 }, index);
+          if (incoming.mark) tl.fromTo(incoming.mark, { autoAlpha: 0 }, { autoAlpha: 1, duration: 1, immediateRender: false }, index);
+          if (incoming.shot) tl.fromTo(incoming.shot, { autoAlpha: 0 }, { autoAlpha: 1, duration: 1, immediateRender: false }, index);
+          if (current.copy) tl.to(current.copy, { autoAlpha: 0, duration: 0.5 }, index);
+          if (incoming.copy) tl.fromTo(incoming.copy, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.5, immediateRender: false }, index + 0.5);
+        }
+        const knot = layers[storyUnits];
+        if (knot?.ink) tl.to(knot.ink, { autoAlpha: 0, duration: 0.4 }, storyUnits);
+        if (knot?.dot) {
+          tl.fromTo(knot.dot, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.18, immediateRender: false }, storyUnits + 0.15);
+          tl.to(knot.dot, { autoAlpha: 0, duration: 0.22 }, storyUnits + 0.42);
+        }
+        tl.set({}, {}, storyUnits + exitUnits);
+        revert = () => {
+          tl.scrollTrigger?.kill();
+          tl.kill();
+        };
+        ScrollTrigger.refresh();
+      };
+      void runPhone();
+      return finish;
     }
 
     if (reduce.matches) {

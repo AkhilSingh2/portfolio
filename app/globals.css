@@ -5666,9 +5666,39 @@ html.footer-reveal .site-footer {
     font-size: clamp(1.85rem, 8vw, 2.5rem);
   }
 
+  html.thread-phone {
+    touch-action: pan-y;
+  }
+
   html.thread-phone .thread-home {
     height: 100svh;
     overflow: hidden;
+  }
+
+  canvas.beat-mark {
+    display: none;
+  }
+
+  html.thread-phone .beat-svg {
+    display: block;
+  }
+
+  .beat-svg,
+  .thread-shot,
+  .thread-copy {
+    will-change: opacity;
+  }
+
+  .thread-beat[data-chapter="tap"] .thread-copy::before {
+    background: radial-gradient(ellipse at 50% 42%, rgba(16, 14, 12, 0.94) 0%, rgba(16, 14, 12, 0.82) 46%, rgba(16, 14, 12, 0.4) 70%, rgba(16, 14, 12, 0) 100%);
+  }
+
+  .close-band h2 {
+    transition: opacity 0.45s ease;
+  }
+
+  .close-band h2:not(.is-open) {
+    opacity: 0;
   }
 
   html.thread-phone .thread-stage {
@@ -5740,6 +5770,14 @@ html.footer-reveal .site-footer {
   width: 100%;
   height: 70%;
   pointer-events: none;
+}
+
+.beat-svg {
+  display: none;
+}
+
+.knot-dot {
+  opacity: 0;
 }
 
 html.enhance .thread-home {
