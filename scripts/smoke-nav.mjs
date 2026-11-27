@@ -329,6 +329,7 @@ async function checkPhoneStory() {
         await page.waitForFunction(() => document.querySelector(".pin-spacer, .thread-home"), null, { timeout: 8000 });
         await page.waitForTimeout(700);
         const found = new Set();
+        let ghost = false;
         const steps = 48;
         for (let step = 0; step <= steps; step += 1) {
           await page.evaluate((fraction) => {
@@ -340,21 +341,30 @@ async function checkPhoneStory() {
             window.scrollTo(0, top + distance * fraction);
           }, step / steps);
           await page.waitForTimeout(40);
-          const visible = await page.evaluate(() =>
-            [...document.querySelectorAll(".thread-copy h1, .thread-copy h2")]
-              .filter((node) => {
-                const card = node.closest(".thread-beat");
-                const cardStyle = card ? getComputedStyle(card) : null;
-                if (cardStyle && (cardStyle.visibility === "hidden" || Number(cardStyle.opacity) < 0.45)) return false;
-                const rect = node.getBoundingClientRect();
-                return rect.width > 8 && rect.height > 8 && rect.top < window.innerHeight && rect.bottom > 0;
-              })
-              .map((node) => node.textContent.replace(/\s+/g, " ").trim()),
-          );
-          for (const title of titles) {
-            if (visible.some((text) => text.includes(title))) found.add(title);
+          const visible = await page.evaluate(() => {
+            const cards = [...document.querySelectorAll(".thread-beat")].filter((card) => {
+              const style = getComputedStyle(card);
+              return style.visibility !== "hidden" && Number(style.opacity) > 0.05;
+            });
+            return {
+              count: cards.length,
+              titles: cards.flatMap((card) =>
+                [...card.querySelectorAll(".thread-copy h1, .thread-copy h2")]
+                  .filter((node) => {
+                    const rect = node.getBoundingClientRect();
+                    return rect.width > 8 && rect.height > 8 && rect.top < window.innerHeight && rect.bottom > 0;
+                  })
+                  .map((node) => node.textContent.replace(/\s+/g, " ").trim()),
+              ),
+            };
+          });
+          if (!ghost && visible.count > 1) {
+            ghost = true;
+            failures.push({ where, message: `${visible.count} story cards above 0.05 opacity` });
           }
-          if (found.size === titles.length) break;
+          for (const title of titles) {
+            if (visible.titles.some((text) => text.includes(title))) found.add(title);
+          }
         }
         const missing = titles.filter((title) => !found.has(title));
         if (missing.length) failures.push({ where, message: `missing ${missing.join(", ")}` });
@@ -369,7 +379,43 @@ async function checkPhoneStory() {
   }
 }
 
+async function checkFooterHolds() {
+  const browser = await chromium.launch({
+    ...(process.env.SMOKE_CHANNEL ? { channel: process.env.SMOKE_CHANNEL } : {}),
+    args: ["--no-sandbox", "--disable-dev-shm-usage"],
+  });
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    isMobile: true,
+    hasTouch: true,
+  });
+  const page = await context.newPage();
+  try {
+    await page.goto(absolute("/"), { waitUntil: "domcontentloaded" });
+    await page.locator("[data-close-title]").waitFor({ timeout: 8000 });
+    await page.waitForTimeout(500);
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await page.waitForFunction(() => document.querySelector("[data-close-title]")?.classList.contains("is-open"), null, { timeout: 4000 });
+    const samples = [];
+    for (const delta of [-500, -200, 200, 500, -350, 350]) {
+      await page.evaluate((dy) => window.scrollBy(0, dy), delta);
+      await page.waitForTimeout(80);
+      const opacity = await page.evaluate(() => {
+        const heading = document.querySelector("[data-close-title]");
+        return heading ? Number(getComputedStyle(heading).opacity) : 0;
+      });
+      samples.push(opacity);
+      if (opacity < 0.95) failures.push({ where: "footer phone", message: `heading opacity fell to ${opacity}` });
+    }
+    if (samples.every((opacity) => opacity >= 0.95)) log("footer phone heading stays revealed");
+  } catch (error) {
+    failures.push({ where: "footer phone", message: String(error).slice(0, 400) });
+  }
+  await browser.close();
+}
+
 await checkPhoneStory();
+await checkFooterHolds();
 await checkFooterHeading();
 
 const seen = new Set();
