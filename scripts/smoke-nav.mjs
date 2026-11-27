@@ -424,7 +424,7 @@ async function checkShotHandoff() {
         window.scrollTo(0, scroll);
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         if (shotVisible()) return true;
-        await new Promise((resolve) => setTimeout(resolve, 120));
+        await new Promise((resolve) => setTimeout(resolve, 250));
         return shotVisible();
       };
       await seen(top + 8);
