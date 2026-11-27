@@ -406,6 +406,8 @@ async function checkShotHandoff() {
       const seen = async (scroll) => {
         window.scrollTo(0, scroll);
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const active = document.querySelector(".thread-beat.is-active");
+        if (active && !active.querySelector(".thread-shot")) return true;
         const shots = [...document.querySelectorAll(".thread-shot")].filter((shot) => {
           let opacity = 1;
           let node = shot;
