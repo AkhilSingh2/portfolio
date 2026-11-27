@@ -58,7 +58,7 @@ function BeatMark({ shape }: { shape: string }) {
     const draw = () => {
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const dpr = phone ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = Math.max(1, Math.floor(width * dpr));
       canvas.height = Math.max(1, Math.floor(height * dpr));
       const ctx = canvas.getContext("2d");
@@ -82,13 +82,14 @@ function BeatMark({ shape }: { shape: string }) {
         }
       }
       const scale = Math.min(width * 0.9 / Math.max(1, maxX - minX), height * 0.86 / Math.max(1, maxY - minY));
-      const yShift = -height * 0.02;
+      const yShift = phone ? -height * 0.02 : 0;
+      const stride = phone ? 2 : 1;
       let drawn = strokes;
       let dot: { x: number; y: number; r: number; a: number } | null = null;
       if (shape === "knot") {
         const published = Number.parseFloat(document.documentElement.dataset.threadExit || "");
         let exit = Number.isFinite(published) ? published : 0;
-        if (!Number.isFinite(published)) {
+        if (!phone && !Number.isFinite(published)) {
           const heading = document.querySelector(".ground h2");
           const headingTop = heading?.getBoundingClientRect().top ?? window.innerHeight * 2;
           const start = window.innerHeight * 1.02;
@@ -102,32 +103,33 @@ function BeatMark({ shape }: { shape: string }) {
       }
       const samples: { x: number; y: number }[] = [];
       for (const stroke of drawn) {
-        let length = 0;
-        for (let index = 1; index < stroke.length; index += 1) {
-          length += Math.hypot(stroke[index].x - stroke[index - 1].x, stroke[index].y - stroke[index - 1].y);
-        }
-        if (length < 0.05) continue;
+        if (stroke.length < 2) continue;
         ctx.beginPath();
-        stroke.forEach((point, index) => {
-          const x = width / 2 + point.x * scale;
-          const y = height / 2 + yShift + point.y * scale;
+        for (let index = 0; index < stroke.length; index += stride) {
+          const x = width / 2 + stroke[index].x * scale;
+          const y = height / 2 + yShift + stroke[index].y * scale;
           if (index === 0) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);
-          if (index % 8 === 0) samples.push({ x, y });
-        });
+          if (!phone && index % 8 === 0) samples.push({ x, y });
+        }
+        const last = stroke[stroke.length - 1];
+        ctx.lineTo(width / 2 + last.x * scale, height / 2 + yShift + last.y * scale);
         ctx.stroke();
       }
       if (dot && dot.a > 0.02) {
         ctx.save();
         ctx.globalAlpha = dot.a;
-        ctx.fillStyle = "rgba(212, 196, 168, 0.9)";
-        ctx.shadowColor = "rgba(212, 196, 168, 0.95)";
-        ctx.shadowBlur = 12;
+        ctx.fillStyle = "rgba(243, 236, 223, 0.95)";
+        if (!phone) {
+          ctx.shadowColor = "rgba(212, 196, 168, 0.95)";
+          ctx.shadowBlur = 12;
+        }
         ctx.beginPath();
-        ctx.arc(width / 2 + dot.x * scale, height / 2 + yShift + dot.y * scale, Math.min(6.5, Math.max(1.6, dot.r * scale)), 0, Math.PI * 2);
+        ctx.arc(width / 2 + dot.x * scale, height / 2 + yShift + dot.y * scale, phone ? 4 : Math.min(6.5, Math.max(1.6, dot.r * scale)), 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       }
+      if (phone) return;
       const rect = canvas.getBoundingClientRect();
       if (rect.width < 20 || rect.bottom < 0 || rect.top > window.innerHeight) return;
       const score = Math.abs(rect.left + rect.width / 2 - window.innerWidth / 2) + Math.abs(rect.top + rect.height / 2 - window.innerHeight / 2);
@@ -157,6 +159,31 @@ function BeatMark({ shape }: { shape: string }) {
         delete window.__threadMarkScore;
       }, 0);
     };
+    if (phone) {
+      draw();
+      let widthSeen = window.innerWidth;
+      const onResize = () => {
+        if (window.innerWidth === widthSeen) return;
+        widthSeen = window.innerWidth;
+        draw();
+      };
+      window.addEventListener("resize", onResize);
+      let frame = 0;
+      let lastExit = "";
+      const watch = () => {
+        const exit = document.documentElement.dataset.threadExit || "";
+        if (exit !== lastExit) {
+          lastExit = exit;
+          draw();
+        }
+        frame = window.requestAnimationFrame(watch);
+      };
+      if (shape === "knot") frame = window.requestAnimationFrame(watch);
+      return () => {
+        window.removeEventListener("resize", onResize);
+        if (frame) window.cancelAnimationFrame(frame);
+      };
+    }
     draw();
     const stage = canvas.closest(".thread-stage");
     window.addEventListener("resize", draw);
@@ -214,20 +241,30 @@ export function ThreadHome() {
       }
     };
 
+    const phoneOpacity = new Array<number>(cards.length).fill(-1);
     const placePhone = (progress: number) => {
       const clamped = Math.min(1, Math.max(0, progress));
       const cursor = clamped * (beats.length - 1);
-      cards.forEach((card, index) => {
-        const distance = Math.abs(index - cursor);
-        const shown = reduce.matches ? distance < 0.5 : distance < 1;
-        const opacity = !shown ? 0 : reduce.matches ? 1 : 1 - distance;
-        card.style.opacity = String(opacity);
+      const index = Math.min(beats.length - 1, Math.floor(cursor));
+      const local = cursor - index;
+      const currentOpacity = reduce.matches ? 1 : local < 0.5 ? 1 - local * 2 : 0;
+      const nextOpacity = reduce.matches || index >= beats.length - 1 ? 0 : local < 0.5 ? 0 : (local - 0.5) * 2;
+      const next = Math.min(beats.length - 1, index + 1);
+      for (let cardIndex = 0; cardIndex < cards.length; cardIndex += 1) {
+        let opacity = 0;
+        if (cardIndex === index) opacity = index === next ? 1 : currentOpacity;
+        else if (cardIndex === next) opacity = nextOpacity;
+        if (Math.abs(opacity - phoneOpacity[cardIndex]) < 0.01) continue;
+        phoneOpacity[cardIndex] = opacity;
+        const card = cards[cardIndex];
+        card.style.opacity = opacity.toFixed(3);
         card.style.visibility = opacity < 0.02 ? "hidden" : "visible";
-        card.style.pointerEvents = distance < 0.5 ? "auto" : "none";
-        card.style.zIndex = distance < 0.5 ? "2" : "1";
-        card.classList.toggle("is-active", distance < 0.5);
-      });
-      document.documentElement.dataset.threadProgress = clamped.toFixed(4);
+        card.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
+        card.style.zIndex = opacity > 0.5 ? "2" : "1";
+        card.classList.toggle("is-active", opacity > 0.5);
+      }
+      const key = clamped.toFixed(3);
+      if (document.documentElement.dataset.threadProgress !== key) document.documentElement.dataset.threadProgress = key;
     };
 
     if (!desktop.matches) {
@@ -238,13 +275,16 @@ export function ThreadHome() {
         const { gsap } = await import("gsap");
         if (dead) return;
         gsap.registerPlugin(ScrollTrigger);
+        ScrollTrigger.config({ ignoreMobileResize: true });
         const exitShare = 0.7 / (beats.length - 1 + 0.7);
+        const storyHeight = Math.round(window.innerHeight * (beats.length - 1 + 0.7));
         const trigger = ScrollTrigger.create({
           trigger: root,
           start: "top top",
-          end: () => `+=${window.innerHeight * (beats.length - 1 + 0.7)}`,
+          end: `+=${storyHeight}`,
           pin: true,
-          invalidateOnRefresh: true,
+          anticipatePin: 0,
+          invalidateOnRefresh: false,
           onUpdate: (self) => {
             const storySpan = 1 - exitShare;
             const story = Math.min(1, self.progress / storySpan);

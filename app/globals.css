@@ -5666,9 +5666,21 @@ html.footer-reveal .site-footer {
     font-size: clamp(1.85rem, 8vw, 2.5rem);
   }
 
+  html.thread-phone {
+    touch-action: pan-y;
+  }
+
   html.thread-phone .thread-home {
     height: 100svh;
     overflow: hidden;
+  }
+
+  .close-band h2 {
+    transition: opacity 0.45s ease;
+  }
+
+  .close-band h2:not(.is-open) {
+    opacity: 0;
   }
 
   html.thread-phone .thread-stage {

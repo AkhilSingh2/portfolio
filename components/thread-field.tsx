@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { contentWave, mixSlot, threadSlot } from "@/lib/thread-layout";
 import { threadDrawing, unwindDrawing, type Point, type ThreadDot } from "@/lib/thread-shapes";
-import { threadOrder } from "@/lib/thread-art";
+import { threadDrawings, threadOrder } from "@/lib/thread-art";
 import { applyVeil, holesForOverlap, publishVeil, renderVeil } from "@/lib/thread-veil";
 
 declare global {
@@ -69,6 +69,17 @@ function bounds(strokes: Point[][]) {
   return { minX, maxX, minY, maxY, w: Math.max(0.001, maxX - minX), h: Math.max(0.001, maxY - minY) };
 }
 
+/** 1 on a settled object, 0 when the line has relaxed back into the thread between steps. */
+function settledShape(progress: number) {
+  const span = Math.max(1, threadOrder.length - 1);
+  const scaled = Math.min(span, Math.max(0, progress) * span);
+  const index = Math.min(span, Math.floor(scaled));
+  if (index >= span) return { name: threadOrder[index], weight: 1 };
+  const local = scaled - index;
+  if (local <= 0.5) return { name: threadOrder[index], weight: 1 - local / 0.5 };
+  return { name: threadOrder[index + 1], weight: (local - 0.5) / 0.5 };
+}
+
 /** Fit the drawing in the slot for this scroll position, sliding toward the next step's slot. */
 function placeLarge(drawing: Point[][], progress: number) {
   const span = Math.max(1, threadOrder.length - 1);
@@ -84,7 +95,16 @@ function placeLarge(drawing: Point[][], progress: number) {
   window.__contentX = wave.x;
   window.__threadPlacement = slot.placement;
   const box = bounds(drawing);
-  const scale = Math.min(slot.maxW / box.w, slot.maxH / box.h);
+  let scale = Math.min(slot.maxW / box.w, slot.maxH / box.h);
+  const centered = 1 - Math.min(1, Math.abs(wave.x - 0.5) * 2);
+  if (centered > 0 && slot.placement !== "full-bleed") {
+    const { name, weight } = settledShape(progress);
+    const own = bounds(threadDrawings[name] ?? drawing);
+    const panel = Math.min(window.innerWidth * 0.46, 34 * 16);
+    const cover = (panel + 96) / own.w;
+    const ownFit = Math.min(slot.maxW / own.w, slot.maxH / own.h);
+    if (cover > ownFit && ownFit > 0) scale *= 1 + (cover / ownFit - 1) * centered * weight;
+  }
   const originX = slot.cx - ((box.minX + box.maxX) / 2) * scale;
   const originY = slot.cy - ((box.minY + box.maxY) / 2) * scale;
   return drawing.map((stroke) => stroke.map((point) => ({ x: originX + point.x * scale, y: originY + point.y * scale })));
