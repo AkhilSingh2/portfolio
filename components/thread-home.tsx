@@ -58,7 +58,7 @@ function BeatMark({ shape }: { shape: string }) {
     const draw = () => {
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
-      const dpr = phone ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = Math.max(1, Math.floor(width * dpr));
       canvas.height = Math.max(1, Math.floor(height * dpr));
       const ctx = canvas.getContext("2d");
@@ -81,15 +81,14 @@ function BeatMark({ shape }: { shape: string }) {
           maxY = Math.max(maxY, point.y);
         }
       }
-      const scale = Math.min(width * (phone ? 0.98 : 0.9) / Math.max(1, maxX - minX), height * (phone ? 0.96 : 0.86) / Math.max(1, maxY - minY));
-      const yShift = phone ? -height * 0.02 : 0;
-      const stride = phone ? 4 : 1;
+      const scale = Math.min(width * 0.9 / Math.max(1, maxX - minX), height * 0.86 / Math.max(1, maxY - minY));
+      const yShift = -height * 0.02;
       let drawn = strokes;
       let dot: { x: number; y: number; r: number; a: number } | null = null;
       if (shape === "knot") {
         const published = Number.parseFloat(document.documentElement.dataset.threadExit || "");
         let exit = Number.isFinite(published) ? published : 0;
-        if (!phone && !Number.isFinite(published)) {
+        if (!Number.isFinite(published)) {
           const heading = document.querySelector(".ground h2");
           const headingTop = heading?.getBoundingClientRect().top ?? window.innerHeight * 2;
           const start = window.innerHeight * 1.02;
@@ -103,33 +102,32 @@ function BeatMark({ shape }: { shape: string }) {
       }
       const samples: { x: number; y: number }[] = [];
       for (const stroke of drawn) {
-        if (stroke.length < 2) continue;
+        let length = 0;
+        for (let index = 1; index < stroke.length; index += 1) {
+          length += Math.hypot(stroke[index].x - stroke[index - 1].x, stroke[index].y - stroke[index - 1].y);
+        }
+        if (length < 0.05) continue;
         ctx.beginPath();
-        for (let index = 0; index < stroke.length; index += stride) {
-          const x = width / 2 + stroke[index].x * scale;
-          const y = height / 2 + yShift + stroke[index].y * scale;
+        stroke.forEach((point, index) => {
+          const x = width / 2 + point.x * scale;
+          const y = height / 2 + yShift + point.y * scale;
           if (index === 0) ctx.moveTo(x, y);
           else ctx.lineTo(x, y);
-          if (!phone && index % 8 === 0) samples.push({ x, y });
-        }
-        const last = stroke[stroke.length - 1];
-        ctx.lineTo(width / 2 + last.x * scale, height / 2 + yShift + last.y * scale);
+          if (index % 8 === 0) samples.push({ x, y });
+        });
         ctx.stroke();
       }
       if (dot && dot.a > 0.02) {
         ctx.save();
         ctx.globalAlpha = dot.a;
-        ctx.fillStyle = "rgba(243, 236, 223, 0.95)";
-        if (!phone) {
-          ctx.shadowColor = "rgba(212, 196, 168, 0.95)";
-          ctx.shadowBlur = 12;
-        }
+        ctx.fillStyle = "rgba(212, 196, 168, 0.9)";
+        ctx.shadowColor = "rgba(212, 196, 168, 0.95)";
+        ctx.shadowBlur = 12;
         ctx.beginPath();
-        ctx.arc(width / 2 + dot.x * scale, height / 2 + yShift + dot.y * scale, phone ? 4 : Math.min(6.5, Math.max(1.6, dot.r * scale)), 0, Math.PI * 2);
+        ctx.arc(width / 2 + dot.x * scale, height / 2 + yShift + dot.y * scale, Math.min(6.5, Math.max(1.6, dot.r * scale)), 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       }
-      if (phone) return;
       const rect = canvas.getBoundingClientRect();
       if (rect.width < 20 || rect.bottom < 0 || rect.top > window.innerHeight) return;
       const score = Math.abs(rect.left + rect.width / 2 - window.innerWidth / 2) + Math.abs(rect.top + rect.height / 2 - window.innerHeight / 2);
@@ -159,31 +157,6 @@ function BeatMark({ shape }: { shape: string }) {
         delete window.__threadMarkScore;
       }, 0);
     };
-    if (phone) {
-      draw();
-      let widthSeen = window.innerWidth;
-      const onResize = () => {
-        if (window.innerWidth === widthSeen) return;
-        widthSeen = window.innerWidth;
-        draw();
-      };
-      window.addEventListener("resize", onResize);
-      let frame = 0;
-      let lastExit = "";
-      const watch = () => {
-        const exit = document.documentElement.dataset.threadExit || "";
-        if (exit !== lastExit) {
-          lastExit = exit;
-          draw();
-        }
-        frame = window.requestAnimationFrame(watch);
-      };
-      if (shape === "knot") frame = window.requestAnimationFrame(watch);
-      return () => {
-        window.removeEventListener("resize", onResize);
-        if (frame) window.cancelAnimationFrame(frame);
-      };
-    }
     draw();
     const stage = canvas.closest(".thread-stage");
     window.addEventListener("resize", draw);
@@ -213,173 +186,71 @@ export function ThreadHome() {
     const cards = [...track.querySelectorAll<HTMLElement>(".thread-beat")];
     let dead = false;
     let revert: (() => void) | undefined;
-    let placedActive = -1;
-    let placedWave = "";
 
     const place = (progress: number) => {
       const clamped = Math.min(1, Math.max(0, progress));
       const cursor = clamped * (beats.length - 1);
-      const activeIndex = Math.min(beats.length - 1, Math.max(0, Math.round(cursor)));
-      if (activeIndex !== placedActive) {
-        cards.forEach((card, index) => {
-          const active = index === activeIndex;
-          card.style.opacity = active ? "1" : "0";
-          card.style.visibility = active ? "visible" : "hidden";
-          card.style.pointerEvents = active ? "auto" : "none";
-          card.style.zIndex = active ? "2" : "1";
-          card.classList.toggle("is-active", active);
-        });
-      }
+      cards.forEach((card, index) => {
+        const active = index === Math.min(beats.length - 1, Math.max(0, Math.round(cursor)));
+        card.style.transform = "translate3d(0, 0, 0)";
+        card.style.opacity = active ? "1" : "0";
+        card.style.visibility = active ? "visible" : "hidden";
+        card.style.pointerEvents = active ? "auto" : "none";
+        card.style.zIndex = active ? "2" : "1";
+        card.classList.toggle("is-active", active);
+        const shot = card.querySelector<HTMLElement>(".thread-shot");
+        if (shot) shot.style.transform = "none";
+      });
       document.documentElement.dataset.threadProgress = clamped.toFixed(4);
       const wave = contentWave(clamped, beats.length);
-      const waveKey = `${wave.x.toFixed(3)}:${wave.scale.toFixed(3)}`;
-      if (waveKey !== placedWave) {
-        placedWave = waveKey;
-        root.style.setProperty("--content-x", wave.x.toFixed(4));
-        root.style.setProperty("--content-scale", wave.scale.toFixed(4));
-        window.__contentX = wave.x;
-      }
-      if (activeIndex !== placedActive) {
-        placedActive = activeIndex;
-        const shell = root.closest(".thread-shell");
-        const copy = cards[activeIndex]?.querySelector(".thread-copy");
-        if (shell instanceof HTMLElement && copy instanceof HTMLElement) {
-          const spare = (root.offsetHeight - copy.offsetHeight) / 2 - 96;
-          shell.style.marginBottom = spare > 48 ? `-${Math.round(spare)}px` : "";
-        }
+      root.style.setProperty("--content-x", wave.x.toFixed(4));
+      root.style.setProperty("--content-scale", wave.scale.toFixed(4));
+      window.__contentX = wave.x;
+      const shell = root.closest(".thread-shell");
+      const copy = root.querySelector(".thread-beat.is-active .thread-copy");
+      if (shell instanceof HTMLElement && copy instanceof HTMLElement) {
+        const spare = (root.offsetHeight - copy.offsetHeight) / 2 - 96;
+        shell.style.marginBottom = spare > 48 ? `-${Math.round(spare)}px` : "";
       }
     };
 
-    const shotEls = cards.map((card) => card.querySelector<HTMLElement>(".thread-shot"));
-    const copyEls = cards.map((card) => card.querySelector<HTMLElement>(".thread-copy"));
-    const markEls = cards.map((card) => card.querySelector<HTMLElement>(".beat-mark"));
-    const shotValue = new Array<string>(cards.length).fill("");
-    let pair: [number, number] = [-1, -1];
-    let held = 0;
-    const shotOpacity = (index: number, cursor: number) => {
-      if (reduce.matches) return index === held ? 1 : 0;
-      const distance = Math.abs(index - cursor);
-      if (distance >= 1) return 0;
-      if (distance <= 0.12) return 1;
-      return Math.max(0, 1 - (distance - 0.12) / 0.88);
-    };
-    const writeShot = (index: number, value: number) => {
-      const frame = shotEls[index];
-      if (!frame) return;
-      const next = value.toFixed(3);
-      if (shotValue[index] === next) return;
-      shotValue[index] = next;
-      frame.style.opacity = next;
-    };
     const placePhone = (progress: number) => {
-      const cursor = Math.min(1, Math.max(0, progress)) * (beats.length - 1);
-      const index = Math.min(beats.length - 1, Math.floor(cursor));
-      const next = Math.min(beats.length - 1, index + 1);
-      if (pair[0] !== index || pair[1] !== next) {
-        for (const previous of pair) {
-          if (previous >= 0 && previous !== index && previous !== next) {
-            writeShot(previous, 0);
-            const frame = shotEls[previous];
-            if (frame) {
-              frame.style.willChange = "auto";
-              frame.style.visibility = "hidden";
-            }
-            const previousMark = markEls[previous];
-            if (previousMark) {
-              previousMark.style.opacity = "0";
-              previousMark.style.visibility = "hidden";
-            }
-          }
-        }
-        for (const current of [index, next]) {
-          const frame = shotEls[current];
-          if (frame) {
-            frame.style.visibility = "visible";
-            frame.style.willChange = "opacity";
-          }
-        }
-        pair = [index, next];
-      }
-      writeShot(index, shotOpacity(index, cursor));
-      if (next !== index) writeShot(next, shotOpacity(next, cursor));
-      let nextHeld = held;
-      if (cursor >= held + 0.7) nextHeld = Math.min(beats.length - 1, Math.floor(cursor + 0.3));
-      else if (cursor < held - 0.2) nextHeld = Math.max(0, Math.floor(cursor + 0.2));
-      if (nextHeld !== held) {
-        const previous = copyEls[held];
-        const incoming = copyEls[nextHeld];
-        if (previous) previous.style.opacity = "0";
-        if (incoming) incoming.style.opacity = "1";
-        const previousCard = cards[held];
-        const incomingCard = cards[nextHeld];
-        if (previousCard) {
-          previousCard.style.pointerEvents = "none";
-          previousCard.style.zIndex = "1";
-          previousCard.classList.remove("is-active");
-        }
-        if (incomingCard) {
-          incomingCard.style.pointerEvents = "auto";
-          incomingCard.style.zIndex = "2";
-          incomingCard.classList.add("is-active");
-        }
-        const previousMark = markEls[held];
-        const incomingMark = markEls[nextHeld];
-        if (previousMark) {
-          previousMark.style.opacity = "0";
-          previousMark.style.visibility = "hidden";
-        }
-        if (incomingMark) {
-          incomingMark.style.visibility = "visible";
-          incomingMark.style.opacity = "1";
-        }
-        held = nextHeld;
-      }
+      const clamped = Math.min(1, Math.max(0, progress));
+      const cursor = clamped * (beats.length - 1);
+      cards.forEach((card, index) => {
+        const distance = Math.abs(index - cursor);
+        const shown = reduce.matches ? distance < 0.5 : distance < 1;
+        const opacity = !shown ? 0 : reduce.matches ? 1 : 1 - distance;
+        card.style.opacity = String(opacity);
+        card.style.visibility = opacity < 0.02 ? "hidden" : "visible";
+        card.style.pointerEvents = distance < 0.5 ? "auto" : "none";
+        card.style.zIndex = distance < 0.5 ? "2" : "1";
+        card.classList.toggle("is-active", distance < 0.5);
+      });
+      document.documentElement.dataset.threadProgress = clamped.toFixed(4);
     };
-    copyEls.forEach((copy, index) => {
-      if (copy) copy.style.opacity = index === 0 ? "1" : "0";
-    });
-    markEls.forEach((mark, index) => {
-      if (!mark) return;
-      mark.style.opacity = index === 0 ? "1" : "0";
-      mark.style.visibility = index === 0 ? "visible" : "hidden";
-    });
-    cards.forEach((card, index) => {
-      card.style.pointerEvents = index === 0 ? "auto" : "none";
-      card.classList.toggle("is-active", index === 0);
-    });
 
     if (!desktop.matches) {
       document.documentElement.classList.add("thread-phone");
-      root.querySelectorAll<HTMLImageElement>(".thread-shot img").forEach((img) => {
-        img.decoding = "sync";
-        img.loading = "eager";
-        if (img.decode) img.decode().catch(() => undefined);
-      });
       placePhone(0);
       const runPhone = async () => {
         const { ScrollTrigger } = await import("gsap/ScrollTrigger");
         const { gsap } = await import("gsap");
         if (dead) return;
         gsap.registerPlugin(ScrollTrigger);
-        ScrollTrigger.config({ ignoreMobileResize: true });
         const exitShare = 0.7 / (beats.length - 1 + 0.7);
-        const storyHeight = Math.round(window.innerHeight * (beats.length - 1 + 0.7));
         const trigger = ScrollTrigger.create({
           trigger: root,
           start: "top top",
-          end: `+=${storyHeight}`,
+          end: () => `+=${window.innerHeight * (beats.length - 1 + 0.7)}`,
           pin: true,
-          anticipatePin: 0,
-          invalidateOnRefresh: false,
+          invalidateOnRefresh: true,
           onUpdate: (self) => {
             const storySpan = 1 - exitShare;
             const story = Math.min(1, self.progress / storySpan);
             const exit = Math.max(0, (self.progress - storySpan) / exitShare);
             placePhone(story);
-            if (exit > 0) {
-              const printed = exit.toFixed(3);
-              if (printed !== document.documentElement.dataset.threadExit) document.documentElement.dataset.threadExit = printed;
-            }
+            document.documentElement.dataset.threadExit = exit.toFixed(4);
           },
         });
         revert = () => trigger.kill();

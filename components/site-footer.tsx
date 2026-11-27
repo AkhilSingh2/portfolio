@@ -48,17 +48,10 @@ export function SiteFooter() {
     apply();
     const observer = new ResizeObserver(apply);
     observer.observe(node);
-    const phoneLayout = window.matchMedia("(max-width: 959px)").matches;
-    let seenWidth = window.innerWidth;
-    const onResize = () => {
-      if (phoneLayout && window.innerWidth === seenWidth) return;
-      seenWidth = window.innerWidth;
-      apply();
-    };
-    window.addEventListener("resize", onResize);
+    window.addEventListener("resize", apply);
     return () => {
       observer.disconnect();
-      window.removeEventListener("resize", onResize);
+      window.removeEventListener("resize", apply);
       document.documentElement.classList.remove("footer-reveal");
     };
   }, []);
@@ -67,36 +60,6 @@ export function SiteFooter() {
     const root = ref.current;
     if (!root) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const phone = window.matchMedia("(max-width: 959px)").matches;
-    if (phone) {
-      const title = root.querySelector<HTMLElement>("[data-close-title]");
-      if (!title) return;
-      if (reduce.matches) {
-        title.classList.add("is-open");
-        return () => title.classList.remove("is-open");
-      }
-      let open = false;
-      let frame = 0;
-      const reveal = () => {
-        frame = 0;
-        if (open) return;
-        if (title.getBoundingClientRect().top < window.innerHeight - 8) {
-          open = true;
-          title.classList.add("is-open");
-          window.removeEventListener("scroll", onScroll);
-        }
-      };
-      const onScroll = () => {
-        if (open || frame) return;
-        frame = window.requestAnimationFrame(reveal);
-      };
-      reveal();
-      window.addEventListener("scroll", onScroll, { passive: true });
-      return () => {
-        window.removeEventListener("scroll", onScroll);
-        if (frame) window.cancelAnimationFrame(frame);
-      };
-    }
     if (reduce.matches) return;
     let dead = false;
     let revert: (() => void) | undefined;
