@@ -86,6 +86,11 @@ function settledShape(progress: number) {
 
 /** Fit the drawing in the slot for this scroll position, sliding toward the next step's slot. */
 function placeLarge(drawing: Point[][], progress: number) {
+  const fit = fitDrawing(drawing, progress);
+  return drawing.map((stroke) => stroke.map((point) => ({ x: fit.originX + point.x * fit.scale, y: fit.originY + point.y * fit.scale })));
+}
+
+function fitDrawing(drawing: Point[][], progress: number) {
   const span = Math.max(1, threadOrder.length - 1);
   const scaled = Math.min(span, Math.max(0, progress) * span);
   const index = Math.min(span, Math.floor(scaled));
@@ -109,15 +114,15 @@ function placeLarge(drawing: Point[][], progress: number) {
     const ownFit = Math.min(slot.maxW / own.w, slot.maxH / own.h);
     if (cover > ownFit && ownFit > 0) scale *= 1 + (cover / ownFit - 1) * centered * weight;
   }
-  const originX = slot.cx - ((box.minX + box.maxX) / 2) * scale;
-  const originY = slot.cy - ((box.minY + box.maxY) / 2) * scale;
-  return drawing.map((stroke) => stroke.map((point) => ({ x: originX + point.x * scale, y: originY + point.y * scale })));
+  const midX = (box.minX + box.maxX) / 2;
+  const midY = (box.minY + box.maxY) / 2;
+  return { scale, originX: slot.cx - midX * scale, originY: slot.cy - midY * scale, midX, midY, cx: slot.cx, cy: slot.cy };
 }
 
 let veilKey = "";
 let veilBucket = "";
 
-function clearVeil(canvas: HTMLCanvasElement) {
+function clearVeil(canvas: HTMLElement) {
   if (veilKey === "none") return;
   veilKey = "none";
   canvas.style.maskImage = "";
@@ -126,7 +131,7 @@ function clearVeil(canvas: HTMLCanvasElement) {
   document.querySelector(".thread-chapter.is-active .thread-copy")?.classList.remove("is-veiled");
 }
 
-function paintVeil(canvas: HTMLCanvasElement, samples: { x: number; y: number }[]) {
+function paintVeil(canvas: HTMLElement, samples: { x: number; y: number }[]) {
   const copy = document.querySelector(".thread-chapter.is-active .thread-copy");
   const host = canvas.getBoundingClientRect();
   if (!(copy instanceof HTMLElement) || host.width < 20) {
@@ -158,11 +163,10 @@ function paintVeil(canvas: HTMLCanvasElement, samples: { x: number; y: number }[
 }
 
 let veilTimer = 0;
-let veilJob: { canvas: HTMLCanvasElement; samples: { x: number; y: number }[] } | null = null;
+let veilJob: { canvas: HTMLElement; samples: { x: number; y: number }[] } | null = null;
 
-function syncVeil(canvas: HTMLCanvasElement, samples: { x: number; y: number }[]) {
-  const chapter = document.querySelector(".thread-beat.is-active")?.getAttribute("data-chapter") || "";
-  const bucket = `${chapter}:${Math.round((window.__contentX || 0) * 24)}:${samples.length > 20 ? 1 : 0}`;
+function syncVeil(canvas: HTMLElement, samples: { x: number; y: number }[], step: number) {
+  const bucket = `${step}:${window.innerWidth}x${window.innerHeight}`;
   if (bucket === veilBucket && veilKey) return;
   veilBucket = bucket;
   veilJob = { canvas, samples };
@@ -226,10 +230,12 @@ function paint2d(ctx: CanvasRenderingContext2D, strokes: { x: number; y: number 
 
 export function ThreadField() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const hostRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const host = hostRef.current;
+    if (!canvas || !host) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const phone = window.matchMedia("(max-width: 959px)").matches;
     if (reduce || phone) return;
@@ -238,7 +244,6 @@ export function ThreadField() {
     let dead = false;
     let running = true;
     let frame = 0;
-    const host = canvas.parentElement;
 
     const watch = new IntersectionObserver((entries) => {
       running = entries.some((entry) => entry.isIntersecting);
@@ -289,22 +294,13 @@ export function ThreadField() {
     const start2d = () => {
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
-      let drawnKey = "";
-      let sized = "";
-      const draw = () => {
-        const key = `${document.documentElement.dataset.threadProgress || ""}|${document.documentElement.dataset.threadExit || ""}|${window.innerWidth}x${window.innerHeight}`;
-        if (key === drawnKey) return;
-        drawnKey = key;
-        const sizeKey = `${window.innerWidth}x${window.innerHeight}`;
-        if (sizeKey !== sized) {
-          sized = sizeKey;
-          resize2d(ctx);
-        }
-        const strokes = layout();
-        syncVeil(canvas, window.__threadSamples || []);
-        paint2d(ctx, strokes, frameDot);
-      };
       if (reduce) {
+        const draw = () => {
+          resize2d(ctx);
+          const strokes = layout();
+          syncVeil(host, window.__threadSamples || [], 0);
+          paint2d(ctx, strokes, frameDot);
+        };
         draw();
         window.addEventListener("scroll", draw, { passive: true });
         window.addEventListener("resize", draw);
@@ -314,10 +310,94 @@ export function ThreadField() {
         };
         return;
       }
+      const BUFFER = 1024;
+      canvas.width = BUFFER;
+      canvas.height = BUFFER;
+      let shapeKey = "";
+      let held: { strokes: Point[][]; bufScale: number } | null = null;
+      const redraw = (strokes: Point[][], dot: ThreadDot | null, bufScale: number, cssScale: number) => {
+        const box = bounds(strokes);
+        const midX = (box.minX + box.maxX) / 2;
+        const midY = (box.minY + box.maxY) / 2;
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, BUFFER, BUFFER);
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        const glow = Math.max(0.8, 7 / Math.max(0.2, cssScale));
+        const core = Math.max(0.45, 1.45 / Math.max(0.2, cssScale));
+        for (const points of strokes) {
+          if (points.length < 2) continue;
+          ctx.beginPath();
+          points.forEach((point, index) => {
+            const x = BUFFER / 2 + (point.x - midX) * bufScale;
+            const y = BUFFER / 2 + (point.y - midY) * bufScale;
+            if (index === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.strokeStyle = "rgba(212, 196, 168, 0.28)";
+          ctx.lineWidth = glow;
+          ctx.stroke();
+          ctx.strokeStyle = "rgba(243, 236, 223, 0.72)";
+          ctx.lineWidth = core;
+          ctx.stroke();
+        }
+        if (dot && dot.a > 0.02) {
+          const x = BUFFER / 2 + (dot.x - midX) * bufScale;
+          const y = BUFFER / 2 + (dot.y - midY) * bufScale;
+          ctx.globalAlpha = dot.a;
+          ctx.fillStyle = "rgba(243, 236, 223, 0.95)";
+          ctx.beginPath();
+          ctx.arc(x, y, Math.max(1.2, core * 1.4), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+      };
       const tick = () => {
         if (dead) return;
-        if (!document.hidden) draw();
         frame = window.requestAnimationFrame(tick);
+        if (document.hidden) return;
+        const progress = readProgress();
+        if (!running || !storyMotion() || anchorY() == null) {
+          canvas.style.opacity = "0";
+          window.__threadSamples = [];
+          return;
+        }
+        canvas.style.opacity = "1";
+        const span = Math.max(1, threadOrder.length - 1);
+        const scaled = Math.min(span, Math.max(0, progress) * span);
+        const index = Math.floor(scaled);
+        const local = scaled - index;
+        const quant = Math.round(local * 24) / 24;
+        const exitQ = Math.round(readExit() * 16) / 16;
+        const key = `${index}:${quant.toFixed(2)}:${exitQ.toFixed(2)}:${window.innerWidth}`;
+        if (key !== shapeKey || !held) {
+          const drawing = threadDrawing(progress, { reduced: false, stride: 2 });
+          const unwound = unwindDrawing(drawing.strokes, readExit());
+          if (!unwound) {
+            held = null;
+            shapeKey = key;
+            window.__threadSamples = [];
+            window.__threadShape = "dot";
+            canvas.style.opacity = "0";
+            return;
+          }
+          const box = bounds(unwound.strokes);
+          const bufScale = 860 / Math.max(box.w, box.h, 0.001);
+          const fitNow = fitDrawing(unwound.strokes, progress);
+          redraw(unwound.strokes, unwound.dot, bufScale, fitNow.scale / bufScale);
+          held = { strokes: unwound.strokes, bufScale };
+          shapeKey = key;
+          window.__threadShape = unwound.dot ? "dot" : drawing.name;
+          window.__threadSamples = unwound.strokes.flat().map((point) => ({
+            x: fitNow.originX + point.x * fitNow.scale,
+            y: fitNow.originY + point.y * fitNow.scale,
+          }));
+          syncVeil(host, window.__threadSamples, Math.round(scaled));
+        }
+        if (!held) return;
+        const fit = fitDrawing(held.strokes, progress);
+        const css = fit.scale / held.bufScale;
+        canvas.style.transform = `translate3d(${(fit.cx - BUFFER / 2).toFixed(1)}px, ${(fit.cy - BUFFER / 2).toFixed(1)}px, 0) scale(${css.toFixed(4)})`;
       };
       tick();
       dispose = () => window.cancelAnimationFrame(frame);
@@ -414,7 +494,7 @@ export function ThreadField() {
         drawnKey = key;
         {
           const strokes = layout();
-          syncVeil(canvas, window.__threadSamples || []);
+          syncVeil(host, window.__threadSamples || [], Math.round(readProgress() * Math.max(1, threadOrder.length - 1)));
           const ink = frameDot?.a ?? 1;
           glowMaterial.opacity = 0.2 * ink;
           coreMaterial.opacity = 0.62 * ink;
@@ -468,5 +548,9 @@ export function ThreadField() {
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="thread-field" aria-hidden="true" />;
+  return (
+    <div ref={hostRef} className="thread-field">
+      <canvas ref={canvasRef} className="thread-ink" aria-hidden="true" />
+    </div>
+  );
 }

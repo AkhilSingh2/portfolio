@@ -250,38 +250,103 @@ export function ThreadHome() {
       }
     };
 
-    const phoneShot = new Array<number>(cards.length).fill(-1);
-    const phoneText = new Array<number>(cards.length).fill(-1);
+    const shotEls = cards.map((card) => card.querySelector<HTMLElement>(".thread-shot"));
+    const copyEls = cards.map((card) => card.querySelector<HTMLElement>(".thread-copy"));
+    const markEls = cards.map((card) => card.querySelector<HTMLElement>(".beat-mark"));
+    const shotValue = new Array<string>(cards.length).fill("");
+    let pair: [number, number] = [-1, -1];
     let held = 0;
-    const placePhone = (progress: number) => {
-      const clamped = Math.min(1, Math.max(0, progress));
-      const cursor = clamped * (beats.length - 1);
-      if (cursor >= held + 0.7) held = Math.min(beats.length - 1, Math.floor(cursor + 0.3));
-      else if (cursor < held - 0.2) held = Math.max(0, Math.floor(cursor + 0.2));
-      for (let cardIndex = 0; cardIndex < cards.length; cardIndex += 1) {
-        const distance = Math.abs(cardIndex - cursor);
-        const shot = reduce.matches ? (cardIndex === held ? 1 : 0) : distance >= 1 ? 0 : distance <= 0.12 ? 1 : Math.max(0, 1 - (distance - 0.12) / 0.88);
-        const text = cardIndex === held ? 1 : 0;
-        const card = cards[cardIndex];
-        if (Math.abs(shot - phoneShot[cardIndex]) >= 0.015) {
-          phoneShot[cardIndex] = shot;
-          const frame = card.querySelector<HTMLElement>(".thread-shot");
-          if (frame) frame.style.opacity = shot.toFixed(3);
-          const mark = card.querySelector<HTMLElement>(".beat-mark");
-          if (mark) mark.style.opacity = (frame ? shot : text).toFixed(3);
-        }
-        if (text !== phoneText[cardIndex]) {
-          phoneText[cardIndex] = text;
-          const copy = card.querySelector<HTMLElement>(".thread-copy");
-          if (copy) copy.style.opacity = String(text);
-          card.style.pointerEvents = text ? "auto" : "none";
-          card.style.zIndex = text ? "2" : "1";
-          card.classList.toggle("is-active", text === 1);
-        }
-      }
-      const key = clamped.toFixed(3);
-      if (document.documentElement.dataset.threadProgress !== key) document.documentElement.dataset.threadProgress = key;
+    const shotOpacity = (index: number, cursor: number) => {
+      if (reduce.matches) return index === held ? 1 : 0;
+      const distance = Math.abs(index - cursor);
+      if (distance >= 1) return 0;
+      if (distance <= 0.12) return 1;
+      return Math.max(0, 1 - (distance - 0.12) / 0.88);
     };
+    const writeShot = (index: number, value: number) => {
+      const frame = shotEls[index];
+      if (!frame) return;
+      const next = value.toFixed(3);
+      if (shotValue[index] === next) return;
+      shotValue[index] = next;
+      frame.style.opacity = next;
+    };
+    const placePhone = (progress: number) => {
+      const cursor = Math.min(1, Math.max(0, progress)) * (beats.length - 1);
+      const index = Math.min(beats.length - 1, Math.floor(cursor));
+      const next = Math.min(beats.length - 1, index + 1);
+      if (pair[0] !== index || pair[1] !== next) {
+        for (const previous of pair) {
+          if (previous >= 0 && previous !== index && previous !== next) {
+            writeShot(previous, 0);
+            const frame = shotEls[previous];
+            if (frame) {
+              frame.style.willChange = "auto";
+              frame.style.visibility = "hidden";
+            }
+            const previousMark = markEls[previous];
+            if (previousMark) {
+              previousMark.style.opacity = "0";
+              previousMark.style.visibility = "hidden";
+            }
+          }
+        }
+        for (const current of [index, next]) {
+          const frame = shotEls[current];
+          if (frame) {
+            frame.style.visibility = "visible";
+            frame.style.willChange = "opacity";
+          }
+        }
+        pair = [index, next];
+      }
+      writeShot(index, shotOpacity(index, cursor));
+      if (next !== index) writeShot(next, shotOpacity(next, cursor));
+      let nextHeld = held;
+      if (cursor >= held + 0.7) nextHeld = Math.min(beats.length - 1, Math.floor(cursor + 0.3));
+      else if (cursor < held - 0.2) nextHeld = Math.max(0, Math.floor(cursor + 0.2));
+      if (nextHeld !== held) {
+        const previous = copyEls[held];
+        const incoming = copyEls[nextHeld];
+        if (previous) previous.style.opacity = "0";
+        if (incoming) incoming.style.opacity = "1";
+        const previousCard = cards[held];
+        const incomingCard = cards[nextHeld];
+        if (previousCard) {
+          previousCard.style.pointerEvents = "none";
+          previousCard.style.zIndex = "1";
+          previousCard.classList.remove("is-active");
+        }
+        if (incomingCard) {
+          incomingCard.style.pointerEvents = "auto";
+          incomingCard.style.zIndex = "2";
+          incomingCard.classList.add("is-active");
+        }
+        const previousMark = markEls[held];
+        const incomingMark = markEls[nextHeld];
+        if (previousMark) {
+          previousMark.style.opacity = "0";
+          previousMark.style.visibility = "hidden";
+        }
+        if (incomingMark) {
+          incomingMark.style.visibility = "visible";
+          incomingMark.style.opacity = "1";
+        }
+        held = nextHeld;
+      }
+    };
+    copyEls.forEach((copy, index) => {
+      if (copy) copy.style.opacity = index === 0 ? "1" : "0";
+    });
+    markEls.forEach((mark, index) => {
+      if (!mark) return;
+      mark.style.opacity = index === 0 ? "1" : "0";
+      mark.style.visibility = index === 0 ? "visible" : "hidden";
+    });
+    cards.forEach((card, index) => {
+      card.style.pointerEvents = index === 0 ? "auto" : "none";
+      card.classList.toggle("is-active", index === 0);
+    });
 
     if (!desktop.matches) {
       document.documentElement.classList.add("thread-phone");
@@ -311,7 +376,10 @@ export function ThreadHome() {
             const story = Math.min(1, self.progress / storySpan);
             const exit = Math.max(0, (self.progress - storySpan) / exitShare);
             placePhone(story);
-            document.documentElement.dataset.threadExit = exit.toFixed(4);
+            if (exit > 0) {
+              const printed = exit.toFixed(3);
+              if (printed !== document.documentElement.dataset.threadExit) document.documentElement.dataset.threadExit = printed;
+            }
           },
         });
         revert = () => trigger.kill();
