@@ -403,8 +403,9 @@ async function checkShotHandoff() {
       const exitShare = 0.7 / (beats - 1 + 0.7);
       const storySpan = 1 - exitShare;
       const misses = [];
-      const seen = (scroll) => {
+      const seen = async (scroll) => {
         window.scrollTo(0, scroll);
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         const shots = [...document.querySelectorAll(".thread-shot")].filter((shot) => {
           let opacity = 1;
           let node = shot;
@@ -421,7 +422,7 @@ async function checkShotHandoff() {
       for (let boundary = 1; boundary < beats - 1; boundary += 1) {
         const at = top + distance * ((boundary / (beats - 1)) * storySpan);
         for (let delta = -24; delta <= 24; delta += 2) {
-          if (!seen(at + delta)) misses.push(boundary);
+          if (!(await seen(at + delta))) misses.push(boundary);
         }
       }
       return misses;
