@@ -21,6 +21,7 @@ const groups = [
       "localisation-pipeline",
       "finance-platform",
       "cloud-infrastructure",
+      "amplify-accounts",
       "marketing-site",
     ],
   },

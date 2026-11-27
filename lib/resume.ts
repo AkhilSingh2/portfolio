@@ -1,7 +1,7 @@
 /** Text taken from Akhilendra_Singh_Resume.pdf. The phone number is intentionally absent. */
 
 export const resumeSummary =
-  "Full-Stack & Frontend Engineer (~6 years experience) with deep expertise in React, Next.js, TypeScript, HTML/CSS, and cloud-native engineering across AWS and Azure. Strong background building large-scale web applications, design systems, and AI-integrated workflows alongside Python/FastAPI backends, PostgreSQL, and Kubernetes. Experienced in code quality governance, CI/CD automation, and translating product requirements into resilient, high-performance systems.";
+  "Full-Stack & Frontend Engineer (~6 years experience) with deep expertise in React, Next.js, TypeScript, HTML/CSS, and cloud-native engineering on AWS. Strong background building large-scale web applications, design systems, and AI-integrated workflows alongside Python/FastAPI backends, PostgreSQL, and Kubernetes. Experienced in code quality governance, CI/CD automation, and translating product requirements into resilient, high-performance systems.";
 
 export const resumeSkills = [
   {
@@ -30,6 +30,7 @@ export const resumeSkills = [
       "Node.js",
       "PostgreSQL",
       "MongoDB",
+      "DynamoDB",
       "RESTful APIs",
       "Celery",
       "SQS",
@@ -40,8 +41,7 @@ export const resumeSkills = [
     id: "cloud",
     label: "Cloud & DevOps",
     items: [
-      "Azure (CI/CD, Cloud Workflows)",
-      "AWS (S3, ECR, RDS, IAM, SQS)",
+      "AWS (Amplify, EKS, RDS, S3, ECR, IAM, SQS, Cognito, Secrets Manager, Route 53, SSO, multi-account)",
       "Kubernetes (Helm)",
       "KEDA (Autoscaling)",
       "Terraform",

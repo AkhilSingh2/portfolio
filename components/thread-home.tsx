@@ -29,7 +29,7 @@ const beats: Beat[] = [
   { id: "sutra", shape: "nib", slug: "sutra-ui" },
   { id: "tandem", shape: "bubbles", slug: "tandem" },
   { id: "buzzroom", shape: "buzzer", slug: "buzzroom" },
-  { id: "mymirro", shape: "shirt", slug: "mymirro" },
+  { id: "mymirro", shape: "shirt", slug: "mymirro", line: "Founder-engineer, across the app, the API, and the recommendation model." },
   { id: "docmind", shape: "document", slug: "docmind" },
   { id: "quorum", shape: "microphone", slug: "meeting-actions" },
   { id: "pulse", shape: "chart", slug: "pulse" },

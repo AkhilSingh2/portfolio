@@ -20,7 +20,10 @@ export type Project = {
   outcome: string;
   highlights: string[];
   stack: string[];
+  /** Extra prose section, used when a study needs a heading of its own. */
+  aside?: { title: string; paragraphs: string[] };
   repo?: string;
+  repos?: { href: string; label: string }[];
   pr?: string;
   live?: string;
   liveLabel?: string;
@@ -937,21 +940,34 @@ export const projects: Project[] = [
     kicker: "AI styling app",
     year: "2025",
     summary:
-      "I worked on the frontend of MyMirro, a styling app with a quiz, outfit recommendations, lookbooks, and a cart. It is live at mymirro.in. Aditya Pratap Singh and Sanket Singh built it with me.",
+      "I was the founder-engineer on MyMirro, across the frontend, the backend, and the recommendation model. The styling app is live at mymirro.in.",
     problem:
       "The quiz had to become outfits, similar looks, and a path to the product, without the interface feeling like a catalogue search.",
     built:
-      "My commits covered the style-quiz flow, looks and outfit pages, lookbooks with a public or private setting, the recommendations UI, cart and product pages, and client-side image caching.",
+      "I owned the idea, the recommendation-system design, and the model training, and I built the frontend and the backend. The app has the style quiz, looks and outfit pages, lookbooks with a public or private setting, the recommendations UI, and cart and product pages. The browser talks to the API through server-side Next.js routes.",
+    aside: {
+      title: "How the backend worked",
+      paragraphs: [
+        "The API is Flask-RESTX on Gunicorn, in Docker, on Railway. Routes sit under /api/v1, and Swagger is served with them. Supabase Postgres holds users, quiz answers, tagged products with stored embeddings, user outfits, similar outfits, and a similar-products cache.",
+        "Quiz answers become a text profile. That profile is searched against a FAISS index per wear type, built from a sentence-transformer I fine-tuned on MyMirro’s product data. Each top and bottom pair is scored on 11 weighted signals plus stylist rules, on a 0–10 scale. The top 20 outfits for a user are saved, each with a short reason for why it was picked.",
+        "Colour analysis uses OpenCV skin detection and CIELAB values for the undertone and the Fitzpatrick type. A curated palette map picks the colours. The standalone colour service uses dlib landmarks and k-means.",
+        "The design choices were made for a small container: embeddings are precomputed, the model warms up on boot, CPU threads are capped, similar products sit in a 24-hour Postgres cache, and a saved outfit set stays until a rebuild is asked for.",
+      ],
+    },
     outcome:
-      "The recommendations UI talks to API routes that proxy the recommendation service. The live app is mymirro.in.",
+      "The recommendations UI talks to API routes that proxy the recommendation service. The live app is mymirro.in. The API and the colour service are the backend repositories.",
     highlights: [
       "Style quiz and the newer onboarding.",
       "Routing for a single piece inside an outfit.",
       "Lookbooks: create, rename, public or private.",
       "Analytics wiring for the storefront.",
     ],
-    stack: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Supabase", "Framer Motion"],
+    stack: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Supabase", "Flask", "FAISS", "sentence-transformers", "OpenCV", "Framer Motion"],
     repo: `${gh}/mymirrowebsite`,
+    repos: [
+      { href: `${gh}/mymirro-backend`, label: "Recommendation API" },
+      { href: `${gh}/color-analysis`, label: "Colour analysis" },
+    ],
     live: "https://www.mymirro.in",
     liveLabel: "mymirro.in",
     reel: false,
@@ -1026,7 +1042,7 @@ export const projects: Project[] = [
     built:
       "Flask-RESTX mounts the routes under /api/v1 and serves Swagger UI at /swagger/. Outfit generation and similarity search read Supabase. Similar outfits and products use a FAISS index over sentence-transformer embeddings. Colour analysis uses OpenCV, either on a base64 image or on a hex the client already picked.",
     outcome:
-      "The repository is the source of truth. It documents Railway and Supabase setup, and it does not commit a public base URL, so the study links the repo rather than a live host.",
+      "The repository is the source of truth. It documents the Railway and Supabase setup. The study links the repo.",
     highlights: [
       "Outfit generation takes a user id and an optional regenerate flag, and writes the result to Supabase.",
       "Similar outfits are a GET with a count query. Similar products are a POST.",
@@ -1051,7 +1067,7 @@ export const projects: Project[] = [
     built:
       "POST /analyze takes a base64 image. OpenCV and dlib’s 68-point landmarks find the face. k-means clusters the skin pixels. Undertone is Warm or Cool, contrast is Low, Medium, or High, and the palette is chosen from those two labels. Swagger UI is mounted at /api/docs.",
     outcome:
-      "Docker Compose and a Railway guide are in the repo. No public host is committed, so the study links the repository. The shape-predictor file is downloaded separately and is not in git.",
+      "Docker Compose and a Railway guide are in the repo. The study links the repository. The shape-predictor file is downloaded separately and is not in git.",
     highlights: [
       "A missing image returns 400 with an error string.",
       "The health check is GET /health and returns status healthy.",
@@ -1144,7 +1160,7 @@ export const projects: Project[] = [
     built:
       "The monorepo holds the React app and the FastAPI service. Revenue recognition is one module called from both. The accounting system is NetSuite, reached through its API. The double count was an upsert that treated a repeated request as a new record. The fix uses a stable business key. The write inserts that key once and, on conflict, updates the same row. A retry sends the same key and the same amount, so the stored total does not move.",
     outcome:
-      "Revenue recognition runs across the React app and the FastAPI service, and the accounting write no longer doubles a retried amount.",
+      "Revenue recognition runs across the React app and the FastAPI service, and the accounting write no longer doubles a retried amount. I led this platform's move onto the new AWS accounts.",
     highlights: [
       "Monorepo for the web app and the API.",
       "Revenue recognition implemented once and used from both sides.",
@@ -1166,7 +1182,7 @@ export const projects: Project[] = [
     problem:
       "Environments were being prepared by hand, and production shared an account with older hosting. That made a change in one place able to touch the other.",
     built:
-      "Terraform defines ECR, RDS, S3, and IAM, with a separate configuration for each environment. Non-production and production are separate accounts. Helm and KEDA scale the media workers. Hosted web apps that had lived in a legacy account were moved onto Amplify in the newer accounts. The module boundaries are the only detail here. Names, account ids, and policies stay in the private repositories.",
+      "I wrote most of the platform Terraform: RDS Postgres with IAM auth, S3, ECR, and IAM, plus KEDA scaling for the workers. Non-production and production are separate accounts. All 28 Amplify apps were on that setup before I left. The move itself is its own study. Names, account ids, and policies stay in the private repositories.",
     outcome:
       "Images, the database, storage, and access are declared per environment, in separate non-production and production accounts, and the media workers scale with Helm and KEDA.",
     highlights: [
@@ -1179,6 +1195,33 @@ export const projects: Project[] = [
     reel: false,
     group: "professional",
     shots: plate("cloud-infrastructure", "Accounts, images, and the worker fleet"),
+  },
+  {
+    slug: "amplify-accounts",
+    title: "Moving 28 frontends to a multi-account AWS setup",
+    kicker: "At Kwalee",
+    year: "2024",
+    summary:
+      "I moved all 28 Kwalee Amplify frontends onto a non-prod and prod account split before I left, and I led the finance platform onto the same accounts.",
+    problem:
+      "The frontends and the finance platform still lived where a change in one place could touch production, and the new accounts needed a path for domains, certificates, and DNS before anything cut over.",
+    built:
+      "I inventoried the 28 Amplify apps, 26 of them static and 2 of them SSR, and designed the non-prod and prod split with SSO. I planned domains and certificates and verified DNS for the game-site domains, then migrated all 28 apps. I led the finance platform's move onto the new accounts. I wrote most of the platform Terraform on EKS: RDS Postgres with IAM authentication, S3, ECR, IAM, and KEDA autoscaling, with SQS-driven Celery workers and Cognito. Secrets are code: Terraform manages Secrets Manager, External Secrets syncs them into Kubernetes, and Helm injects them. Helm values differ per environment. A build fails when quality drops.",
+    outcome:
+      "All 28 frontends were on the new accounts before I left. The finance platform runs there too. The platform pieces I wrote are declared in Terraform rather than prepared by hand.",
+    highlights: [
+      "28 Amplify apps inventoried: 26 static, 2 SSR.",
+      "Non-prod and prod accounts, with SSO.",
+      "Domains, certificates, and DNS checks for the game-site domains.",
+      "Finance platform moved with the frontends.",
+      "Most of the platform Terraform, including KEDA on EKS.",
+      "Secrets Manager, External Secrets, and Helm.",
+      "CI fails the build when quality drops.",
+    ],
+    stack: ["Terraform", "AWS", "Amplify", "EKS", "Helm", "KEDA", "External Secrets", "Cognito", "SQS"],
+    reel: false,
+    group: "professional",
+    shots: plate("amplify-accounts", "Twenty-eight apps, two accounts"),
   },
   {
     slug: "marketing-site",
