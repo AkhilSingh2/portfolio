@@ -36,22 +36,34 @@ export type ThreadSlot = {
   placement: ThreadPlacement;
 };
 
+const boxCache = new Map<string, { w: number; h: number }>();
+
 function drawingBox(shape: string) {
+  const cached = boxCache.get(shape);
+  if (cached) return cached;
   const strokes = threadDrawings[shape];
+  if (!strokes) {
+    const empty = { w: 1, h: 1 };
+    boxCache.set(shape, empty);
+    return empty;
+  }
   let minX = Infinity;
   let maxX = -Infinity;
   let minY = Infinity;
   let maxY = -Infinity;
-  if (!strokes) return { w: 1, h: 1 };
-  for (const stroke of strokes) {
-    for (const point of stroke) {
-      minX = Math.min(minX, point.x);
-      maxX = Math.max(maxX, point.x);
-      minY = Math.min(minY, point.y);
-      maxY = Math.max(maxY, point.y);
+  if (strokes) {
+    for (const stroke of strokes) {
+      for (const point of stroke) {
+        minX = Math.min(minX, point.x);
+        maxX = Math.max(maxX, point.x);
+        minY = Math.min(minY, point.y);
+        maxY = Math.max(maxY, point.y);
+      }
     }
   }
-  return { w: Math.max(0.001, maxX - minX), h: Math.max(0.001, maxY - minY) };
+  const box = { w: Math.max(0.001, maxX - minX), h: Math.max(0.001, maxY - minY) };
+  boxCache.set(shape, box);
+  return box;
 }
 
 /** Column object beside the copy: tall enough to read, and close to the column. */

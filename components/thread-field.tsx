@@ -33,6 +33,8 @@ function readExit() {
 
 /** While the story is pinned the knot stays put. Once it unpins, the drawing leaves with that block and does not draw over Now. */
 function storyMotion(): { shift: number } | null {
+  const progress = readProgress();
+  if (progress > 0.02 && progress < 0.97) return { shift: 0 };
   const home = document.querySelector(".thread-home");
   if (!(home instanceof HTMLElement)) return null;
   const rect = home.getBoundingClientRect();
@@ -46,6 +48,8 @@ function storyMotion(): { shift: number } | null {
 }
 
 function anchorY() {
+  const progress = readProgress();
+  if (progress > 0.01 && progress < 0.98) return window.innerHeight / 2;
   const copy = document.querySelector(".thread-chapter.is-active .thread-copy");
   if (!copy) return null;
   const rect = copy.getBoundingClientRect();
@@ -111,6 +115,7 @@ function placeLarge(drawing: Point[][], progress: number) {
 }
 
 let veilKey = "";
+let veilBucket = "";
 
 function clearVeil(canvas: HTMLCanvasElement) {
   if (veilKey === "none") return;
@@ -121,7 +126,7 @@ function clearVeil(canvas: HTMLCanvasElement) {
   document.querySelector(".thread-chapter.is-active .thread-copy")?.classList.remove("is-veiled");
 }
 
-function syncVeil(canvas: HTMLCanvasElement, samples: { x: number; y: number }[]) {
+function paintVeil(canvas: HTMLCanvasElement, samples: { x: number; y: number }[]) {
   const copy = document.querySelector(".thread-chapter.is-active .thread-copy");
   const host = canvas.getBoundingClientRect();
   if (!(copy instanceof HTMLElement) || host.width < 20) {
@@ -136,7 +141,7 @@ function syncVeil(canvas: HTMLCanvasElement, samples: { x: number; y: number }[]
     [...nodes].map((node) => node.getBoundingClientRect()),
     host,
   );
-  const key = holes.length ? holes.map((hole) => `${Math.round(hole.x)}:${Math.round(hole.y)}:${Math.round(hole.w)}:${Math.round(hole.h)}`).join("|") : "none";
+  const key = holes.length ? holes.map((hole) => `${Math.round(hole.x / 32)}:${Math.round(hole.y / 32)}:${Math.round(hole.w / 32)}:${Math.round(hole.h / 32)}`).join("|") : "none";
   if (key === veilKey) return;
   veilKey = key;
   if (!holes.length) {
@@ -150,6 +155,24 @@ function syncVeil(canvas: HTMLCanvasElement, samples: { x: number; y: number }[]
   applyVeil(canvas, mask);
   publishVeil({ canvas: mask, left: host.left, top: host.top, width: host.width, height: host.height });
   copy.classList.add("is-veiled");
+}
+
+let veilTimer = 0;
+let veilJob: { canvas: HTMLCanvasElement; samples: { x: number; y: number }[] } | null = null;
+
+function syncVeil(canvas: HTMLCanvasElement, samples: { x: number; y: number }[]) {
+  const chapter = document.querySelector(".thread-beat.is-active")?.getAttribute("data-chapter") || "";
+  const bucket = `${chapter}:${Math.round((window.__contentX || 0) * 24)}:${samples.length > 20 ? 1 : 0}`;
+  if (bucket === veilBucket && veilKey) return;
+  veilBucket = bucket;
+  veilJob = { canvas, samples };
+  if (veilTimer) return;
+  veilTimer = window.setTimeout(() => {
+    veilTimer = 0;
+    const job = veilJob;
+    veilJob = null;
+    if (job) paintVeil(job.canvas, job.samples);
+  }, 48);
 }
 
 function paintDot(ctx: CanvasRenderingContext2D, dot: ThreadDot) {
@@ -181,18 +204,19 @@ function paint2d(ctx: CanvasRenderingContext2D, strokes: { x: number; y: number 
   ctx.lineJoin = "round";
   for (const points of strokes) {
     if (points.length < 2) continue;
-    let length = 0;
-    for (let index = 1; index < points.length; index += 1) length += Math.hypot(points[index].x - points[index - 1].x, points[index].y - points[index - 1].y);
-    if (length < 8) continue;
-    ctx.strokeStyle = "rgba(212, 196, 168, 0.18)";
-    ctx.lineWidth = phone ? 5 : 8;
-    ctx.shadowColor = "rgba(212, 196, 168, 0.8)";
-    ctx.shadowBlur = 14;
+    const step = points.length > 80 ? 4 : 1;
+    ctx.strokeStyle = "rgba(212, 196, 168, 0.28)";
+    ctx.lineWidth = phone ? 5 : 7;
     ctx.beginPath();
-    points.forEach((point, index) => (index === 0 ? ctx.moveTo(point.x, point.y) : ctx.lineTo(point.x, point.y)));
+    for (let index = 0; index < points.length; index += step) {
+      const point = points[index];
+      if (index === 0) ctx.moveTo(point.x, point.y);
+      else ctx.lineTo(point.x, point.y);
+    }
+    const last = points[points.length - 1];
+    ctx.lineTo(last.x, last.y);
     ctx.stroke();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = "rgba(243, 236, 223, 0.62)";
+    ctx.strokeStyle = "rgba(243, 236, 223, 0.72)";
     ctx.lineWidth = phone ? 1.15 : 1.45;
     ctx.stroke();
   }
@@ -209,8 +233,7 @@ export function ThreadField() {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const phone = window.matchMedia("(max-width: 959px)").matches;
     if (reduce || phone) return;
-    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
-    const webgl = !reduce && !phone && !saveData;
+    const webgl = false;
 
     let dead = false;
     let running = true;
@@ -236,7 +259,7 @@ export function ThreadField() {
         window.__threadSamples = [];
         return [];
       }
-      const drawing = threadDrawing(readProgress(), { reduced: reduce });
+      const drawing = threadDrawing(readProgress(), { reduced: reduce, stride: 2 });
       const placed = placeLarge(drawing.strokes, readProgress());
       const unwound = unwindDrawing(placed, readExit());
       if (!unwound) {
@@ -266,8 +289,17 @@ export function ThreadField() {
     const start2d = () => {
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
+      let drawnKey = "";
+      let sized = "";
       const draw = () => {
-        resize2d(ctx);
+        const key = `${document.documentElement.dataset.threadProgress || ""}|${document.documentElement.dataset.threadExit || ""}|${window.innerWidth}x${window.innerHeight}`;
+        if (key === drawnKey) return;
+        drawnKey = key;
+        const sizeKey = `${window.innerWidth}x${window.innerHeight}`;
+        if (sizeKey !== sized) {
+          sized = sizeKey;
+          resize2d(ctx);
+        }
         const strokes = layout();
         syncVeil(canvas, window.__threadSamples || []);
         paint2d(ctx, strokes, frameDot);
@@ -316,9 +348,11 @@ export function ThreadField() {
           for (let index = 1; index < points.length; index += 1) length += Math.hypot(points[index].x - points[index - 1].x, points[index].y - points[index - 1].y);
           if (length < 8) continue;
           const base = positions.length / 3;
-          for (let index = 0; index < points.length; index += 1) {
-            const previous = points[Math.max(0, index - 1)];
-            const next = points[Math.min(points.length - 1, index + 1)];
+          const step = points.length > 80 ? 2 : 1;
+          let pairs = 0;
+          for (let index = 0; index < points.length; index += step) {
+            const previous = points[Math.max(0, index - step)];
+            const next = points[Math.min(points.length - 1, index + step)];
             let dx = next.x - previous.x;
             let dy = next.y - previous.y;
             const span = Math.hypot(dx, dy) || 1;
@@ -326,8 +360,9 @@ export function ThreadField() {
             dy /= span;
             positions.push(...toNdc(points[index].x + -dy * halfWidth, points[index].y + dx * halfWidth));
             positions.push(...toNdc(points[index].x - -dy * halfWidth, points[index].y - dx * halfWidth));
+            pairs += 1;
           }
-          for (let index = 0; index < points.length - 1; index += 1) {
+          for (let index = 0; index < pairs - 1; index += 1) {
             const start = base + index * 2;
             indices.push(start, start + 1, start + 2, start + 1, start + 3, start + 2);
           }
@@ -369,9 +404,15 @@ export function ThreadField() {
       };
       resize();
       window.addEventListener("resize", resize);
+      let drawnKey = "";
       const tick = () => {
         if (dead) return;
-        if (!document.hidden) {
+        frame = window.requestAnimationFrame(tick);
+        if (document.hidden) return;
+        const key = `${document.documentElement.dataset.threadProgress || ""}|${document.documentElement.dataset.threadExit || ""}|${window.innerWidth}x${window.innerHeight}`;
+        if (key === drawnKey) return;
+        drawnKey = key;
+        {
           const strokes = layout();
           syncVeil(canvas, window.__threadSamples || []);
           const ink = frameDot?.a ?? 1;
@@ -396,7 +437,6 @@ export function ThreadField() {
           }
           renderer.render(scene, camera);
         }
-        frame = window.requestAnimationFrame(tick);
       };
       tick();
       dispose = () => {
@@ -424,6 +464,7 @@ export function ThreadField() {
       delete window.__threadPlacement;
       delete window.__threadVeil;
       veilKey = "";
+      veilBucket = "";
     };
   }, []);
 
