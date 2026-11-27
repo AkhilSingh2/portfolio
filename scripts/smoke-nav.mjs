@@ -395,7 +395,10 @@ async function checkFooterHolds() {
     await page.locator("[data-close-title]").waitFor({ timeout: 8000 });
     await page.waitForTimeout(500);
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-    await page.waitForFunction(() => document.querySelector("[data-close-title]")?.classList.contains("is-open"), null, { timeout: 4000 });
+    await page.waitForFunction(() => {
+      const heading = document.querySelector("[data-close-title]");
+      return heading?.classList.contains("is-open") && Number(getComputedStyle(heading).opacity) > 0.99;
+    }, null, { timeout: 4000 });
     const samples = [];
     for (const delta of [-500, -200, 200, 500, -350, 350]) {
       await page.evaluate((dy) => window.scrollBy(0, dy), delta);
