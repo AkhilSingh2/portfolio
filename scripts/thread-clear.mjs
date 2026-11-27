@@ -18,8 +18,10 @@ function log(line) {
 for (const viewport of viewports) {
   const page = await browser.newPage({ viewport });
   await page.goto(`${origin}${base}/`, { waitUntil: "networkidle", timeout: 60000 });
-  await page.waitForFunction(() => Array.isArray(window.__threadSamples) && window.__threadSamples.length > 20, null, { timeout: 8000 });
   const desktop = viewport.width >= 960;
+  if (desktop) {
+    await page.waitForFunction(() => Array.isArray(window.__threadSamples) && window.__threadSamples.length > 20, null, { timeout: 8000 });
+  }
 
   if (desktop) {
     const count = await page.locator(".thread-beat").count();
@@ -89,12 +91,25 @@ for (const viewport of viewports) {
               expectedX,
               height: ys.length ? (Math.max(...ys) - Math.min(...ys)) / window.innerHeight : 0,
               width: xs.length ? (Math.max(...xs) - Math.min(...xs)) / window.innerWidth : 0,
+              objectLeft: xs.length ? Math.min(...xs) : 0,
+              objectRight: xs.length ? Math.max(...xs) : 0,
+              shotLeft: shot ? shot.left : null,
+              shotRight: shot ? shot.right : null,
+              gap: (() => {
+                const column = card.querySelector(".thread-panel")?.getBoundingClientRect();
+                if (!column || !xs.length) return 0;
+                const left = Math.min(...xs);
+                const right = Math.max(...xs);
+                if (right < column.left) return (column.left - right) / window.innerWidth;
+                if (left > column.right) return (left - column.right) / window.innerWidth;
+                return 0;
+              })(),
               scrim,
             });
           }, 220);
         });
       }, index);
-      log(`${viewport.width} ${result.chapter} ${result.shape} ${result.placement} x${result.contentX.toFixed(2)} h${result.height.toFixed(2)} dim ${result.dimOutside}`);
+      log(`${viewport.width} ${result.chapter} ${result.shape} ${result.placement} x${result.contentX.toFixed(2)} h${result.height.toFixed(2)} w${result.width.toFixed(2)} gap${result.gap.toFixed(3)} dim ${result.dimOutside}`);
       if (Math.abs(result.contentX - result.expectedX) > 0.14) failures.push({ viewport, chapter: result.chapter, message: `content x ${result.contentX.toFixed(2)} expected ${result.expectedX}` });
       if (result.others) failures.push({ viewport, chapter: result.chapter, message: `${result.others} other chapters still visible` });
       if (result.cardOpacity < 0.99) failures.push({ viewport, chapter: result.chapter, message: `active card opacity ${result.cardOpacity}` });
@@ -108,11 +123,22 @@ for (const viewport of viewports) {
       if (result.placement === "behind" && result.shape !== "knot" && result.height < 0.45 && result.width < 0.55) {
         failures.push({ viewport, chapter: result.chapter, message: `behind object is small h${result.height.toFixed(2)} w${result.width.toFixed(2)}` });
       }
-      if (result.placement === "behind" && result.shape !== "knot" && result.height > 0.8) {
+      if (result.placement === "behind" && result.shape !== "knot" && Math.abs(result.expectedX - 0.5) > 0.2 && result.height > 0.8) {
         failures.push({ viewport, chapter: result.chapter, message: `behind object height ${result.height.toFixed(2)}` });
+      }
+      if (Math.abs(result.expectedX - 0.5) < 0.05) {
+        const spans = result.width >= 0.85 || result.height >= 0.85;
+        if (!spans) failures.push({ viewport, chapter: result.chapter, message: `centred object is h${result.height.toFixed(2)} w${result.width.toFixed(2)}` });
+        if (result.shotLeft != null && (result.objectLeft > result.shotLeft - 24 || result.objectRight < result.shotRight + 24)) {
+          failures.push({ viewport, chapter: result.chapter, message: "centred object does not clear both sides of the screenshot" });
+        }
       }
       if (result.placement === "full-bleed" && result.width < 0.9) {
         failures.push({ viewport, chapter: result.chapter, message: `full-bleed width ${result.width.toFixed(2)}` });
+      }
+      if ((result.placement === "left" || result.placement === "right") && Math.abs(result.expectedX - 0.5) > 0.2) {
+        if (result.height < 0.6) failures.push({ viewport, chapter: result.chapter, message: `side object height ${result.height.toFixed(2)}` });
+        if (result.gap > 0.08) failures.push({ viewport, chapter: result.chapter, message: `side gap ${(result.gap * 100).toFixed(1)}% of the viewport` });
       }
     }
   } else {
