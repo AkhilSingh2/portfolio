@@ -32,7 +32,7 @@ export const projectTags: Record<string, StackTag[]> = {
   "meeting-actions": ["Frontend", "Backend", "AI"],
   "india-salary-tax": ["Frontend", "Data"],
   "cgpa-upi": ["Frontend"],
-  mymirro: ["Frontend", "Data"],
+  mymirro: ["Frontend", "Backend", "Data", "AI"],
   momogpt: ["Frontend", "Backend", "AI"],
   buzzroom: ["Frontend", "Backend", "Infra"],
   cadence: ["Frontend", "Backend", "Data", "AI"],
@@ -43,6 +43,7 @@ export const projectTags: Record<string, StackTag[]> = {
   "localisation-pipeline": ["Frontend", "Backend", "AI"],
   "finance-platform": ["Frontend", "Backend"],
   "cloud-infrastructure": ["Infra"],
+  "amplify-accounts": ["Infra"],
   "marketing-site": ["Frontend", "Backend"],
 };
 
@@ -276,7 +277,7 @@ export const engineeringNotes: Record<string, Engineering> = {
   mymirro: {
     heading: "Engineering",
     summary:
-      "The MyMirro site is a Next.js app that talks to Supabase from the browser for auth, outfits, and products. The recommendation service is a separate repository.",
+      "The Next.js app talks to Supabase for auth, outfits, and products. Recommendations go through server-side routes to the API repository, and colour analysis is its own service.",
     flow: ["Next.js", "Supabase client", "Auth, outfits, products"],
     points: [
       "useAuth signs in, signs up, and signs out with supabase.auth.",

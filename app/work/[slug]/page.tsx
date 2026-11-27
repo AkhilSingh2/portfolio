@@ -58,6 +58,11 @@ export default async function CaseStudyPage({ params }: { params: Promise<Params
                     Code <span aria-hidden="true">↗</span>
                   </a>
                 ) : null}
+                {project.repos?.map((item) => (
+                  <a key={item.href} href={item.href} target="_blank" rel="noreferrer">
+                    {item.label} <span aria-hidden="true">↗</span>
+                  </a>
+                ))}
               </p>
             ) : null}
           </div>
@@ -77,6 +82,14 @@ export default async function CaseStudyPage({ params }: { params: Promise<Params
               ))}
             </ul>
           </section>
+          {project.aside ? (
+            <section aria-labelledby="aside-title">
+              <h2 id="aside-title">{project.aside.title}</h2>
+              {project.aside.paragraphs.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </section>
+          ) : null}
           {project.stack.length > 0 ? (
             <section aria-labelledby="stack-title">
               <h2 id="stack-title">Stack</h2>

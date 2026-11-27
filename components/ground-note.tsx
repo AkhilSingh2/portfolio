@@ -17,23 +17,40 @@ const toolbox = [
     items: ["React", "Next.js", "Vue.js", "Tailwind CSS", "Storybook", "Figma Prototyping", "Design Systems"],
   },
   { title: "Backend", items: ["Python", "FastAPI", "Node.js", "RESTful APIs", "Celery", "SQS", "NetSuite / CRM Integrations"] },
-  { title: "Data", items: ["PostgreSQL", "MongoDB"] },
-  { title: "AI", items: ["Gemini LLM Integration", "Prompt Engineering", "RAG Architectures"] },
+  {
+    title: "Data",
+    items: ["PostgreSQL (RDS, Supabase)", "pgvector", "MongoDB", "DynamoDB", "FAISS"],
+  },
+  {
+    title: "AI",
+    items: [
+      "Fine-tuning sentence-transformers and embeddings",
+      "FAISS vector search",
+      "Gemini LLM Integration",
+      "Prompt Engineering",
+      "RAG Architectures",
+    ],
+  },
   {
     title: "Cloud and DevOps",
     items: [
-      "Azure (CI/CD, Cloud Workflows)",
-      "AWS (S3, ECR, RDS, IAM, SQS)",
-      "Kubernetes (Helm)",
-      "KEDA (Autoscaling)",
+      "AWS (Amplify, EKS, RDS, S3, ECR, IAM, SQS, Cognito, Secrets Manager, Route 53, SSO, multi-account)",
       "Terraform",
+      "Kubernetes",
+      "Helm",
+      "KEDA",
+      "External Secrets",
       "Docker",
       "GitHub Actions",
+      "Bitbucket Pipelines",
+      "Railway",
+      "Vercel",
+      "Sentry",
     ],
   },
   {
     title: "Tooling",
-    items: ["Bitbucket", "FFmpeg Media Pipelines", "Sentry", "Biome", "SonarQube", "Monorepo Architecture", "Jira SDLC"],
+    items: ["Bitbucket", "FFmpeg Media Pipelines", "Biome", "SonarQube", "Monorepo Architecture", "Jira SDLC"],
   },
 ];
 
