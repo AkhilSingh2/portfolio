@@ -81,9 +81,9 @@ function BeatMark({ shape }: { shape: string }) {
           maxY = Math.max(maxY, point.y);
         }
       }
-      const scale = Math.min(width * 0.9 / Math.max(1, maxX - minX), height * 0.86 / Math.max(1, maxY - minY));
+      const scale = Math.min(width * (phone ? 0.98 : 0.9) / Math.max(1, maxX - minX), height * (phone ? 0.96 : 0.86) / Math.max(1, maxY - minY));
       const yShift = phone ? -height * 0.02 : 0;
-      const stride = phone ? 2 : 1;
+      const stride = phone ? 4 : 1;
       let drawn = strokes;
       let dot: { x: number; y: number; r: number; a: number } | null = null;
       if (shape === "knot") {
@@ -213,55 +213,71 @@ export function ThreadHome() {
     const cards = [...track.querySelectorAll<HTMLElement>(".thread-beat")];
     let dead = false;
     let revert: (() => void) | undefined;
+    let placedActive = -1;
+    let placedWave = "";
 
     const place = (progress: number) => {
       const clamped = Math.min(1, Math.max(0, progress));
       const cursor = clamped * (beats.length - 1);
-      cards.forEach((card, index) => {
-        const active = index === Math.min(beats.length - 1, Math.max(0, Math.round(cursor)));
-        card.style.transform = "translate3d(0, 0, 0)";
-        card.style.opacity = active ? "1" : "0";
-        card.style.visibility = active ? "visible" : "hidden";
-        card.style.pointerEvents = active ? "auto" : "none";
-        card.style.zIndex = active ? "2" : "1";
-        card.classList.toggle("is-active", active);
-        const shot = card.querySelector<HTMLElement>(".thread-shot");
-        if (shot) shot.style.transform = "none";
-      });
+      const activeIndex = Math.min(beats.length - 1, Math.max(0, Math.round(cursor)));
+      if (activeIndex !== placedActive) {
+        cards.forEach((card, index) => {
+          const active = index === activeIndex;
+          card.style.opacity = active ? "1" : "0";
+          card.style.visibility = active ? "visible" : "hidden";
+          card.style.pointerEvents = active ? "auto" : "none";
+          card.style.zIndex = active ? "2" : "1";
+          card.classList.toggle("is-active", active);
+        });
+      }
       document.documentElement.dataset.threadProgress = clamped.toFixed(4);
       const wave = contentWave(clamped, beats.length);
-      root.style.setProperty("--content-x", wave.x.toFixed(4));
-      root.style.setProperty("--content-scale", wave.scale.toFixed(4));
-      window.__contentX = wave.x;
-      const shell = root.closest(".thread-shell");
-      const copy = root.querySelector(".thread-beat.is-active .thread-copy");
-      if (shell instanceof HTMLElement && copy instanceof HTMLElement) {
-        const spare = (root.offsetHeight - copy.offsetHeight) / 2 - 96;
-        shell.style.marginBottom = spare > 48 ? `-${Math.round(spare)}px` : "";
+      const waveKey = `${wave.x.toFixed(3)}:${wave.scale.toFixed(3)}`;
+      if (waveKey !== placedWave) {
+        placedWave = waveKey;
+        root.style.setProperty("--content-x", wave.x.toFixed(4));
+        root.style.setProperty("--content-scale", wave.scale.toFixed(4));
+        window.__contentX = wave.x;
+      }
+      if (activeIndex !== placedActive) {
+        placedActive = activeIndex;
+        const shell = root.closest(".thread-shell");
+        const copy = cards[activeIndex]?.querySelector(".thread-copy");
+        if (shell instanceof HTMLElement && copy instanceof HTMLElement) {
+          const spare = (root.offsetHeight - copy.offsetHeight) / 2 - 96;
+          shell.style.marginBottom = spare > 48 ? `-${Math.round(spare)}px` : "";
+        }
       }
     };
 
-    const phoneOpacity = new Array<number>(cards.length).fill(-1);
+    const phoneShot = new Array<number>(cards.length).fill(-1);
+    const phoneText = new Array<number>(cards.length).fill(-1);
+    let held = 0;
     const placePhone = (progress: number) => {
       const clamped = Math.min(1, Math.max(0, progress));
       const cursor = clamped * (beats.length - 1);
-      const index = Math.min(beats.length - 1, Math.floor(cursor));
-      const local = cursor - index;
-      const currentOpacity = reduce.matches ? 1 : local < 0.5 ? 1 - local * 2 : 0;
-      const nextOpacity = reduce.matches || index >= beats.length - 1 ? 0 : local < 0.5 ? 0 : (local - 0.5) * 2;
-      const next = Math.min(beats.length - 1, index + 1);
+      if (cursor >= held + 0.7) held = Math.min(beats.length - 1, Math.floor(cursor + 0.3));
+      else if (cursor < held - 0.2) held = Math.max(0, Math.floor(cursor + 0.2));
       for (let cardIndex = 0; cardIndex < cards.length; cardIndex += 1) {
-        let opacity = 0;
-        if (cardIndex === index) opacity = index === next ? 1 : currentOpacity;
-        else if (cardIndex === next) opacity = nextOpacity;
-        if (Math.abs(opacity - phoneOpacity[cardIndex]) < 0.01) continue;
-        phoneOpacity[cardIndex] = opacity;
+        const distance = Math.abs(cardIndex - cursor);
+        const shot = reduce.matches ? (cardIndex === held ? 1 : 0) : distance >= 1 ? 0 : distance <= 0.12 ? 1 : Math.max(0, 1 - (distance - 0.12) / 0.88);
+        const text = cardIndex === held ? 1 : 0;
         const card = cards[cardIndex];
-        card.style.opacity = opacity.toFixed(3);
-        card.style.visibility = opacity < 0.02 ? "hidden" : "visible";
-        card.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
-        card.style.zIndex = opacity > 0.5 ? "2" : "1";
-        card.classList.toggle("is-active", opacity > 0.5);
+        if (Math.abs(shot - phoneShot[cardIndex]) >= 0.015) {
+          phoneShot[cardIndex] = shot;
+          const frame = card.querySelector<HTMLElement>(".thread-shot");
+          if (frame) frame.style.opacity = shot.toFixed(3);
+          const mark = card.querySelector<HTMLElement>(".beat-mark");
+          if (mark) mark.style.opacity = (frame ? shot : text).toFixed(3);
+        }
+        if (text !== phoneText[cardIndex]) {
+          phoneText[cardIndex] = text;
+          const copy = card.querySelector<HTMLElement>(".thread-copy");
+          if (copy) copy.style.opacity = String(text);
+          card.style.pointerEvents = text ? "auto" : "none";
+          card.style.zIndex = text ? "2" : "1";
+          card.classList.toggle("is-active", text === 1);
+        }
       }
       const key = clamped.toFixed(3);
       if (document.documentElement.dataset.threadProgress !== key) document.documentElement.dataset.threadProgress = key;
@@ -269,6 +285,11 @@ export function ThreadHome() {
 
     if (!desktop.matches) {
       document.documentElement.classList.add("thread-phone");
+      root.querySelectorAll<HTMLImageElement>(".thread-shot img").forEach((img) => {
+        img.decoding = "sync";
+        img.loading = "eager";
+        if (img.decode) img.decode().catch(() => undefined);
+      });
       placePhone(0);
       const runPhone = async () => {
         const { ScrollTrigger } = await import("gsap/ScrollTrigger");

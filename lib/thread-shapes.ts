@@ -93,23 +93,42 @@ export const threadShapeNames: Record<string, string> = {
 };
 
 /** Scroll progress alone drives the line. Between objects it relaxes back into the thread. */
-export function threadDrawing(progress: number, options?: { reduced?: boolean }): { name: string; strokes: Point[][] } {
+const thinCache = new WeakMap<Point[][], Point[][]>();
+
+function thin(strokes: Point[][], stride: number) {
+  if (stride <= 1) return strokes;
+  const cached = thinCache.get(strokes);
+  if (cached) return cached;
+  const out = strokes.map((stroke) => {
+    const points: Point[] = [];
+    for (let index = 0; index < stroke.length; index += stride) points.push(stroke[index]);
+    const last = stroke[stroke.length - 1];
+    if (last && points[points.length - 1] !== last) points.push(last);
+    return points;
+  });
+  thinCache.set(strokes, out);
+  return out;
+}
+
+export function threadDrawing(progress: number, options?: { reduced?: boolean; stride?: number }): { name: string; strokes: Point[][] } {
   const span = Math.max(1, threadOrder.length - 1);
   const scaled = Math.min(span, Math.max(0, progress) * span);
   const index = Math.min(threadOrder.length - 1, Math.floor(scaled));
   const local = scaled - index;
+  const stride = options?.stride ?? 1;
   const name = threadOrder[index];
-  const object = threadDrawings[name];
+  const object = thin(threadDrawings[name], stride);
   if (options?.reduced) {
-    if (progress < 0.02) return { name: "thread", strokes: thread };
+    if (progress < 0.02) return { name: "thread", strokes: thin(thread, stride) };
     return { name, strokes: object };
   }
   if (index === threadOrder.length - 1) return { name, strokes: object };
-  const next = threadDrawings[threadOrder[index + 1]];
+  const next = thin(threadDrawings[threadOrder[index + 1]], stride);
+  const guide = thin(thread, stride);
   if (local < 0.5) {
     const amount = local / 0.5;
-    return { name: amount < 0.45 ? name : "thread", strokes: mixAll(object, thread, amount) };
+    return { name: amount < 0.45 ? name : "thread", strokes: mixAll(object, guide, amount) };
   }
   const amount = (local - 0.5) / 0.5;
-  return { name: amount > 0.55 ? threadOrder[index + 1] : "thread", strokes: mixAll(thread, next, amount) };
+  return { name: amount > 0.55 ? threadOrder[index + 1] : "thread", strokes: mixAll(guide, next, amount) };
 }

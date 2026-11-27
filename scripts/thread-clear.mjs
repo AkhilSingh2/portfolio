@@ -6,6 +6,9 @@ const viewports = [
   { width: 1440, height: 900 },
   { width: 1024, height: 768 },
   { width: 390, height: 844 },
+  { width: 440, height: 956 },
+  { width: 390, height: 664 },
+  { width: 440, height: 780 },
 ];
 
 const browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
@@ -169,28 +172,44 @@ for (const viewport of viewports) {
             const overlaps = Boolean(copy && mark && overlapY >= mark.top && overlapY <= mark.bottom && overlapY >= copy.top && overlapY <= copy.bottom);
             const veil = overlaps && window.__threadVeil ? window.__threadVeil(copy.left + copy.width / 2, overlapY) : 0;
             const scrim = getComputedStyle(card.querySelector(".thread-copy"), "::before").backgroundImage;
+            const sides = [];
+            if (shot && mark) {
+              if (shot.left - mark.left >= window.innerWidth * 0.08) sides.push("left");
+              if (mark.right - shot.right >= window.innerWidth * 0.08) sides.push("right");
+              if (shot.top - mark.top >= window.innerHeight * 0.08) sides.push("top");
+              if (mark.bottom - shot.bottom >= window.innerHeight * 0.08) sides.push("bottom");
+            }
+            const hero = id === "tap";
+            const name = hero ? card.querySelector("h1")?.getBoundingClientRect() : null;
             resolve({
               card: card.getBoundingClientRect().width / window.innerWidth,
               mark: mark ? mark.height / window.innerHeight : 0,
               shotWidth: shot ? shot.width / window.innerWidth : 0,
               shotMid: shot ? Math.abs(shot.left + shot.width / 2 - window.innerWidth / 2) : 0,
+              shotMidY: shot && copy ? Math.abs(shot.top + shot.height / 2 - copy.top / 2) / window.innerHeight : 0,
+              copyTop: copy ? copy.top / window.innerHeight : 0,
               copyBottom: copy ? window.innerHeight - copy.bottom : 99,
+              separated: Boolean(!shot || !copy || shot.bottom < copy.top - 2),
               imageAbove,
-              taller: Boolean(shot && mark && mark.height > shot.height),
+              sides: sides.length,
               veil,
               scrim: scrim.includes("gradient"),
+              heroVeil: hero && scrim.includes("radial-gradient") && Boolean(name && copy && name.top >= copy.top && name.bottom <= copy.bottom),
             });
           }, 180);
         });
       }, chapter);
-      log(`${viewport.width} ${chapter} card ${result.card.toFixed(2)} mark ${result.mark.toFixed(2)} veil ${result.veil.toFixed(2)}`);
+      log(`${viewport.width}x${viewport.height} ${chapter} card ${result.card.toFixed(2)} shot ${result.shotWidth.toFixed(2)} text ${result.copyTop.toFixed(2)} sides ${result.sides}`);
       if (result.card < 0.95) failures.push({ viewport, chapter, message: `card is ${result.card.toFixed(2)} of the viewport` });
-      if (result.mark < 0.55 || result.mark > 0.85) failures.push({ viewport, chapter, message: `phone object is ${result.mark.toFixed(2)} of the viewport` });
-      if (result.shotWidth && (result.shotWidth < 0.86 || result.shotWidth > 0.94)) failures.push({ viewport, chapter, message: `screenshot is ${result.shotWidth.toFixed(2)} of the width` });
+      if (result.shotWidth && (result.shotWidth < 0.72 || result.shotWidth > 0.78)) failures.push({ viewport, chapter, message: `screenshot is ${result.shotWidth.toFixed(2)} of the width` });
       if (result.shotWidth && result.shotMid > 12) failures.push({ viewport, chapter, message: "screenshot is not centred" });
-      if (result.shotWidth && !result.taller) failures.push({ viewport, chapter, message: "thread is not larger than the screenshot" });
-      if (result.copyBottom > 20) failures.push({ viewport, chapter, message: "text is not anchored to the bottom" });
+      if (result.shotWidth && result.shotMidY > 0.1) failures.push({ viewport, chapter, message: "screenshot is not centred in the space above the text" });
+      if (result.shotWidth && result.sides < 3) failures.push({ viewport, chapter, message: `thread clears the screenshot on ${result.sides} sides` });
+      if (!result.separated) failures.push({ viewport, chapter, message: "screenshot overlaps the text" });
+      if (result.copyTop < 0.68) failures.push({ viewport, chapter, message: `text starts at ${result.copyTop.toFixed(2)} of the height` });
+      if (result.copyBottom > 24) failures.push({ viewport, chapter, message: "text is not anchored to the bottom" });
       if (!result.scrim) failures.push({ viewport, chapter, message: "bottom scrim missing" });
+      if (chapter === "tap" && !result.heroVeil) failures.push({ viewport, chapter, message: "hero name has no radial veil" });
       if (!result.imageAbove) failures.push({ viewport, chapter, message: "screenshot is not above the thread" });
       if (result.veil > 0.28) failures.push({ viewport, chapter, message: `thread veil ${result.veil.toFixed(2)} inside the text` });
     }

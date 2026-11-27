@@ -342,14 +342,11 @@ async function checkPhoneStory() {
           }, step / steps);
           await page.waitForTimeout(40);
           const visible = await page.evaluate(() => {
-            const cards = [...document.querySelectorAll(".thread-beat")].filter((card) => {
-              const style = getComputedStyle(card);
-              return style.visibility !== "hidden" && Number(style.opacity) > 0.05;
-            });
+            const copies = [...document.querySelectorAll(".thread-beat .thread-copy")].filter((copy) => Number(getComputedStyle(copy).opacity) > 0.05);
             return {
-              count: cards.length,
-              titles: cards.flatMap((card) =>
-                [...card.querySelectorAll(".thread-copy h1, .thread-copy h2")]
+              count: copies.length,
+              titles: copies.flatMap((copy) =>
+                [...copy.querySelectorAll("h1, h2")]
                   .filter((node) => {
                     const rect = node.getBoundingClientRect();
                     return rect.width > 8 && rect.height > 8 && rect.top < window.innerHeight && rect.bottom > 0;
@@ -369,6 +366,14 @@ async function checkPhoneStory() {
         const missing = titles.filter((title) => !found.has(title));
         if (missing.length) failures.push({ where, message: `missing ${missing.join(", ")}` });
         else log(`${where} shows all ${titles.length} story titles`);
+        if (item.height >= 800) {
+          const heroVeil = await page.evaluate(() => {
+            const copy = document.querySelector('[data-chapter="tap"] .thread-copy');
+            const scrim = copy ? getComputedStyle(copy, "::before").backgroundImage : "";
+            return scrim.includes("radial-gradient");
+          });
+          if (!heroVeil) failures.push({ where, message: "hero name is not veiled" });
+        }
       } catch (error) {
         failures.push({ where, message: String(error).slice(0, 400) });
       }
@@ -377,6 +382,56 @@ async function checkPhoneStory() {
   } finally {
     await browser.close();
   }
+}
+
+async function checkShotHandoff() {
+  const browser = await chromium.launch({
+    ...(process.env.SMOKE_CHANNEL ? { channel: process.env.SMOKE_CHANNEL } : {}),
+    args: ["--no-sandbox", "--disable-dev-shm-usage"],
+  });
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  try {
+    await page.goto(absolute("/"), { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => document.querySelector(".pin-spacer"), null, { timeout: 8000 });
+    await page.waitForFunction(() => [...document.querySelectorAll(".thread-shot img")].every((img) => img.complete && img.naturalWidth > 0), null, { timeout: 8000 });
+    const blanks = await page.evaluate(async () => {
+      const home = document.querySelector(".thread-home");
+      const spacer = document.querySelector(".pin-spacer") || home;
+      const top = spacer.getBoundingClientRect().top + window.scrollY;
+      const distance = Math.max(1, spacer.offsetHeight - window.innerHeight);
+      const beats = document.querySelectorAll(".thread-beat").length;
+      const exitShare = 0.7 / (beats - 1 + 0.7);
+      const storySpan = 1 - exitShare;
+      const misses = [];
+      const seen = (scroll) => {
+        window.scrollTo(0, scroll);
+        const shots = [...document.querySelectorAll(".thread-shot")].filter((shot) => {
+          let opacity = 1;
+          let node = shot;
+          while (node && node !== document.body) {
+            opacity *= Number(getComputedStyle(node).opacity);
+            node = node.parentElement;
+          }
+          const rect = shot.getBoundingClientRect();
+          const image = shot.querySelector("img");
+          return opacity > 0.2 && rect.width > 40 && rect.bottom > 40 && rect.top < window.innerHeight - 40 && image && image.naturalWidth > 0;
+        });
+        return shots.length > 0;
+      };
+      for (let boundary = 1; boundary < beats - 1; boundary += 1) {
+        const at = top + distance * ((boundary / (beats - 1)) * storySpan);
+        for (let delta = -24; delta <= 24; delta += 2) {
+          if (!seen(at + delta)) misses.push(boundary);
+        }
+      }
+      return misses;
+    });
+    if (blanks.length) failures.push({ where: "shot handoff", message: `empty screenshot around step ${[...new Set(blanks)].join(", ")}` });
+    else log("screenshots stay visible across step boundaries");
+  } catch (error) {
+    failures.push({ where: "shot handoff", message: String(error).slice(0, 400) });
+  }
+  await browser.close();
 }
 
 async function checkFooterHolds() {
@@ -418,6 +473,7 @@ async function checkFooterHolds() {
 }
 
 await checkPhoneStory();
+await checkShotHandoff();
 await checkFooterHolds();
 await checkFooterHeading();
 
