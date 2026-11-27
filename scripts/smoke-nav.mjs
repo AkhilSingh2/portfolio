@@ -403,24 +403,31 @@ async function checkShotHandoff() {
       const exitShare = 0.7 / (beats - 1 + 0.7);
       const storySpan = 1 - exitShare;
       const misses = [];
-      const seen = async (scroll) => {
-        window.scrollTo(0, scroll);
-        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const shotVisible = () => {
         const active = document.querySelector(".thread-beat.is-active");
         if (active && !active.querySelector(".thread-shot")) return true;
-        const shots = [...document.querySelectorAll(".thread-shot")].filter((shot) => {
+        return [...document.querySelectorAll(".thread-shot")].some((shot) => {
           let opacity = 1;
           let node = shot;
           while (node && node !== document.body) {
-            opacity *= Number(getComputedStyle(node).opacity);
+            const style = getComputedStyle(node);
+            if (style.visibility === "hidden" || style.display === "none") return false;
+            opacity *= Number(style.opacity) || 0;
             node = node.parentElement;
           }
           const rect = shot.getBoundingClientRect();
           const image = shot.querySelector("img");
-          return opacity > 0.2 && rect.width > 40 && rect.bottom > 40 && rect.top < window.innerHeight - 40 && image && image.naturalWidth > 0;
+          return opacity > 0.2 && rect.width > 40 && rect.bottom > 40 && rect.top < innerHeight - 40 && image && image.naturalWidth > 0;
         });
-        return shots.length > 0;
       };
+      const seen = async (scroll) => {
+        window.scrollTo(0, scroll);
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        if (shotVisible()) return true;
+        await new Promise((resolve) => setTimeout(resolve, 120));
+        return shotVisible();
+      };
+      await seen(top + 8);
       for (let boundary = 1; boundary < beats - 1; boundary += 1) {
         const at = top + distance * ((boundary / (beats - 1)) * storySpan);
         for (let delta = -24; delta <= 24; delta += 2) {
